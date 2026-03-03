@@ -385,6 +385,12 @@ fuse-vertical-navigation {
 
         /* Normal Sidebar (240px) */
         .fuse-vertical-navigation-aside-wrapper {
+            /* Ensure header title in normal sidebar is visible */
+            > fuse-vertical-navigation-aside-item {
+                > .fuse-vertical-navigation-item-wrapper {
+                    display: block !important;
+                }
+            }
             position: relative !important;
             left: auto !important;
             right: auto !important;
@@ -510,7 +516,7 @@ fuse-vertical-navigation {
                         }
 
                         .fuse-vertical-navigation-item-icon {
-                            display: none;
+                            display: none !important;
                         }
 
                         .fuse-vertical-navigation-item-title-wrapper {
