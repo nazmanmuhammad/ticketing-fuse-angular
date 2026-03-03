@@ -1,4 +1,4 @@
-<div class="flex min-h-full w-full flex-col bg-gray-50 dark:bg-transparent">
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
     <!-- BREADCRUMB HEADER -->
     <div
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
@@ -10,7 +10,7 @@
             <span class="font-semibold text-primary">Tickets</span>
         </div>
     </div>
-    
+
     <!-- HEADER — sama persis dashboard -->
     <div
         class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
@@ -330,11 +330,16 @@
                                 >
                             </td>
                             <td class="max-w-xs px-6 py-4">
-                                <div
-                                    class="truncate font-semibold text-gray-900 dark:text-white"
+                                <a
+                                    class="truncate font-semibold text-gray-900 hover:text-indigo-600 dark:text-white"
+                                    [routerLink]="[
+                                        '/tickets',
+                                        'detail',
+                                        ticket.id,
+                                    ]"
                                 >
                                     {{ ticket.title }}
-                                </div>
+                                </a>
                                 <div
                                     class="text-secondary mt-0.5 truncate text-xs"
                                 >

@@ -21,6 +21,12 @@ const routes: Routes = [
             import('./create/create.component').then((m) => m.CreateComponent), // ← create component terpisah
         data: { title: 'Create Ticket' },
     },
+    {
+        path: 'detail/:id',
+        loadComponent: () =>
+            import('./detail/detail.component').then((m) => m.DetailComponent),
+        data: { title: 'Ticket Detail' },
+    },
 ];
 
 export default routes;
