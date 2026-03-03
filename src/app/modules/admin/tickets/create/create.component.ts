@@ -1,76 +1,93 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
 import {
-    FormsModule,
-    ReactiveFormsModule,
     FormBuilder,
     FormGroup,
+    FormsModule,
+    ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 
 @Component({
-    selector    : 'app-create',
-    standalone  : true,
-    imports     : [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
-    templateUrl : './create.component.html',
+    selector: 'app-create',
+    standalone: true,
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+    templateUrl: './create.component.html',
 })
 export class CreateComponent {
-    form         : FormGroup;
-    isDragging   = false;
+    form: FormGroup;
+    isDragging = false;
     uploadedFiles: File[] = [];
-    assignType   : 'member' | 'team' = 'member';
+    assignType: 'member' | 'team' = 'member';
     selectedAssignee = '';
 
     priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
     departments = ['IT', 'HR', 'Finance', 'Operations', 'Marketing'];
-    helpTopics  = ['General Inquiry', 'Technical Support', 'Billing', 'Sales', 'Other'];
-    slaOptions  = ['Default', '4 Hours', '8 Hours', '24 Hours', '48 Hours'];
+    helpTopics = [
+        'General Inquiry',
+        'Technical Support',
+        'Billing',
+        'Sales',
+        'Other',
+    ];
+    slaOptions = ['Default', '4 Hours', '8 Hours', '24 Hours', '48 Hours'];
     roleOptions = ['External', 'Internal', 'Partner', 'VIP'];
 
     members = [
-        { name: 'Alice',    avatar: 'A', color: 'bg-indigo-400' },
+        { name: 'Alice', avatar: 'A', color: 'bg-indigo-400' },
         { name: 'Jonathan', avatar: 'J', color: 'bg-orange-400' },
-        { name: 'Smith',    avatar: 'S', color: 'bg-teal-400'   },
-        { name: 'Vincent',  avatar: 'V', color: 'bg-purple-400' },
-        { name: 'Chris',    avatar: 'C', color: 'bg-blue-400'   },
+        { name: 'Smith', avatar: 'S', color: 'bg-teal-400' },
+        { name: 'Vincent', avatar: 'V', color: 'bg-purple-400' },
+        { name: 'Chris', avatar: 'C', color: 'bg-blue-400' },
     ];
 
     teams = [
-        { name: 'IT Support',    color: 'bg-indigo-400' },
-        { name: 'Network Team',  color: 'bg-blue-400'   },
-        { name: 'HR Department', color: 'bg-pink-400'   },
-        { name: 'Finance Team',  color: 'bg-yellow-400' },
-        { name: 'Operations',    color: 'bg-teal-400'   },
+        { name: 'IT Support', color: 'bg-indigo-400' },
+        { name: 'Network Team', color: 'bg-blue-400' },
+        { name: 'HR Department', color: 'bg-pink-400' },
+        { name: 'Finance Team', color: 'bg-yellow-400' },
+        { name: 'Operations', color: 'bg-teal-400' },
     ];
 
-    constructor(private fb: FormBuilder, private router: Router) {
+    constructor(
+        private fb: FormBuilder,
+        private router: Router
+    ) {
         this.form = this.fb.group({
-            email        : ['', [Validators.required, Validators.email]],
-            fullName     : ['', Validators.required],
-            phone        : [''],
-            extension    : [''],
-            ticketSource : ['', Validators.required],
-            department   : [''],
-            helpTopic    : [''],
-            subject      : ['', Validators.required],
-            issueDetail  : ['', Validators.required],
-            response     : [''],
-            markInternal : [false],
-            internalNote : [''],
-            priority     : ['Low'],
-            role         : ['External'],
-            assignType   : ['member'],
-            assignTo     : [''],
-            sla          : ['Default'],
+            email: ['', [Validators.required, Validators.email]],
+            fullName: ['', Validators.required],
+            phone: [''],
+            extension: [''],
+            ticketSource: ['', Validators.required],
+            department: [''],
+            helpTopic: [''],
+            subject: ['', Validators.required],
+            issueDetail: ['', Validators.required],
+            response: [''],
+            markInternal: [false],
+            internalNote: [''],
+            priority: ['Low'],
+            role: ['External'],
+            assignType: ['member'],
+            assignTo: [''],
+            sla: ['Default'],
             notifyOnResponse: [false],
         });
     }
 
     get assignOptions() {
         return this.assignType === 'member'
-            ? this.members.map(m => ({ name: m.name, initial: m.avatar, color: m.color }))
-            : this.teams.map(t => ({ name: t.name, initial: t.name.charAt(0), color: t.color }));
+            ? this.members.map((m) => ({
+                  name: m.name,
+                  initial: m.avatar,
+                  color: m.color,
+              }))
+            : this.teams.map((t) => ({
+                  name: t.name,
+                  initial: t.name.charAt(0),
+                  color: t.color,
+              }));
     }
 
     onAssignTypeChange(): void {
@@ -84,15 +101,15 @@ export class CreateComponent {
 
     getAssigneeColor(name: string): string {
         const all = [
-            ...this.members.map(m => ({ name: m.name, color: m.color })),
-            ...this.teams.map(t => ({ name: t.name, color: t.color })),
+            ...this.members.map((m) => ({ name: m.name, color: m.color })),
+            ...this.teams.map((t) => ({ name: t.name, color: t.color })),
         ];
-        return all.find(a => a.name === name)?.color ?? 'bg-indigo-400';
+        return all.find((a) => a.name === name)?.color ?? 'bg-indigo-400';
     }
 
     getAssigneeInitial(name: string): string {
         if (!name) return '';
-        const member = this.members.find(m => m.name === name);
+        const member = this.members.find((m) => m.name === name);
         return member ? member.avatar : name.charAt(0).toUpperCase();
     }
 
@@ -107,7 +124,9 @@ export class CreateComponent {
         this.isDragging = true;
     }
 
-    onDragLeave(): void { this.isDragging = false; }
+    onDragLeave(): void {
+        this.isDragging = false;
+    }
 
     onDrop(event: DragEvent): void {
         event.preventDefault();
