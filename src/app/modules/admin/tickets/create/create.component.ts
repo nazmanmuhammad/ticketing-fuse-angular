@@ -8,11 +8,13 @@ import {
     Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-create',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './create.component.html',
 })
 export class CreateComponent {
@@ -35,11 +37,11 @@ export class CreateComponent {
     roleOptions = ['External', 'Internal', 'Partner', 'VIP'];
 
     members = [
-        { name: 'Alice', avatar: 'A', color: 'bg-indigo-400' },
-        { name: 'Jonathan', avatar: 'J', color: 'bg-orange-400' },
-        { name: 'Smith', avatar: 'S', color: 'bg-teal-400' },
-        { name: 'Vincent', avatar: 'V', color: 'bg-purple-400' },
-        { name: 'Chris', avatar: 'C', color: 'bg-blue-400' },
+        { name: 'Alice', avatar: 'A', color: 'bg-indigo-400', image: 'images/avatars/female-01.jpg' },
+        { name: 'Jonathan', avatar: 'J', color: 'bg-orange-400', image: 'images/avatars/male-01.jpg' },
+        { name: 'Smith', avatar: 'S', color: 'bg-teal-400', image: 'images/avatars/male-02.jpg' },
+        { name: 'Vincent', avatar: 'V', color: 'bg-purple-400', image: 'images/avatars/male-03.jpg' },
+        { name: 'Chris', avatar: 'C', color: 'bg-blue-400', image: 'images/avatars/male-04.jpg' },
     ];
 
     teams = [
@@ -74,25 +76,31 @@ export class CreateComponent {
             sla: ['Default'],
             notifyOnResponse: [false],
         });
+        this.updateAssignOptions();
     }
 
-    get assignOptions() {
-        return this.assignType === 'member'
+    assignOptions: any[] = [];
+
+    updateAssignOptions() {
+        this.assignOptions = this.assignType === 'member'
             ? this.members.map((m) => ({
                   name: m.name,
                   initial: m.avatar,
                   color: m.color,
+                  image: m.image,
               }))
             : this.teams.map((t) => ({
                   name: t.name,
                   initial: t.name.charAt(0),
                   color: t.color,
+                  image: null,
               }));
     }
 
     onAssignTypeChange(): void {
         this.selectedAssignee = '';
         this.form.patchValue({ assignTo: '', assignType: this.assignType });
+        this.updateAssignOptions();
     }
 
     onAssigneeChange(): void {
@@ -111,6 +119,12 @@ export class CreateComponent {
         if (!name) return '';
         const member = this.members.find((m) => m.name === name);
         return member ? member.avatar : name.charAt(0).toUpperCase();
+    }
+
+    getAssigneeImage(name: string): string | null {
+        if (!name) return null;
+        const member = this.members.find((m: any) => m.name === name);
+        return member?.image || null;
     }
 
     clearAssignee(): void {

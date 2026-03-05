@@ -8,6 +8,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterModule } from '@angular/router';
 
 type Status = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -26,7 +28,7 @@ interface AccessRequest {
 @Component({
     selector: 'app-access-request-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './request.component.html',
     animations: [
         trigger('collapseFilter', [
@@ -309,4 +311,3 @@ export class AccessRequestListComponent {
         console.log('Action:', request);
     }
 }
-

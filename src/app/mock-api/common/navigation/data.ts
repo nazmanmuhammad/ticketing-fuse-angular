@@ -3,6 +3,21 @@ import { FuseNavigationItem } from '@fuse/components/navigation';
 
 export const defaultNavigation: FuseNavigationItem[] = [
     {
+        id: 'dashboard',
+        title: 'Dashboard',
+        type: 'aside',
+        icon: 'heroicons_outline:squares-2x2',
+        children: [
+            {
+                id: 'dashboard.index',
+                title: 'Dashboard',
+                type: 'basic',
+                icon: 'heroicons_outline:squares-2x2',
+                link: '/dashboard',
+            },
+        ],
+    },
+    {
         id: 'tickets',
         title: 'Tickets',
         type: 'aside',
@@ -129,22 +144,29 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 title: 'User',
                 type: 'basic',
                 icon: 'heroicons_outline:users',
-                link: '/example',
+                link: '/master-data/users',
+            },
+            {
+                id: 'master_data.department',
+                title: 'Department',
+                type: 'basic',
+                icon: 'heroicons_outline:building-office',
+                link: '/master-data/departments',
             },
             {
                 id: 'master_data.team',
                 title: 'Team',
                 type: 'basic',
                 icon: 'heroicons_outline:user-group',
-                link: '/example',
+                link: '/master-data/teams',
             },
-            {
-                id: 'master_data.department',
-                title: 'Department',
-                type: 'basic',
-                icon: 'heroicons_outline:rectangle-group',
-                link: '/example',
-            },
+            // {
+            //     id: 'master_data.department',
+            //     title: 'Department',
+            //     type: 'basic',
+            //     icon: 'heroicons_outline:rectangle-group',
+            //     link: '/example',
+            // },
         ],
     },
 ];

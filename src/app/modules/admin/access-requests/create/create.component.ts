@@ -8,11 +8,13 @@ import {
     Validators,
 } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 
 @Component({
     selector: 'app-create-access-request',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './create.component.html',
 })
 export class CreateAccessRequestComponent {
@@ -29,10 +31,10 @@ export class CreateAccessRequestComponent {
     durationTypes = ['Temporary Access', 'Permanent Access'];
 
     members = [
-        { name: 'Alice Smith', avatar: 'A', color: 'bg-indigo-400' },
-        { name: 'Bob Jones', avatar: 'B', color: 'bg-orange-400' },
-        { name: 'Charlie Day', avatar: 'C', color: 'bg-teal-400' },
-        { name: 'Diana Prince', avatar: 'D', color: 'bg-purple-400' },
+        { name: 'Alice Smith', avatar: 'A', color: 'bg-indigo-400', image: 'images/avatars/female-09.jpg' },
+        { name: 'Bob Jones', avatar: 'B', color: 'bg-orange-400', image: 'images/avatars/male-09.jpg' },
+        { name: 'Charlie Day', avatar: 'C', color: 'bg-teal-400', image: 'images/avatars/male-10.jpg' },
+        { name: 'Diana Prince', avatar: 'D', color: 'bg-purple-400', image: 'images/avatars/female-10.jpg' },
     ];
 
     teams = [
@@ -67,25 +69,31 @@ export class CreateAccessRequestComponent {
             notifyRequester: [false],
             requireManagerApproval: [false],
         });
+        this.updateAssignOptions();
     }
 
-    get assignOptions() {
-        return this.assignType === 'member'
+    assignOptions: any[] = [];
+
+    updateAssignOptions() {
+        this.assignOptions = this.assignType === 'member'
             ? this.members.map((m) => ({
                   name: m.name,
                   initial: m.avatar,
                   color: m.color,
+                  image: m.image,
               }))
             : this.teams.map((t) => ({
                   name: t.name,
                   initial: t.name.charAt(0),
                   color: t.color,
+                  image: null,
               }));
     }
 
     onAssignTypeChange(): void {
         this.selectedAssignee = '';
         this.form.patchValue({ assignTo: '', assignType: this.assignType });
+        this.updateAssignOptions();
     }
 
     onAssigneeChange(): void {
@@ -104,6 +112,12 @@ export class CreateAccessRequestComponent {
         if (!name) return '';
         const member = this.members.find((m) => m.name === name);
         return member ? member.avatar : name.charAt(0).toUpperCase();
+    }
+
+    getAssigneeImage(name: string): string | null {
+        if (!name) return null;
+        const member = this.members.find((m: any) => m.name === name);
+        return member?.image || null;
     }
 
     clearAssignee(): void {

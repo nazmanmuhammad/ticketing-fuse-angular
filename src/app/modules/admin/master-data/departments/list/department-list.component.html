@@ -1,0 +1,150 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    
+    <!-- Top Header -->
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Department Management</span>
+        <div class="flex items-center gap-1 text-gray-500">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span>Master Data</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Department</span>
+        </div>
+    </div>
+
+    <!-- Filter/Action Bar Card -->
+    <div class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Department Management</h2>
+                <p class="mt-0.5 text-sm text-gray-500">Manage and filter your departments</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Filter -->
+                <button (click)="filterOpen = !filterOpen" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:funnel'" class="icon-size-4"></mat-icon>
+                    Filter
+                </button>
+                <!-- Reset -->
+                <button (click)="resetFilter()" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path'" class="icon-size-4"></mat-icon>
+                    Reset
+                </button>
+                <!-- Export -->
+                <button class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-down-tray'" class="icon-size-4 text-white"></mat-icon>
+                    Export
+                </button>
+                <!-- Add Department -->
+                <button (click)="openDepartmentDialog()" class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'" class="icon-size-4 text-white"></mat-icon>
+                    Add Department
+                </button>
+                 <!-- Chevron for Filter -->
+                <button (click)="filterOpen = !filterOpen" class="ml-1 rounded-full border border-gray-200 p-2 text-gray-400 transition hover:bg-gray-50">
+                     <mat-icon [svgIcon]="'heroicons_outline:chevron-down'" class="icon-size-4 transition-transform duration-300" [class.rotate-180]="filterOpen"></mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Collapsible Filter Content -->
+        <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
+             <div class="flex flex-wrap items-end gap-4">
+                <!-- Search -->
+                <div class="flex min-w-56 flex-1 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Search</label>
+                    <div class="relative">
+                        <input type="text" [(ngModel)]="filter.name" placeholder="Search by name..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
+                        <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="absolute right-3 top-2.5 icon-size-4 text-gray-400"></mat-icon>
+                    </div>
+                </div>
+                <!-- Status -->
+                <div class="flex min-w-40 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
+                    <select class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" [(ngModel)]="filter.status">
+                        <option value="">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Table) -->
+    <div class="mx-8 mb-8 overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-card">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+                <thead class="bg-white text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400 border-b border-gray-100">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 font-semibold">ID</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Department</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Head</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Created At</th>
+                        <th scope="col" class="px-6 py-4 font-semibold text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tr *ngFor="let dept of departments" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+                        <td class="px-6 py-4 font-medium text-blue-600">#{{ dept.id }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex flex-col">
+                                <span class="font-bold text-gray-900 dark:text-white text-base">{{ dept.name }}</span>
+                                <span class="text-xs text-gray-500 mt-1 truncate max-w-[200px]">{{ dept.description }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <img [src]="dept.head?.avatar || 'assets/images/avatars/male-01.jpg'" class="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm">
+                                <span class="font-bold text-gray-900 dark:text-white">{{ dept.head?.fullName || '-' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-gray-900 dark:text-white uppercase">{{ dept.status }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500">{{ dept.createdAt }}</td>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button (click)="openDepartmentDialog(dept)" class="text-gray-500 hover:text-blue-600 transition-colors">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil-square'" class="icon-size-5"></mat-icon>
+                                </button>
+                                <button (click)="deleteDepartment(dept)" class="text-gray-500 hover:text-red-600 transition-colors">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="icon-size-5"></mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex items-center justify-end border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Items per page:</span>
+                <select class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm focus:border-blue-500 focus:outline-none dark:bg-gray-700 dark:border-gray-600">
+                    <option>5</option>
+                    <option>10</option>
+                    <option>20</option>
+                </select>
+                <span class="mx-4 text-sm text-gray-500">0 of 0</span>
+                <div class="flex gap-1">
+                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <mat-icon [svgIcon]="'heroicons_outline:chevron-double-left'" class="icon-size-5"></mat-icon>
+                    </button>
+                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-5"></mat-icon>
+                    </button>
+                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-5"></mat-icon>
+                    </button>
+                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
+                        <mat-icon [svgIcon]="'heroicons_outline:chevron-double-right'" class="icon-size-5"></mat-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

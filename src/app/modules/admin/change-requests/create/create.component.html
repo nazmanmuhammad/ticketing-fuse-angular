@@ -91,7 +91,7 @@
                             <label class="text-secondary mb-1.5 block text-xs font-medium">Email Address <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -107,7 +107,7 @@
                                     type="email"
                                     formControlName="email"
                                     placeholder="Email Address*"
-                                    class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('email')?.invalid &&
                                         form.get('email')?.touched
@@ -122,7 +122,7 @@
                             <label class="text-secondary mb-1.5 block text-xs font-medium">Full Name <span class="text-red-500">*</span></label>
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -138,7 +138,7 @@
                                     type="text"
                                     formControlName="fullName"
                                     placeholder="Full Name*"
-                                    class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('fullName')?.invalid &&
                                         form.get('fullName')?.touched
@@ -153,7 +153,7 @@
                             <label class="text-secondary mb-1.5 block text-xs font-medium">Phone Number</label>
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -169,7 +169,7 @@
                                     type="tel"
                                     formControlName="phone"
                                     placeholder="Phone Number"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 />
                             </div>
                         </div>
@@ -178,7 +178,7 @@
                             <label class="text-secondary mb-1.5 block text-xs font-medium">Extension Number</label>
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -194,7 +194,7 @@
                                     type="text"
                                     formControlName="extension"
                                     placeholder="Extension Number"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 />
                             </div>
                         </div>
@@ -240,7 +240,7 @@
                         </label>
                         <div class="relative">
                             <svg
-                                class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -256,7 +256,7 @@
                                 type="text"
                                 formControlName="subject"
                                 placeholder="Subject*"
-                                class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 [ngClass]="
                                     form.get('subject')?.invalid &&
                                     form.get('subject')?.touched
@@ -275,54 +275,29 @@
                             Application <span class="text-red-500">*</span>
                         </label>
                         <div class="relative">
-                            <svg
-                                class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
-                                />
-                            </svg>
-                            <select
-                                formControlName="application"
-                                class="appearance-none w-full rounded-xl border bg-gray-50 px-3 py-2.5 pl-10 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                [ngClass]="
-                                    form.get('application')?.invalid &&
-                                    form.get('application')?.touched
-                                        ? 'border-red-300'
-                                        : 'border-gray-200'
-                                "
-                            >
-                                <option value="">Application</option>
-                                <option
-                                    *ngFor="let app of applications"
-                                    [value]="app"
-                                >
-                                    {{ app }}
-                                </option>
-                            </select>
-                            <div
-                                class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                            >
-                                <svg
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M19 9l-7 7-7-7"
-                                    />
-                                </svg>
-                            </div>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <span matPrefix class="flex items-center ml-3 mr-2 text-gray-400">
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
+                                        />
+                                    </svg>
+                                </span>
+                                <mat-select formControlName="application" placeholder="Application">
+                                    <mat-option value="">Application</mat-option>
+                                    <mat-option *ngFor="let app of applications" [value]="app">
+                                        {{ app }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
                     </div>
 
@@ -583,31 +558,14 @@ Be as specific as possible to help us resolve your issue faster"
                                 >Priority</label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="priority"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let p of priorities">
-                                        {{ p }}
-                                    </option>
-                                </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select formControlName="priority" placeholder="Priority">
+                                        <mat-option *ngFor="let p of priorities" [value]="p">
+                                            {{ p }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                
                             </div>
                         </div>
 
@@ -675,31 +633,20 @@ Be as specific as possible to help us resolve your issue faster"
                             </div>
 
                             <!-- Dropdown -->
-                            <div class="relative">
-                                <!-- Avatar preview di kiri -->
-                                <div
-                                    class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                                >
-                                    <ng-container
-                                        *ngIf="
-                                            selectedAssignee;
-                                            else iconDefault
-                                        "
-                                    >
-                                        <div
-                                            class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                                            [ngClass]="
-                                                getAssigneeColor(
-                                                    selectedAssignee
-                                                )
-                                            "
-                                        >
-                                            {{
-                                                getAssigneeInitial(
-                                                    selectedAssignee
-                                                )
-                                            }}
-                                        </div>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <span matPrefix class="ml-2 mr-2 flex items-center">
+                                    <ng-container *ngIf="selectedAssignee; else iconDefault">
+                                        <ng-container *ngIf="getAssigneeImage(selectedAssignee); else initialOnly">
+                                            <img [src]="getAssigneeImage(selectedAssignee)" class="h-5 w-5 rounded-full object-cover">
+                                        </ng-container>
+                                        <ng-template #initialOnly>
+                                            <div
+                                                class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                                                [ngClass]="getAssigneeColor(selectedAssignee)"
+                                            >
+                                                {{ getAssigneeInitial(selectedAssignee) }}
+                                            </div>
+                                        </ng-template>
                                     </ng-container>
                                     <ng-template #iconDefault>
                                         <svg
@@ -714,60 +661,56 @@ Be as specific as possible to help us resolve your issue faster"
                                             />
                                         </svg>
                                     </ng-template>
-                                </div>
-                                <select
+                                </span>
+                                <mat-select
                                     [(ngModel)]="selectedAssignee"
                                     [ngModelOptions]="{ standalone: true }"
-                                    (ngModelChange)="onAssigneeChange()"
-                                    class="appearance-none w-full rounded-xl border border-indigo-300 bg-white py-2.5 pl-10 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    (selectionChange)="onAssigneeChange()"
+                                    [placeholder]="assignType === 'member' ? 'Select Member' : 'Select Team'"
                                 >
-                                    <option value="" disabled>
-                                        Select
-                                        {{
-                                            assignType === 'member'
-                                                ? 'Member'
-                                                : 'Team'
-                                        }}
-                                    </option>
-                                    <option
+                                    <mat-option [value]="" disabled>
+                                        Select {{ assignType === 'member' ? 'Member' : 'Team' }}
+                                    </mat-option>
+                                    <mat-option
                                         *ngFor="let opt of assignOptions"
                                         [value]="opt.name"
                                     >
-                                        {{ opt.name }}
-                                    </option>
-                                </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
-                            </div>
+                                        <div class="flex items-center gap-2">
+                                            <ng-container *ngIf="opt.image; else optInitial">
+                                                <img [src]="opt.image" class="h-6 w-6 rounded-full object-cover">
+                                            </ng-container>
+                                            <ng-template #optInitial>
+                                                <div
+                                                    class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                                    [ngClass]="opt.color"
+                                                >
+                                                    {{ opt.initial }}
+                                                </div>
+                                            </ng-template>
+                                            <span>{{ opt.name }}</span>
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
 
                             <!-- Chip selected -->
                             <div
                                 *ngIf="selectedAssignee"
                                 class="mt-2 flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2"
                             >
-                                <div
-                                    class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                                    [ngClass]="
-                                        getAssigneeColor(selectedAssignee)
-                                    "
-                                >
-                                    {{ getAssigneeInitial(selectedAssignee) }}
-                                </div>
+                                <ng-container *ngIf="getAssigneeImage(selectedAssignee); else chipInitial">
+                                    <img [src]="getAssigneeImage(selectedAssignee)" class="h-6 w-6 rounded-full object-cover flex-shrink-0">
+                                </ng-container>
+                                <ng-template #chipInitial>
+                                    <div
+                                        class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                        [ngClass]="
+                                            getAssigneeColor(selectedAssignee)
+                                        "
+                                    >
+                                        {{ getAssigneeInitial(selectedAssignee) }}
+                                    </div>
+                                </ng-template>
                                 <div class="min-w-0 flex-1">
                                     <p
                                         class="truncate text-sm font-medium text-gray-900"
@@ -825,31 +768,14 @@ Be as specific as possible to help us resolve your issue faster"
                                 >Impact</label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="impact"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let i of impacts">
-                                        {{ i }}
-                                    </option>
-                                </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select formControlName="impact" placeholder="Impact">
+                                        <mat-option *ngFor="let i of impacts" [value]="i">
+                                            {{ i }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                               
                             </div>
                         </div>
 
@@ -860,31 +786,14 @@ Be as specific as possible to help us resolve your issue faster"
                                 >Risk</label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="risk"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let r of risks">
-                                        {{ r }}
-                                    </option>
-                                </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select formControlName="risk" placeholder="Risk">
+                                        <mat-option *ngFor="let r of risks" [value]="r">
+                                            {{ r }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                
                             </div>
                         </div>
                     </div>
@@ -907,31 +816,13 @@ Be as specific as possible to help us resolve your issue faster"
                                 >SLA Plan</label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="sla"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let s of slaOptions">
-                                        {{ s }}
-                                    </option>
-                                </select>
-                                <div
-                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M19 9l-7 7-7-7"
-                                        />
-                                    </svg>
-                                </div>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select formControlName="sla" placeholder="SLA Plan">
+                                        <mat-option *ngFor="let s of slaOptions" [value]="s">
+                                            {{ s }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </div>
                         </div>
                         <label

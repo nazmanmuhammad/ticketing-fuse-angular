@@ -356,6 +356,9 @@ export class FuseVerticalNavigationComponent
                 takeUntil(this._unsubscribeAll)
             )
             .subscribe(() => {
+                // Update active aside item based on URL
+                this._updateActiveAsideItemFromUrl();
+
                 // If the mode is 'over' and the navigation is opened...
                 if (this.mode === 'over' && this.opened) {
                     // Close the navigation
@@ -445,25 +448,9 @@ export class FuseVerticalNavigationComponent
                 );
             }
 
-            // Auto-select first aside item for thin appearance
+            // Auto-select aside item for thin appearance
             if (this.appearance === 'thin' && this.mode === 'side') {
-                if (this.navigation && this.navigation.length > 0) {
-                    const firstAsideItem = this.navigation.find(
-                        (item) =>
-                            item.type === 'aside' &&
-                            (!item.hidden ||
-                                (item.hidden && !item.hidden(item)))
-                    );
-
-                    if (firstAsideItem && !this.activeAsideItemId) {
-                        console.log(
-                            '🎯 Auto-selecting first aside item:',
-                            firstAsideItem.title
-                        );
-                        this.activeAsideItemId = firstAsideItem.id;
-                        this._changeDetectorRef.detectChanges();
-                    }
-                }
+                this._updateActiveAsideItemFromUrl();
             }
         });
     }
@@ -648,7 +635,10 @@ export class FuseVerticalNavigationComponent
      */
     closeAside(): void {
         // Don't close for thin in side mode
-        if (this.appearance === 'thin' && this.mode === 'side') {
+        if (
+            (this.appearance === 'thin' || this.appearance === 'compact') &&
+            this.mode === 'side'
+        ) {
             return;
         }
 
@@ -669,13 +659,17 @@ export class FuseVerticalNavigationComponent
         );
 
         // For thin in side mode, switch between items
-        if (this.appearance === 'thin' && this.mode === 'side') {
+        if (
+            (this.appearance === 'thin' || this.appearance === 'compact') &&
+            this.mode === 'side'
+        ) {
             if (this.activeAsideItemId === item.id) {
                 console.log('Same item, keeping open');
                 return;
             } else {
                 console.log('Different item, switching');
                 this.openAside(item);
+                this._navigateToFirstChild(item);
             }
         } else {
             // Default: toggle open/close
@@ -852,5 +846,88 @@ export class FuseVerticalNavigationComponent
         }
 
         this.openedChanged.next(open);
+    }
+
+    private _hasActiveChild(item: FuseNavigationItem, currentUrl: string): boolean {
+        const children = item.children;
+
+        if (!children) {
+            return false;
+        }
+
+        for (const child of children) {
+            if (child.children) {
+                if (this._hasActiveChild(child, currentUrl)) {
+                    return true;
+                }
+            }
+
+            if (child.link && this._router.isActive(child.link, child.exactMatch || false)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private _updateActiveAsideItemFromUrl(): void {
+        if (
+            (this.appearance !== 'thin' && this.appearance !== 'compact') ||
+            this.mode !== 'side' ||
+            !this.navigation
+        ) {
+            return;
+        }
+
+        // Find the item that matches the current URL
+        let activeItem = this.navigation.find(
+            (item) =>
+                item.type === 'aside' &&
+                this._hasActiveChild(item, this._router.url)
+        );
+
+        // If no matching item found, fall back to the first aside item
+        if (!activeItem) {
+            activeItem = this.navigation.find(
+                (item) =>
+                    item.type === 'aside' &&
+                    (!item.hidden || (item.hidden && !item.hidden(item)))
+            );
+        }
+
+        if (activeItem) {
+            // Only update if changed to prevent unnecessary detection cycles
+            if (this.activeAsideItemId !== activeItem.id) {
+                console.log('🎯 Auto-selecting aside item:', activeItem.title);
+                this.activeAsideItemId = activeItem.id;
+                this._changeDetectorRef.markForCheck();
+            }
+        }
+    }
+
+    private _navigateToFirstChild(item: FuseNavigationItem): void {
+        const firstChild = this._findFirstChildWithLink(item);
+        if (firstChild && firstChild.link) {
+            this._router.navigate([firstChild.link]);
+        }
+    }
+
+    private _findFirstChildWithLink(item: FuseNavigationItem): FuseNavigationItem | null {
+        if (!item.children) {
+            return null;
+        }
+
+        for (const child of item.children) {
+            if (child.type === 'basic' && child.link) {
+                return child;
+            }
+            if (child.children) {
+                const found = this._findFirstChildWithLink(child);
+                if (found) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 }

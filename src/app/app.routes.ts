@@ -114,6 +114,11 @@ export const appRoutes: Route[] = [
         },
         children: [
             {
+                path: 'dashboard',
+                loadChildren: () =>
+                    import('app/modules/admin/dashboard/dashboard.routes'),
+            },
+            {
                 path: 'example',
                 loadChildren: () =>
                     import('app/modules/admin/example/example.routes'),
@@ -135,6 +140,27 @@ export const appRoutes: Route[] = [
                 loadChildren: () =>
                     import(
                         'app/modules/admin/change-requests/change-requests.routes'
+                    ),
+            },
+            {
+                path: 'master-data/users',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/users/users.routes'
+                    ),
+            },
+            {
+                path: 'master-data/teams',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/teams/teams.routes'
+                    ),
+            },
+            {
+                path: 'master-data/departments',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/departments/departments.routes'
                     ),
             },
         ],

@@ -926,6 +926,32 @@
             }
         }
     }
+
+    /* Global style for selects to match rounded inputs */
+    &.mat-mdc-form-field-type-mat-select {
+        .mat-mdc-text-field-wrapper {
+            .mat-mdc-form-field-flex {
+                .mdc-notched-outline {
+                    .mdc-notched-outline__leading {
+                        border-top-left-radius: 12px !important;
+                        border-bottom-left-radius: 12px !important;
+                    }
+                    .mdc-notched-outline__trailing {
+                        border-top-right-radius: 12px !important;
+                        border-bottom-right-radius: 12px !important;
+                    }
+                }
+            }
+        }
+
+        .mat-mdc-form-field-infix {
+             min-height: 48px !important;
+             padding-top: 8px !important;
+             padding-bottom: 8px !important;
+             display: flex;
+             align-items: center;
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1085,9 +1111,13 @@
     }
 
     .mat-mdc-select-trigger {
+        display: flex;
+        align-items: center;
+
         .mat-mdc-select-value {
             position: relative;
             display: flex;
+            align-items: center;
             max-width: none;
 
             .mat-mdc-select-value-text {

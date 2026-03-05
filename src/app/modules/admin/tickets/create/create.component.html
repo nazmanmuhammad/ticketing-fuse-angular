@@ -96,7 +96,7 @@
                             </label>
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -112,7 +112,7 @@
                                     type="email"
                                     formControlName="email"
                                     placeholder="Email Address*"
-                                    class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('email')?.invalid &&
                                         form.get('email')?.touched
@@ -140,7 +140,7 @@
                             </label>
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -156,7 +156,7 @@
                                     type="text"
                                     formControlName="fullName"
                                     placeholder="Full Name*"
-                                    class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('fullName')?.invalid &&
                                         form.get('fullName')?.touched
@@ -174,7 +174,7 @@
                             >
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -190,7 +190,7 @@
                                     type="tel"
                                     formControlName="phone"
                                     placeholder="Phone Number"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 />
                             </div>
                         </div>
@@ -202,7 +202,7 @@
                             >
                             <div class="relative">
                                 <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -218,7 +218,7 @@
                                     type="text"
                                     formControlName="extension"
                                     placeholder="Extension Number"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 />
                             </div>
                         </div>
@@ -264,16 +264,15 @@
                                 Ticket Source
                                 <span class="text-red-500">*</span>
                             </label>
-                            <select
-                                formControlName="ticketSource"
-                                class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                            >
-                                <option value="">Ticket Source</option>
-                                <option>Email</option>
-                                <option>Phone</option>
-                                <option>Web Portal</option>
-                                <option>Walk-in</option>
-                            </select>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="ticketSource" placeholder="Ticket Source">
+                                    <mat-option value="">Ticket Source</mat-option>
+                                    <mat-option value="Email">Email</mat-option>
+                                    <mat-option value="Phone">Phone</mat-option>
+                                    <mat-option value="Web Portal">Web Portal</mat-option>
+                                    <mat-option value="Walk-in">Walk-in</mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
                         <!-- Department -->
                         <div class="relative">
@@ -281,15 +280,14 @@
                                 class="text-secondary mb-1.5 block text-xs font-medium"
                                 >Department</label
                             >
-                            <select
-                                formControlName="department"
-                                class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                            >
-                                <option value="">Department</option>
-                                <option *ngFor="let d of departments">
-                                    {{ d }}
-                                </option>
-                            </select>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="department" placeholder="Department">
+                                    <mat-option value="">Department</mat-option>
+                                    <mat-option *ngFor="let d of departments" [value]="d">
+                                        {{ d }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
                         <!-- Help Topic -->
                         <div class="relative">
@@ -297,15 +295,14 @@
                                 class="text-secondary mb-1.5 block text-xs font-medium"
                                 >Help Topic</label
                             >
-                            <select
-                                formControlName="helpTopic"
-                                class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                            >
-                                <option value="">Help Topic</option>
-                                <option *ngFor="let h of helpTopics">
-                                    {{ h }}
-                                </option>
-                            </select>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="helpTopic" placeholder="Help Topic">
+                                    <mat-option value="">Help Topic</mat-option>
+                                    <mat-option *ngFor="let h of helpTopics" [value]="h">
+                                        {{ h }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
                     </div>
                     <!-- Subject -->
@@ -318,7 +315,7 @@
                         </label>
                         <div class="relative">
                             <svg
-                                class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -334,7 +331,7 @@
                                 type="text"
                                 formControlName="subject"
                                 placeholder="Subject / Issue Summary*"
-                                class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 [ngClass]="
                                     form.get('subject')?.invalid &&
                                     form.get('subject')?.touched
@@ -604,14 +601,13 @@
                                 >Priority</label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="priority"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let p of priorities">
-                                        {{ p }}
-                                    </option>
-                                </select>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select formControlName="priority" placeholder="Priority">
+                                        <mat-option *ngFor="let p of priorities" [value]="p">
+                                            {{ p }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </div>
                         </div>
 
@@ -622,14 +618,13 @@
                                 >Role</label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="role"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let r of roleOptions">
-                                        {{ r }}
-                                    </option>
-                                </select>
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select formControlName="role" placeholder="Role">
+                                        <mat-option *ngFor="let r of roleOptions" [value]="r">
+                                            {{ r }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </div>
                         </div>
 
@@ -697,31 +692,20 @@
                             </div>
 
                             <!-- Dropdown -->
-                            <div class="relative">
-                                <!-- Avatar preview di kiri -->
-                                <div
-                                    class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                                >
-                                    <ng-container
-                                        *ngIf="
-                                            selectedAssignee;
-                                            else iconDefault
-                                        "
-                                    >
-                                        <div
-                                            class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                                            [ngClass]="
-                                                getAssigneeColor(
-                                                    selectedAssignee
-                                                )
-                                            "
-                                        >
-                                            {{
-                                                getAssigneeInitial(
-                                                    selectedAssignee
-                                                )
-                                            }}
-                                        </div>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <span matPrefix class="ml-2 mr-2 flex items-center">
+                                    <ng-container *ngIf="selectedAssignee; else iconDefault">
+                                        <ng-container *ngIf="getAssigneeImage(selectedAssignee); else initialOnly">
+                                            <img [src]="getAssigneeImage(selectedAssignee)" class="h-5 w-5 rounded-full object-cover">
+                                        </ng-container>
+                                        <ng-template #initialOnly>
+                                            <div
+                                                class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                                                [ngClass]="getAssigneeColor(selectedAssignee)"
+                                            >
+                                                {{ getAssigneeInitial(selectedAssignee) }}
+                                            </div>
+                                        </ng-template>
                                     </ng-container>
                                     <ng-template #iconDefault>
                                         <svg
@@ -736,29 +720,37 @@
                                             />
                                         </svg>
                                     </ng-template>
-                                </div>
-                                <select
+                                </span>
+                                <mat-select
                                     [(ngModel)]="selectedAssignee"
                                     [ngModelOptions]="{ standalone: true }"
-                                    (ngModelChange)="onAssigneeChange()"
-                                    class="appearance-none w-full rounded-xl border border-indigo-300 bg-white py-2.5 pl-10 pr-8 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    (selectionChange)="onAssigneeChange()"
+                                    [placeholder]="assignType === 'member' ? 'Select Member' : 'Select Team'"
                                 >
-                                    <option value="" disabled>
-                                        Select
-                                        {{
-                                            assignType === 'member'
-                                                ? 'Member'
-                                                : 'Team'
-                                        }}
-                                    </option>
-                                    <option
+                                    <mat-option [value]="" disabled>
+                                        Select {{ assignType === 'member' ? 'Member' : 'Team' }}
+                                    </mat-option>
+                                    <mat-option
                                         *ngFor="let opt of assignOptions"
                                         [value]="opt.name"
                                     >
-                                        {{ opt.name }}
-                                    </option>
-                                </select>
-                            </div>
+                                        <div class="flex items-center gap-2">
+                                            <ng-container *ngIf="opt.image; else optInitial">
+                                                <img [src]="opt.image" class="h-6 w-6 rounded-full object-cover">
+                                            </ng-container>
+                                            <ng-template #optInitial>
+                                                <div
+                                                    class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                                    [ngClass]="opt.color"
+                                                >
+                                                    {{ opt.initial }}
+                                                </div>
+                                            </ng-template>
+                                            <span>{{ opt.name }}</span>
+                                        </div>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
 
                             <!-- Chip selected -->
                             <div
@@ -817,16 +809,13 @@
                                 class="text-secondary mb-1.5 block text-xs font-medium"
                                 >SLA Plan</label
                             >
-                            <div class="relative">
-                                <select
-                                    formControlName="sla"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let s of slaOptions">
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="sla" placeholder="SLA Plan">
+                                    <mat-option *ngFor="let s of slaOptions" [value]="s">
                                         {{ s }}
-                                    </option>
-                                </select>
-                            </div>
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
                         <label
                             class="mt-4 flex cursor-pointer items-center gap-2"

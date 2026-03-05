@@ -2,10 +2,15 @@ import { Routes } from '@angular/router';
 
 const routes: Routes = [
     {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+    },
+    {
         path: 'dashboard',
         loadComponent: () =>
-            import('./request/request.component').then(
-                (m) => m.AccessRequestListComponent
+            import('./dashboard/dashboard.component').then(
+                (m) => m.AccessRequestDashboardComponent
             ),
         data: { title: 'Access Requests Dashboard' },
     },

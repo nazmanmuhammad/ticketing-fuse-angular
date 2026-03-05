@@ -8,6 +8,8 @@ import {
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
 
 type Status = 'OPEN' | 'INPROGRESS' | 'CLOSED';
@@ -28,7 +30,7 @@ interface ChangeRequest {
 @Component({
     selector: 'app-change-request-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule],
+    imports: [CommonModule, FormsModule, RouterModule, MatFormFieldModule, MatSelectModule],
     templateUrl: './request.component.html',
     animations: [
         trigger('collapseFilter', [

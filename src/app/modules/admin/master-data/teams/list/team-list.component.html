@@ -1,0 +1,132 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    
+    <!-- Top Header -->
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Team Management</span>
+        <div class="flex items-center gap-1 text-gray-500">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span>Master Data</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Team</span>
+        </div>
+    </div>
+
+    <!-- Filter/Action Bar Card -->
+    <div class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Team Management</h2>
+                <p class="mt-0.5 text-sm text-gray-500">Manage and filter your teams</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Filter -->
+                <button (click)="filterOpen = !filterOpen" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:funnel'" class="icon-size-4"></mat-icon>
+                    Filter
+                </button>
+                <!-- Reset -->
+                <button (click)="searchQuery=''" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path'" class="icon-size-4"></mat-icon>
+                    Reset
+                </button>
+                <!-- Export -->
+                <button class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-down-tray'" class="icon-size-4 text-white"></mat-icon>
+                    Export
+                </button>
+                <!-- Add Team -->
+                <button (click)="openTeamDialog()" class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'" class="icon-size-4 text-white"></mat-icon>
+                    Add Team
+                </button>
+
+                                 <!-- Chevron for Filter -->
+                <button (click)="filterOpen = !filterOpen" class="ml-1 rounded-full border border-gray-200 p-2 text-gray-400 transition hover:bg-gray-50">
+                     <mat-icon [svgIcon]="'heroicons_outline:chevron-down'" class="icon-size-4 transition-transform duration-300" [class.rotate-180]="filterOpen"></mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Collapsible Filter Content -->
+        <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
+             <div class="flex flex-wrap items-end gap-4">
+                <!-- Search -->
+                <div class="flex min-w-56 flex-1 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Search</label>
+                    <div class="relative">
+                        <input type="text" [(ngModel)]="searchQuery" placeholder="Search teams..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
+                        <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="absolute right-3 top-2.5 icon-size-4 text-gray-400"></mat-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mx-8 mb-4 text-sm text-gray-500">
+        Showing 1-{{ teams.length }} of {{ teams.length }} teams
+    </div>
+
+    <!-- Main Content (Grid) -->
+    <div class="mx-8 mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+        <div *ngFor="let team of teams" class="flex flex-col overflow-hidden rounded-2xl bg-white p-6 shadow-sm border border-gray-100 dark:bg-card dark:border-gray-800">
+            <div class="flex items-start justify-between">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ team.name }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">{{ team.description }}</p>
+                    
+                    <!-- Members Avatars -->
+                    <div class="mt-4 flex flex-wrap gap-2">
+                         <div *ngFor="let member of team.members" class="rounded-full bg-blue-50 px-3 py-1 text-xs text-blue-600 font-medium">
+                            {{ member.fullName }}
+                         </div>
+                    </div>
+
+                    <div class="flex -space-x-2 mt-4">
+                        <ng-container *ngFor="let member of team.members; let i = index">
+                            <img *ngIf="i < 3" [src]="member.avatar || 'assets/images/avatars/male-01.jpg'" class="h-8 w-8 rounded-full border-2 border-white dark:border-gray-800" [title]="member.fullName">
+                        </ng-container>
+                         <div *ngIf="team.members.length > 3" class="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-gray-100 text-xs font-medium text-gray-500 dark:border-gray-800 dark:bg-gray-700">
+                            +{{ team.members.length - 3 }}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-400">
+                    {{ team.members.length }} members
+                </div>
+            </div>
+
+            <!-- Card Footer (Actions) -->
+            <div class="mt-6 flex items-center justify-end gap-2 border-t pt-4">
+                <button mat-icon-button (click)="openTeamDialog(team)">
+                    <mat-icon [svgIcon]="'heroicons_outline:pencil'" class="icon-size-4 text-gray-500"></mat-icon>
+                </button>
+                <button mat-icon-button (click)="deleteTeam(team)">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="icon-size-4 text-gray-500"></mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination (Placeholder) -->
+    <div class="mx-8 mb-8 flex items-center justify-center rounded-xl bg-white px-6 py-3 shadow-sm dark:bg-card">
+        <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-500">Items per page:</span>
+            <select class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm dark:bg-gray-800">
+                <option>4</option>
+                <option>8</option>
+                <option>12</option>
+            </select>
+            <span class="text-sm text-gray-500">1-{{ teams.length }} of {{ teams.length }}</span>
+            <div class="flex items-center gap-2">
+                <button class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-4"></mat-icon>
+                </button>
+                <button class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-4"></mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

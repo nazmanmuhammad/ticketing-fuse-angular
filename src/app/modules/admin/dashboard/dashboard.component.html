@@ -1,0 +1,131 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <!-- Header -->
+    <div class="bg-card border-b">
+        <div class="flex w-full flex-col px-6 sm:px-8">
+            <div class="flex min-h-32 flex-col py-8 sm:flex-row sm:items-center sm:py-0">
+                <div class="flex flex-col truncate">
+                    <div class="flex items-center">
+                        <div class="font-sans text-3xl font-bold leading-none tracking-tight truncate">
+                            Dashboard
+                        </div>
+                    </div>
+                    <div class="text-secondary mt-2 flex items-center">
+                        <div class="ml-0.5 truncate font-medium">
+                            Overview of system activities
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="flex-auto -mt-px border-t pt-4 sm:pt-6">
+        <div class="w-full px-6 sm:px-8">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                <ng-container *ngFor="let stat of stats">
+                    <div class="bg-card flex flex-auto flex-col overflow-hidden rounded-2xl shadow">
+                        <div class="flex items-start justify-between m-6 mb-4">
+                            <div class="truncate text-lg font-semibold">{{ stat.title }}</div>
+                            <div class="ml-2">
+                                <span
+                                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                    [ngClass]="
+                                        stat.up
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100'
+                                    "
+                                >
+                                    {{ stat.trend }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mb-8 mt-2 flex flex-col items-center">
+                            <div
+                                class="text-5xl font-bold leading-none tracking-tight"
+                                [ngClass]="stat.text"
+                            >
+                                {{ stat.value }}
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+
+            <!-- Charts & Activity Grid -->
+            <div class="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+                <!-- Main Chart (Takes 2 columns) -->
+                <div class="bg-card flex flex-col rounded-2xl shadow lg:col-span-2">
+                    <div class="flex items-center justify-between px-6 py-4 border-b">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Activity Trends</h3>
+                    </div>
+                    <div class="p-6">
+                        <apx-chart
+                            [series]="mainChartSeries"
+                            [chart]="mainChartOptions.chart!"
+                            [xaxis]="mainChartOptions.xaxis!"
+                            [stroke]="mainChartOptions.stroke!"
+                            [colors]="mainChartOptions.colors!"
+                            [fill]="mainChartOptions.fill!"
+                            [dataLabels]="mainChartOptions.dataLabels!"
+                            [legend]="mainChartOptions.legend!"
+                            [tooltip]="mainChartOptions.tooltip!"
+                            [grid]="mainChartOptions.grid!"
+                        ></apx-chart>
+                    </div>
+                </div>
+
+                <!-- Right Column (Status & Recent) -->
+                <div class="flex flex-col gap-8">
+                    <!-- Ticket Status Chart -->
+                    <div class="bg-card flex flex-col rounded-2xl shadow">
+                        <div class="flex items-center justify-between px-6 py-4 border-b">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Ticket Status</h3>
+                        </div>
+                        <div class="p-6">
+                            <apx-chart
+                                [series]="statusChartSeries"
+                                [chart]="statusChartOptions.chart!"
+                                [labels]="statusChartOptions.labels!"
+                                [colors]="statusChartOptions.colors!"
+                                [legend]="statusChartOptions.legend!"
+                                [plotOptions]="statusChartOptions.plotOptions!"
+                                [dataLabels]="statusChartOptions.dataLabels!"
+                            ></apx-chart>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activities -->
+                    <div class="bg-card flex flex-col rounded-2xl shadow flex-auto">
+                        <div class="flex items-center justify-between px-6 py-4 border-b">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Recent Activities</h3>
+                        </div>
+                        <div class="divide-y divide-gray-100 dark:divide-gray-800">
+                            <div *ngFor="let activity of recentActivities" class="flex items-center gap-4 px-6 py-4">
+                                <div
+                                    class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-white font-bold"
+                                    [ngClass]="activity.color"
+                                >
+                                    {{ activity.avatar }}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <p class="truncate text-sm font-medium text-gray-900 dark:text-white">
+                                        {{ activity.user }}
+                                        <span class="text-gray-500 font-normal">{{ activity.action }}</span>
+                                    </p>
+                                    <p class="text-secondary truncate text-xs">
+                                        {{ activity.target }} • {{ activity.time }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-t bg-gray-50 p-3 text-center dark:bg-gray-800/50 rounded-b-2xl">
+                            <button class="text-sm font-medium text-indigo-600 hover:text-indigo-500">View all activity</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

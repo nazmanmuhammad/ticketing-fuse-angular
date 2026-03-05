@@ -1,0 +1,138 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    
+    <!-- Top Header -->
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">User Management</span>
+        <div class="flex items-center gap-1 text-gray-500">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span>Master Data</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">User</span>
+        </div>
+    </div>
+
+    <!-- Filter/Action Bar Card -->
+    <div class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">User Management</h2>
+                <p class="mt-0.5 text-sm text-gray-500">Manage and filter your users</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Filter -->
+                <button (click)="filterOpen = !filterOpen" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:funnel'" class="icon-size-4"></mat-icon>
+                    Filter
+                </button>
+                <!-- Reset -->
+                <button (click)="searchQuery=''; selectedStatus='';" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path'" class="icon-size-4"></mat-icon>
+                    Reset
+                </button>
+                <!-- Export -->
+                <button class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-down-tray'" class="icon-size-4 text-white"></mat-icon>
+                    Export
+                </button>
+                <!-- Add User -->
+                <button (click)="openUserDialog()" class="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'" class="icon-size-4 text-white"></mat-icon>
+                    Add User
+                </button>
+                <!-- Chevron for Filter -->
+                <button (click)="filterOpen = !filterOpen" class="ml-1 rounded-full border border-gray-200 p-2 text-gray-400 transition hover:bg-gray-50">
+                     <mat-icon [svgIcon]="'heroicons_outline:chevron-down'" class="icon-size-4 transition-transform duration-300" [class.rotate-180]="filterOpen"></mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Collapsible Filter Content -->
+        <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
+             <div class="flex flex-wrap items-end gap-4">
+                <!-- Search -->
+                <div class="flex min-w-56 flex-1 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Search</label>
+                    <div class="relative">
+                        <input type="text" [(ngModel)]="searchQuery" placeholder="Search users..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
+                        <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="absolute right-3 top-2.5 icon-size-4 text-gray-400"></mat-icon>
+                    </div>
+                </div>
+                <!-- Status -->
+                <div class="flex min-w-40 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
+                    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="selectedStatus">
+                            <mat-option [value]="">All Status</mat-option>
+                            <mat-option [value]="'Active'">Active</mat-option>
+                            <mat-option [value]="'Inactive'">Inactive</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Grid) -->
+    <div class="mx-8 mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div *ngFor="let user of users" class="flex h-96 flex-col overflow-hidden rounded-2xl bg-card shadow transition-shadow hover:shadow-lg">
+            <!-- Card Header (Avatar & Info) -->
+            <div class="flex flex-col items-center p-8 pb-4">
+                <div class="relative flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 text-4xl text-gray-400 dark:bg-gray-700">
+                    <mat-icon [svgIcon]="'heroicons_outline:user'" class="icon-size-12"></mat-icon>
+                </div>
+                <div class="mt-4 text-center">
+                    <div class="text-lg font-bold leading-tight">{{ user.fullName }}</div>
+                    <div class="text-secondary text-sm">{{ user.email }}</div>
+                </div>
+                <div class="mt-2 flex items-center gap-2">
+                    <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getRoleClass(user.role)">
+                        {{ user.role }}
+                    </span>
+                    <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="user.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-400'">
+                        {{ user.status }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Card Body (Details) -->
+            <div class="flex flex-auto flex-col px-8 py-2">
+                <div class="flex items-center justify-between border-t py-2">
+                    <span class="text-secondary text-sm font-medium">Department</span>
+                    <span class="text-sm">{{ user.department }}</span>
+                </div>
+                <div class="flex items-center justify-between border-t py-2">
+                    <span class="text-secondary text-sm font-medium">Last Login</span>
+                    <span class="text-sm">{{ user.lastLogin }}</span>
+                </div>
+            </div>
+
+            <!-- Card Footer (Actions) -->
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 dark:bg-gray-900/50">
+                <button mat-button color="primary" (click)="openUserDialog(user)">
+                    <mat-icon [svgIcon]="'heroicons_outline:pencil-square'" class="mr-2 icon-size-4"></mat-icon>
+                    Edit
+                </button>
+                <button mat-button color="warn" (click)="deleteUser(user)">
+                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="mr-2 icon-size-4"></mat-icon>
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination (Placeholder) -->
+    <div class="mx-8 mb-8 flex items-center justify-between rounded-xl border border-gray-100 bg-white px-6 py-3 shadow-sm dark:bg-card">
+        <div class="text-sm text-gray-500">Showing 1 to {{ users.length }} of {{ users.length }} entries</div>
+        <div class="flex items-center gap-2">
+            <button class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+                <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-4"></mat-icon>
+            </button>
+            <span class="rounded-lg bg-gray-100 px-3 py-1 text-sm font-medium text-gray-900">1</span>
+            <button class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+                <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-4"></mat-icon>
+            </button>
+        </div>
+    </div>
+
+</div>
