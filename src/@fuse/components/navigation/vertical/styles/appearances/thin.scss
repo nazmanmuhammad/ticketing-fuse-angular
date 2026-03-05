@@ -307,13 +307,8 @@ fuse-vertical-navigation {
             flex-shrink: 0;
             z-index: 200;
 
-            background: rgb(var(--fuse-primary)) !important;
-            box-shadow: 2px 0 4px 0 rgba(0, 0, 0, 0.06);
-
-            @media (prefers-color-scheme: dark) {
-                background: #0e0f6b !important;
-                box-shadow: 2px 0 8px 0 rgba(0, 0, 0, 0.2);
-            }
+            background: #0e0f6b !important;
+            box-shadow: 2px 0 8px 0 rgba(0, 0, 0, 0.2);
 
             .fuse-vertical-navigation-content {
                 > fuse-vertical-navigation-aside-item,
@@ -349,10 +344,6 @@ fuse-vertical-navigation {
                                 margin: 0;
                                 color: white;
                                 transition: color 0.2s ease;
-
-                                @media (prefers-color-scheme: dark) {
-                                    color: white;
-                                }
                             }
 
                             .fuse-vertical-navigation-item-arrow,
@@ -365,13 +356,7 @@ fuse-vertical-navigation {
                         &.fuse-vertical-navigation-item-active,
                         &.fuse-vertical-navigation-item-active-forced {
                             .fuse-vertical-navigation-item {
-                                background-color: rgb(
-                                    var(--fuse-primary-500)
-                                ) !important;
-
-                                @media (prefers-color-scheme: dark) {
-                                    background-color: white !important;
-                                }
+                                background-color: white !important;
 
                                 .fuse-vertical-navigation-item-icon {
                                     color: rgb(var(--fuse-primary)) !important;
@@ -432,14 +417,12 @@ fuse-vertical-navigation {
                 margin: 0 !important;
             }
 
-            @media (prefers-color-scheme: dark) {
                 background: #ffffff !important;
                 border-right: 1px solid rgba(0, 0, 0, 0.1) !important; // ← fix dark mode juga
 
                 &.ng-hide {
                     border-right: none !important;
                 }
-            }
 
             // ✅ TAMBAH INI: force no-wrap semua item di dalam sidebar
             fuse-vertical-navigation-aside-item,

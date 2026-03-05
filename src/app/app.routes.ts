@@ -123,6 +123,20 @@ export const appRoutes: Route[] = [
                 loadChildren: () =>
                     import('app/modules/admin/tickets/tickets.routes'),
             },
+            {
+                path: 'access-requests',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/access-requests/access-requests.routes'
+                    ),
+            },
+            {
+                path: 'change-requests',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/change-requests/change-requests.routes'
+                    ),
+            },
         ],
     },
 ];

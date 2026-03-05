@@ -1,38 +1,37 @@
 <div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
-    <!-- BREADCRUMB HEADER -->
     <div
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
     >
         <span class="font-semibold text-gray-800 dark:text-white"
-            >Create Ticket</span
+            >Create Access Request</span
         >
         <div class="text-secondary flex items-center gap-1">
             <span>Dashboard</span>
             <span>•</span>
             <span
                 class="cursor-pointer hover:text-primary"
-                (click)="backToTickets()"
-                >Tickets</span
+                (click)="backToAccessRequests()"
+                >Access Requests</span
             >
             <span>•</span>
             <span class="font-semibold text-primary">Create New</span>
         </div>
     </div>
 
-    <!-- HEADER BANNER -->
     <div
         class="mx-8 mb-6 mt-8 flex items-center justify-between rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
     >
         <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                Create New Ticket
+                Create New Access Request
             </h2>
             <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                Fill in the required fields below to create a new support ticket
+                Fill in the required information to submit a new access request
             </p>
         </div>
         <button
-            (click)="backToTickets()"
+            type="button"
+            (click)="backToAccessRequests()"
             class="flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-600 transition hover:bg-indigo-100"
         >
             <svg
@@ -48,15 +47,13 @@
                     d="M15 19l-7-7 7-7"
                 />
             </svg>
-            Back to Tickets
+            Back to Requests
         </button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <div class="flex gap-6 px-8 pb-8">
-            <!-- ===================== LEFT COLUMN ===================== -->
             <div class="min-w-0 flex-1 space-y-5">
-                <!-- USER INFORMATION -->
                 <div
                     class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
                 >
@@ -78,22 +75,21 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                User Information
+                                Requester Information
                             </h3>
                             <p class="text-secondary text-xs">
-                                Enter the requester's information
+                                Contact details of the requester
                             </p>
                         </div>
                     </div>
+
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <!-- Email -->
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
+                                >Email Address
+                                <span class="text-red-500">*</span></label
                             >
-                                Email Address
-                                <span class="text-red-500">*</span>
-                            </label>
                             <div class="relative">
                                 <svg
                                     class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
@@ -121,23 +117,14 @@
                                     "
                                 />
                             </div>
-                            <p
-                                *ngIf="
-                                    form.get('email')?.invalid &&
-                                    form.get('email')?.touched
-                                "
-                                class="mt-1 text-xs text-red-500"
-                            >
-                                Valid email required
-                            </p>
                         </div>
-                        <!-- Full Name -->
+
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
+                                >Full Name
+                                <span class="text-red-500">*</span></label
                             >
-                                Full Name <span class="text-red-500">*</span>
-                            </label>
                             <div class="relative">
                                 <svg
                                     class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
@@ -166,7 +153,7 @@
                                 />
                             </div>
                         </div>
-                        <!-- Phone -->
+
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
@@ -194,38 +181,53 @@
                                 />
                             </div>
                         </div>
-                        <!-- Extension -->
+
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Extension Number</label
+                                >Department
+                                <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
-                                <svg
-                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                                <select
+                                    formControlName="department"
+                                    class="appearance-none w-full rounded-xl border bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    [ngClass]="
+                                        form.get('department')?.invalid &&
+                                        form.get('department')?.touched
+                                            ? 'border-red-300'
+                                            : 'border-gray-200'
+                                    "
                                 >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
-                                    />
-                                </svg>
-                                <input
-                                    type="text"
-                                    formControlName="extension"
-                                    placeholder="Extension Number"
-                                    class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                />
+                                    <option value="" disabled>
+                                        Select Department
+                                    </option>
+                                    <option *ngFor="let d of departments">
+                                        {{ d }}
+                                    </option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- TICKET DETAILS -->
                 <div
                     class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
                 >
@@ -238,87 +240,179 @@
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
-                                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
                                 <path
                                     fill-rule="evenodd"
-                                    d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                                    d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm3.293 1.293a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 01-1.414-1.414L7.586 10 5.293 7.707a1 1 0 010-1.414zM11 12a1 1 0 100 2h3a1 1 0 100-2h-3z"
                                     clip-rule="evenodd"
                                 />
                             </svg>
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                Ticket Details
+                                Access Details
                             </h3>
                             <p class="text-secondary text-xs">
-                                Provide ticket information
+                                Specify access request information
                             </p>
                         </div>
                     </div>
-                    <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <!-- Ticket Source -->
-                        <div class="relative">
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
+                                >Resource Name
+                                <span class="text-red-500">*</span></label
                             >
-                                Ticket Source
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <select
-                                formControlName="ticketSource"
-                                class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                            >
-                                <option value="">Ticket Source</option>
-                                <option>Email</option>
-                                <option>Phone</option>
-                                <option>Web Portal</option>
-                                <option>Walk-in</option>
-                            </select>
+                            <div class="relative">
+                                <svg
+                                    class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                </svg>
+                                <input
+                                    type="text"
+                                    formControlName="resourceName"
+                                    placeholder="Resource Name*"
+                                    class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    [ngClass]="
+                                        form.get('resourceName')?.invalid &&
+                                        form.get('resourceName')?.touched
+                                            ? 'border-red-300'
+                                            : 'border-gray-200'
+                                    "
+                                />
+                            </div>
                         </div>
-                        <!-- Department -->
-                        <div class="relative">
+
+                        <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Department</label
+                                >Request Type
+                                <span class="text-red-500">*</span></label
                             >
-                            <select
-                                formControlName="department"
-                                class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                            >
-                                <option value="">Department</option>
-                                <option *ngFor="let d of departments">
-                                    {{ d }}
-                                </option>
-                            </select>
+                            <div class="relative">
+                                <select
+                                    formControlName="requestType"
+                                    class="appearance-none w-full rounded-xl border bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    [ngClass]="
+                                        form.get('requestType')?.invalid &&
+                                        form.get('requestType')?.touched
+                                            ? 'border-red-300'
+                                            : 'border-gray-200'
+                                    "
+                                >
+                                    <option value="" disabled>
+                                        Select Request Type
+                                    </option>
+                                    <option *ngFor="let t of requestTypes">
+                                        {{ t }}
+                                    </option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
-                        <!-- Help Topic -->
-                        <div class="relative">
+
+                        <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Help Topic</label
+                                >Access Level Required
+                                <span class="text-red-500">*</span></label
                             >
-                            <select
-                                formControlName="helpTopic"
-                                class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                            <div class="relative">
+                                <select
+                                    formControlName="accessLevel"
+                                    class="appearance-none w-full rounded-xl border bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    [ngClass]="
+                                        form.get('accessLevel')?.invalid &&
+                                        form.get('accessLevel')?.touched
+                                            ? 'border-red-300'
+                                            : 'border-gray-200'
+                                    "
+                                >
+                                    <option value="" disabled>
+                                        Select Access Level
+                                    </option>
+                                    <option *ngFor="let l of accessLevels">
+                                        {{ l }}
+                                    </option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-2">
+                            <label
+                                class="text-secondary mb-1.5 block text-xs font-medium"
+                                >Request Reason
+                                <span class="text-red-500">*</span></label
                             >
-                                <option value="">Help Topic</option>
-                                <option *ngFor="let h of helpTopics">
-                                    {{ h }}
-                                </option>
-                            </select>
+                            <textarea
+                                formControlName="reason"
+                                rows="4"
+                                placeholder="Request reason..."
+                                class="w-full resize-none rounded-xl border bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                [ngClass]="
+                                    form.get('reason')?.invalid &&
+                                    form.get('reason')?.touched
+                                        ? 'border-red-300'
+                                        : 'border-gray-200'
+                                "
+                            >
+                            </textarea>
                         </div>
                     </div>
-                    <!-- Subject -->
-                    <div class="mb-4">
-                        <label
-                            class="text-secondary mb-1.5 block text-xs font-medium"
+                </div>
+
+                <div
+                    class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
+                >
+                    <div class="mb-5 flex items-center gap-3">
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100"
                         >
-                            Subject / Issue Summary
-                            <span class="text-red-500">*</span>
-                        </label>
-                        <div class="relative">
                             <svg
-                                class="absolute left-3 top-2.5 h-4 w-4 text-gray-400"
+                                class="h-4 w-4 text-emerald-600"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -327,128 +421,104 @@
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
                                     stroke-width="2"
-                                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                 />
                             </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white">
+                                Access Duration
+                            </h3>
+                            <p class="text-secondary text-xs">
+                                Define access duration details
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <label
+                                class="text-secondary mb-1.5 block text-xs font-medium"
+                                >Access Duration Type
+                                <span class="text-red-500">*</span></label
+                            >
+                            <div class="relative">
+                                <select
+                                    formControlName="durationType"
+                                    class="appearance-none w-full rounded-xl border bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    [ngClass]="
+                                        form.get('durationType')?.invalid &&
+                                        form.get('durationType')?.touched
+                                            ? 'border-red-300'
+                                            : 'border-gray-200'
+                                    "
+                                >
+                                    <option
+                                        *ngFor="let dt of durationTypes"
+                                    >
+                                        {{ dt }}
+                                    </option>
+                                </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-secondary mb-1.5 block text-xs font-medium"
+                                >Start Date
+                                <span class="text-red-500">*</span></label
+                            >
                             <input
-                                type="text"
-                                formControlName="subject"
-                                placeholder="Subject / Issue Summary*"
-                                class="w-full rounded-xl border bg-gray-50 py-2.5 pl-10 pr-3 text-sm focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                type="date"
+                                formControlName="startDate"
+                                class="w-full rounded-xl border bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 [ngClass]="
-                                    form.get('subject')?.invalid &&
-                                    form.get('subject')?.touched
+                                    form.get('startDate')?.invalid &&
+                                    form.get('startDate')?.touched
+                                        ? 'border-red-300'
+                                        : 'border-gray-200'
+                                "
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                class="text-secondary mb-1.5 block text-xs font-medium"
+                                >End Date
+                                <span class="text-red-500">*</span></label
+                            >
+                            <input
+                                type="date"
+                                formControlName="endDate"
+                                class="w-full rounded-xl border bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                [ngClass]="
+                                    form.get('endDate')?.invalid &&
+                                    form.get('endDate')?.touched
                                         ? 'border-red-300'
                                         : 'border-gray-200'
                                 "
                             />
                         </div>
                     </div>
-                    <!-- Issue Detail -->
-                    <div>
-                        <label
-                            class="text-secondary mb-1.5 block text-xs font-medium"
-                        >
-                            Issue Detail <span class="text-red-500">*</span>
-                        </label>
-                        <textarea
-                            formControlName="issueDetail"
-                            rows="4"
-                            placeholder="Be as specific as possible to help us resolve your issue faster."
-                            class="w-full resize-none rounded-xl border bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                            [ngClass]="
-                                form.get('issueDetail')?.invalid &&
-                                form.get('issueDetail')?.touched
-                                    ? 'border-red-300'
-                                    : 'border-gray-200'
-                            "
-                        >
-                        </textarea>
-                    </div>
                 </div>
 
-                <!-- RESPONSE & NOTES -->
-                <div
-                    class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
-                >
-                    <div class="mb-5 flex items-center gap-3">
-                        <div
-                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-teal-100"
-                        >
-                            <svg
-                                class="h-4 w-4 text-teal-500"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-                                />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-gray-900 dark:text-white">
-                                Response & Notes
-                            </h3>
-                            <p class="text-secondary text-xs">
-                                Internal communication and notes
-                            </p>
-                        </div>
-                    </div>
-                    <!-- Response -->
-                    <div class="mb-4">
-                        <label
-                            class="text-secondary mb-1.5 block text-xs font-medium"
-                            >Response (Internal)</label
-                        >
-                        <textarea
-                            formControlName="response"
-                            rows="3"
-                            placeholder="Write your response here..."
-                            class="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                        >
-                        </textarea>
-                    </div>
-                    <!-- Mark Internal toggle -->
-                    <div
-                        class="mb-4 flex items-center gap-3 rounded-xl bg-gray-50 p-3 dark:bg-gray-800/50"
-                    >
-                        <label
-                            class="relative inline-flex cursor-pointer items-center"
-                        >
-                            <input
-                                type="checkbox"
-                                formControlName="markInternal"
-                                class="peer sr-only"
-                            />
-                            <div
-                                class="peer h-5 w-10 rounded-full bg-gray-200 transition-all after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-indigo-600 peer-checked:after:translate-x-5 peer-focus:ring-2 peer-focus:ring-indigo-300"
-                            ></div>
-                        </label>
-                        <span class="text-sm text-gray-700 dark:text-gray-300"
-                            >Mark as internal note (visible to staff only)</span
-                        >
-                    </div>
-                    <!-- Internal Note -->
-                    <div>
-                        <label
-                            class="text-secondary mb-1.5 block text-xs font-medium"
-                            >Internal Note</label
-                        >
-                        <textarea
-                            formControlName="internalNote"
-                            rows="3"
-                            placeholder="Internal notes here..."
-                            class="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                        >
-                        </textarea>
-                    </div>
-                </div>
-
-                <!-- ATTACHMENTS -->
                 <div
                     class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
                 >
@@ -472,26 +542,31 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                Attachments
+                                Supporting Documents
                             </h3>
                             <p class="text-secondary text-xs">
-                                Upload relevant screenshots or documents
+                                Upload approvals or related files
                             </p>
                         </div>
                     </div>
-                    <!-- Drop Zone -->
+
                     <div
                         (dragover)="onDragOver($event)"
-                        (dragleave)="onDragLeave()"
+                        (dragleave)="onDragLeave($event)"
                         (drop)="onDrop($event)"
-                        (click)="fileInput.click()"
-                        class="cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all"
+                        class="relative cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all"
                         [ngClass]="
                             isDragging
                                 ? 'border-indigo-400 bg-indigo-50'
                                 : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
                         "
                     >
+                        <input
+                            type="file"
+                            multiple
+                            (change)="onFileSelect($event)"
+                            class="absolute inset-0 cursor-pointer opacity-0"
+                        />
                         <svg
                             class="mx-auto mb-3 h-12 w-12 text-gray-300"
                             fill="none"
@@ -505,21 +580,14 @@
                                 d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                             />
                         </svg>
-                        <p class="text-sm font-medium text-gray-500">
+                        <p class="text-sm font-medium text-gray-900">
                             Drop files here or click to browse
                         </p>
-                        <p class="text-secondary mt-1 text-xs">
-                            Maximum file size: 10MB each
+                        <p class="mt-1 text-xs text-gray-500">
+                            Maximum file size: 10MB
                         </p>
-                        <input
-                            #fileInput
-                            type="file"
-                            multiple
-                            class="hidden"
-                            (change)="onFileSelect($event)"
-                        />
                     </div>
-                    <!-- Uploaded Files -->
+
                     <div
                         *ngIf="uploadedFiles.length > 0"
                         class="mt-4 space-y-2"
@@ -530,10 +598,10 @@
                         >
                             <div class="flex items-center gap-3">
                                 <div
-                                    class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100"
+                                    class="flex h-8 w-8 items-center justify-center rounded-lg bg-white shadow-sm"
                                 >
                                     <svg
-                                        class="h-4 w-4 text-indigo-500"
+                                        class="h-4 w-4 text-gray-500"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -547,12 +615,10 @@
                                     </svg>
                                 </div>
                                 <div>
-                                    <p
-                                        class="text-sm font-medium text-gray-700"
-                                    >
+                                    <p class="text-sm font-medium text-gray-900">
                                         {{ file.name }}
                                     </p>
-                                    <p class="text-secondary text-xs">
+                                    <p class="text-xs text-gray-500">
                                         {{ formatSize(file.size) }}
                                     </p>
                                 </div>
@@ -560,10 +626,10 @@
                             <button
                                 type="button"
                                 (click)="removeFile(i)"
-                                class="rounded-lg p-1.5 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                                class="text-gray-400 hover:text-red-500"
                             >
                                 <svg
-                                    class="h-4 w-4"
+                                    class="h-5 w-5"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -581,10 +647,8 @@
                 </div>
             </div>
 
-            <!-- ===================== RIGHT SIDEBAR — STICKY ===================== -->
             <div class="w-72 flex-shrink-0">
                 <div class="sticky top-4 space-y-4">
-                    <!-- ASSIGNMENT & PRIORITY -->
                     <div
                         class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:bg-card"
                     >
@@ -597,7 +661,6 @@
                             Configure assignment options
                         </p>
 
-                        <!-- Priority -->
                         <div class="mb-4">
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
@@ -612,35 +675,32 @@
                                         {{ p }}
                                     </option>
                                 </select>
-                            </div>
-                        </div>
-
-                        <!-- Role -->
-                        <div class="mb-4">
-                            <label
-                                class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Role</label
-                            >
-                            <div class="relative">
-                                <select
-                                    formControlName="role"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
                                 >
-                                    <option *ngFor="let r of roleOptions">
-                                        {{ r }}
-                                    </option>
-                                </select>
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Assign To -->
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
                                 >Assign To</label
                             >
 
-                            <!-- Toggle pill Member / Team -->
                             <div
                                 class="mb-3 flex rounded-xl border border-gray-200 bg-gray-50 p-1"
                             >
@@ -696,9 +756,7 @@
                                 </button>
                             </div>
 
-                            <!-- Dropdown -->
                             <div class="relative">
-                                <!-- Avatar preview di kiri -->
                                 <div
                                     class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
                                 >
@@ -758,9 +816,25 @@
                                         {{ opt.name }}
                                     </option>
                                 </select>
+                                <div
+                                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500"
+                                >
+                                    <svg
+                                        class="h-4 w-4"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M19 9l-7 7-7-7"
+                                        />
+                                    </svg>
+                                </div>
                             </div>
 
-                            <!-- Chip selected -->
                             <div
                                 *ngIf="selectedAssignee"
                                 class="mt-2 flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2"
@@ -773,17 +847,28 @@
                                 >
                                     {{ getAssigneeInitial(selectedAssignee) }}
                                 </div>
-                                <span
-                                    class="flex-1 text-xs font-medium text-indigo-700"
-                                    >{{ selectedAssignee }}</span
-                                >
+                                <div class="min-w-0 flex-1">
+                                    <p
+                                        class="truncate text-sm font-medium text-gray-900"
+                                    >
+                                        {{ selectedAssignee }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        Assigned
+                                        {{
+                                            assignType === 'member'
+                                                ? 'Member'
+                                                : 'Team'
+                                        }}
+                                    </p>
+                                </div>
                                 <button
                                     type="button"
                                     (click)="clearAssignee()"
-                                    class="text-indigo-400 transition hover:text-indigo-600"
+                                    class="ml-auto text-gray-400 hover:text-red-500"
                                 >
                                     <svg
-                                        class="h-3.5 w-3.5"
+                                        class="h-4 w-4"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -800,9 +885,8 @@
                         </div>
                     </div>
 
-                    <!-- ADDITIONAL SETTINGS -->
                     <div
-                        class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:bg-card"
+                        class="mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:bg-card"
                     >
                         <h3
                             class="mb-1 font-bold text-gray-900 dark:text-white"
@@ -812,39 +896,35 @@
                         <p class="text-secondary mb-4 text-xs">
                             Optional configurations
                         </p>
-                        <div>
-                            <label
-                                class="text-secondary mb-1.5 block text-xs font-medium"
-                                >SLA Plan</label
+
+                        <label class="flex cursor-pointer items-center gap-2">
+                            <input
+                                type="checkbox"
+                                formControlName="notifyRequester"
+                                class="h-4 w-4 rounded accent-indigo-600"
+                            />
+                            <span
+                                class="text-sm text-gray-600 dark:text-gray-300"
+                                >Notify requester</span
                             >
-                            <div class="relative">
-                                <select
-                                    formControlName="sla"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let s of slaOptions">
-                                        {{ s }}
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
+                        </label>
+
                         <label
                             class="mt-4 flex cursor-pointer items-center gap-2"
                         >
                             <input
                                 type="checkbox"
-                                formControlName="notifyOnResponse"
+                                formControlName="requireManagerApproval"
                                 class="h-4 w-4 rounded accent-indigo-600"
                             />
                             <span
                                 class="text-sm text-gray-600 dark:text-gray-300"
-                                >Notify on response</span
+                                >Require manager approval</span
                             >
                         </label>
                     </div>
 
-                    <!-- ACTION BUTTONS -->
-                    <div class="space-y-2.5">
+                    <div class="mt-4 space-y-2.5">
                         <button
                             type="submit"
                             class="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all"
@@ -868,11 +948,12 @@
                                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                                 />
                             </svg>
-                            Submit Ticket
+                            Submit Request
                         </button>
+
                         <button
                             type="button"
-                            (click)="onSaveDraft()"
+                            (click)="onReset()"
                             class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
                         >
                             <svg
@@ -885,11 +966,12 @@
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
                                     stroke-width="2"
-                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                                    d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-14-7"
                                 />
                             </svg>
-                            Save Form
+                            Reset Form
                         </button>
+
                         <button
                             type="button"
                             (click)="onCancel()"
@@ -912,7 +994,6 @@
                         </button>
                     </div>
                 </div>
-                <!-- end sticky -->
             </div>
         </div>
     </form>

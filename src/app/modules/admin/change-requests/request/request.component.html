@@ -1,0 +1,154 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Change Requests</span>
+        <div class="text-secondary flex items-center gap-1">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Change Requests</span>
+        </div>
+    </div>
+
+    <div class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Change Requests</h2>
+                <p class="text-secondary mt-0.5 text-sm">Manage your change requests</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button (click)="toggleFilter()" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6h10M4 6h2m4 6h10M4 12h2m4 6h10M4 18h2"/>
+                    </svg>
+                    Filter
+                </button>
+                <button (click)="searchQuery=''; selectedStatus='';" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v16h16M4 8h16M4 12h16M4 16h16"/>
+                    </svg>
+                    Reset
+                </button>
+                <button class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Export
+                </button>
+                <button (click)="toggleFilter()" class="ml-1 rounded-full border border-gray-200 p-2 text-gray-400 transition hover:bg-gray-50">
+                    <svg class="h-4 w-4 transition-transform duration-300" [class.rotate-180]="filterOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
+            <div class="flex flex-wrap items-end gap-4">
+                <div class="flex min-w-56 flex-1 flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
+                    <div class="relative">
+                        <input type="text" [(ngModel)]="searchQuery" placeholder="Search change requests..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
+                        <svg class="absolute right-3 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="flex min-w-40 flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
+                    <select class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" [(ngModel)]="selectedStatus">
+                        <option *ngFor="let s of statuses" [ngValue]="s.value">{{ s.label }}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mx-8 grid grid-cols-1 gap-4 sm:grid-cols-4">
+        <div *ngFor="let stat of stats" class="rounded-2xl border bg-white p-4 shadow-sm dark:bg-card" [ngClass]="stat.bg">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-white/60" [ngClass]="stat.icon">
+                        <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20"><circle cx="10" cy="10" r="7"/></svg>
+                    </div>
+                    <div class="text-secondary text-xs">{{ stat.title }}</div>
+                </div>
+                <span class="rounded-full px-2 py-0.5 text-xs font-semibold" [ngClass]="stat.up ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'">{{ stat.trend }}</span>
+            </div>
+            <div class="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white">{{ stat.value }}</div>
+        </div>
+    </div>
+
+    <div class="mx-8 mt-4 rounded-2xl border border-gray-100 bg-white shadow-sm dark:bg-card">
+        <div class="flex items-center justify-between border-b px-6 py-4">
+            <h3 class="font-bold text-gray-900 dark:text-white">
+                All Change Requests
+                <span class="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600">{{ totalItems }}</span>
+            </h3>
+            <button (click)="navigateToCreate()" class="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                New Request
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead>
+                    <tr>
+                        <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Code</th>
+                        <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Requester</th>
+                        <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Resource</th>
+                        <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Priority</th>
+                        <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Status</th>
+                        <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Request Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let r of paginatedRequests" class="transition-colors hover:bg-gray-50/60">
+                        <td class="px-6 py-4">
+                            <span class="font-semibold text-indigo-600">{{ r.code }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" [ngClass]="avatarColors[r.avatar]">{{ r.avatar }}</div>
+                                <div class="flex flex-col">
+                                    <span class="font-medium text-gray-700 dark:text-gray-300">{{ r.requester }}</span>
+                                    <span class="text-secondary text-xs">Requester</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-medium text-gray-700 dark:text-gray-300">{{ r.resource }}</span>
+                                <span class="text-secondary text-xs">• {{ r.resourceType }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700">{{ r.priority }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="rounded-full px-3 py-1 text-xs font-bold tracking-wide" [ngClass]="statusConfig[r.status].classes">{{ statusConfig[r.status].label }}</span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 dark:text-gray-400">{{ r.requestDate }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex items-center justify-between border-t px-6 py-3">
+            <div class="text-secondary text-sm">{{ rangeLabel }}</div>
+            <div class="flex items-center gap-2">
+                <select class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm" [(ngModel)]="itemsPerPage" (change)="onItemsPerPageChange()">
+                    <option [ngValue]="5">5</option>
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                </select>
+                <div class="flex items-center gap-1">
+                    <button class="rounded-lg px-2 py-1 text-sm" [class.text-gray-400]="currentPage===1" (click)="goToPage(currentPage-1)">Prev</button>
+                    <span class="rounded-lg bg-gray-100 px-2 py-1 text-xs">{{ currentPage }}</span>
+                    <button class="rounded-lg px-2 py-1 text-sm" [class.text-gray-400]="currentPage===totalPages" (click)="goToPage(currentPage+1)">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
