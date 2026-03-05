@@ -952,6 +952,37 @@
              align-items: center;
         }
     }
+
+    /* Small (38px height) */
+    &.fuse-mat-small {
+        .mat-mdc-text-field-wrapper {
+            .mat-mdc-form-field-flex {
+                .mat-mdc-form-field-infix {
+                    min-height: 38px !important;
+                    padding-top: 0 !important;
+                    padding-bottom: 0 !important;
+                }
+
+                .mdc-notched-outline {
+                    .mdc-notched-outline__leading {
+                        border-top-left-radius: 8px !important;
+                        border-bottom-left-radius: 8px !important;
+                    }
+                    .mdc-notched-outline__trailing {
+                        border-top-right-radius: 8px !important;
+                        border-bottom-right-radius: 8px !important;
+                    }
+                }
+            }
+        }
+        
+        &.mat-mdc-form-field-type-mat-select {
+            .mat-mdc-form-field-infix {
+                display: flex;
+                align-items: center;
+            }
+        }
+    }
 }
 
 /* -------------------------------------------------------------------------- */

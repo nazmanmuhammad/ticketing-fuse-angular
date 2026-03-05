@@ -226,6 +226,16 @@ export class ChangeRequestListComponent {
     toggleFilter(): void {
         this.filterOpen = !this.filterOpen;
     }
+
+    applyFilter(): void {
+        this.currentPage = 1;
+    }
+
+    resetFilter(): void {
+        this.searchQuery = '';
+        this.selectedStatus = '';
+        this.currentPage = 1;
+    }
     goToPage(page: number): void {
         if (page >= 1 && page <= this.totalPages) this.currentPage = page;
     }

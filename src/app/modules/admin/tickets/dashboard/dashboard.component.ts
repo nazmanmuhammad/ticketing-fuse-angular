@@ -9,6 +9,10 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -25,7 +29,16 @@ import {
 @Component({
     selector: 'app-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule],
+    imports: [
+        CommonModule, 
+        FormsModule, 
+        RouterModule, 
+        NgApexchartsModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatFormFieldModule,
+        MatInputModule
+    ],
     templateUrl: './dashboard.component.html',
     animations: [
         trigger('collapseFilter', [
@@ -54,6 +67,7 @@ import {
 export class DashboardComponent {
     // Filter state
     filterOpen = false;
+    searchQuery = '';
     selectedPeriod = 'this_month';
     startDate = '2026-02-01';
     endDate = '2026-02-28';

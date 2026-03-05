@@ -39,7 +39,7 @@
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M10 6h10M4 6h2m4 6h10M4 12h2m4 6h10M4 18h2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                         />
                     </svg>
                     Filter
@@ -58,7 +58,7 @@
                             stroke-linecap="round"
                             stroke-linejoin="round"
                             stroke-width="2"
-                            d="M4 4v16h16M4 8h16M4 12h16M4 16h16"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                     </svg>
                     Reset
@@ -104,11 +104,9 @@
         </div>
 
         <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
-            <div class="flex flex-wrap items-end gap-4">
-                <div class="flex min-w-56 flex-1 flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs"
-                        >Search</label
-                    >
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-5 pt-4 border-t border-gray-100 mt-4">
+                <div class="md:col-span-2 flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
                     <div class="relative">
                         <input
                             type="text"
@@ -132,10 +130,8 @@
                     </div>
                 </div>
 
-                <div class="flex min-w-40 flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs"
-                        >Period</label
-                    >
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
@@ -147,10 +143,8 @@
                     </div>
                 </div>
 
-                <div class="flex min-w-44 flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs"
-                        >Start Date</label
-                    >
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
                     <input
                         type="date"
                         [(ngModel)]="startDate"
@@ -158,10 +152,8 @@
                     />
                 </div>
 
-                <div class="flex min-w-44 flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs"
-                        >End Date</label
-                    >
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
                     <input
                         type="date"
                         [(ngModel)]="endDate"
@@ -169,23 +161,33 @@
                     />
                 </div>
 
-                <div class="flex min-w-40 flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs"
-                        >Status</label
-                    >
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
                     <div class="relative">
-                        <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                        <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedStatus">
-                                <mat-option
-                                    *ngFor="let s of statuses"
-                                    [value]="s.value"
-                                >
+                                <mat-option *ngFor="let s of statuses" [value]="s.value">
                                     {{ s.label }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
                 </div>
+            </div>
+
+            <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+                <button 
+                    (click)="resetFilter()"
+                    class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
+                >
+                    Reset
+                </button>
+                <button 
+                    (click)="applyFilter()"
+                    class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
+                >
+                    Apply Filter
+                </button>
             </div>
         </div>
     </div>

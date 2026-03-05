@@ -9,6 +9,10 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -25,7 +29,16 @@ import {
 @Component({
     selector: 'app-access-request-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule],
+    imports: [
+        CommonModule, 
+        FormsModule, 
+        RouterModule, 
+        NgApexchartsModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatFormFieldModule,
+        MatInputModule
+    ],
     templateUrl: './dashboard.component.html',
     animations: [
         trigger('collapseFilter', [
@@ -234,6 +247,15 @@ export class AccessRequestDashboardComponent {
         this.selectedPeriod = 'this_month';
         this.startDate = '2026-02-01';
         this.endDate = '2026-02-28';
+    }
+
+    applyFilter() {
+        console.log(
+            'Filter:',
+            this.selectedPeriod,
+            this.startDate,
+            this.endDate
+        );
     }
 
     onPeriodChange() {

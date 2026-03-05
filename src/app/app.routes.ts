@@ -143,6 +143,13 @@ export const appRoutes: Route[] = [
                     ),
             },
             {
+                path: 'job-requests',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/job-requests/job-requests.routes'
+                    ),
+            },
+            {
                 path: 'master-data/users',
                 loadChildren: () =>
                     import(

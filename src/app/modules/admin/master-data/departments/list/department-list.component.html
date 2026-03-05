@@ -61,11 +61,13 @@
                 <!-- Status -->
                 <div class="flex min-w-40 flex-col">
                     <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
-                    <select class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" [(ngModel)]="filter.status">
-                        <option value="">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
+                    <mat-form-field class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="filter.status">
+                            <mat-option value="">All Status</mat-option>
+                            <mat-option value="Active">Active</mat-option>
+                            <mat-option value="Inactive">Inactive</mat-option>
+                        </mat-select>
+                    </mat-form-field>
                 </div>
             </div>
         </div>
@@ -123,11 +125,13 @@
         <div class="flex items-center justify-end border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
             <div class="flex items-center gap-2">
                 <span class="text-sm text-gray-500">Items per page:</span>
-                <select class="rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm focus:border-blue-500 focus:outline-none dark:bg-gray-700 dark:border-gray-600">
-                    <option>5</option>
-                    <option>10</option>
-                    <option>20</option>
-                </select>
+                <mat-form-field class="fuse-mat-small w-20" subscriptSizing="dynamic">
+                    <mat-select [value]="5">
+                        <mat-option [value]="5">5</mat-option>
+                        <mat-option [value]="10">10</mat-option>
+                        <mat-option [value]="20">20</mat-option>
+                    </mat-select>
+                </mat-form-field>
                 <span class="mx-4 text-sm text-gray-500">0 of 0</span>
                 <div class="flex gap-1">
                     <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>

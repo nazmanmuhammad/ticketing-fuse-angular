@@ -9,6 +9,10 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { MatSelectModule } from '@angular/material/select';
+import { MatOptionModule } from '@angular/material/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -39,7 +43,16 @@ interface ChangeRequest {
 @Component({
     selector: 'app-change-requests-dashboard',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, NgApexchartsModule],
+    imports: [
+        CommonModule, 
+        FormsModule, 
+        RouterModule, 
+        NgApexchartsModule,
+        MatSelectModule,
+        MatOptionModule,
+        MatFormFieldModule,
+        MatInputModule
+    ],
     templateUrl: './dashboard.component.html',
     animations: [
         trigger('collapseFilter', [
@@ -79,6 +92,24 @@ export class ChangeRequestsDashboardComponent {
         { label: 'This Year', value: 'this_year' },
         { label: 'Custom Range', value: 'custom' },
     ];
+
+    years = ['2022', '2023', '2024', '2025', '2026'];
+    months = [
+        { label: 'January', value: 1 },
+        { label: 'February', value: 2 },
+        { label: 'March', value: 3 },
+        { label: 'April', value: 4 },
+        { label: 'May', value: 5 },
+        { label: 'June', value: 6 },
+        { label: 'July', value: 7 },
+        { label: 'August', value: 8 },
+        { label: 'September', value: 9 },
+        { label: 'October', value: 10 },
+        { label: 'November', value: 11 },
+        { label: 'December', value: 12 },
+    ];
+    selectedYear = new Date().getFullYear().toString();
+    selectedMonth = new Date().getMonth() + 1;
 
     requests: ChangeRequest[] = [
         {
@@ -301,6 +332,24 @@ export class ChangeRequestsDashboardComponent {
         this.filterOpen = !this.filterOpen;
     }
 
+    onYearChange(): void {
+        const y = Number(this.selectedYear);
+        const m = this.selectedMonth;
+        if (!isNaN(y) && m >= 1 && m <= 12) {
+            this.startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+            this.endDate = new Date(y, m, 0).toISOString().split('T')[0];
+        }
+    }
+
+    onMonthChange(): void {
+        const y = Number(this.selectedYear);
+        const m = this.selectedMonth;
+        if (!isNaN(y) && m >= 1 && m <= 12) {
+            this.startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+            this.endDate = new Date(y, m, 0).toISOString().split('T')[0];
+        }
+    }
+
     onPeriodChange(): void {
         const now = new Date();
         const year = now.getFullYear();
@@ -348,8 +397,20 @@ export class ChangeRequestsDashboardComponent {
     }
 
     resetFilter(): void {
-        this.selectedPeriod = 'this_month';
-        this.onPeriodChange();
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = now.getMonth() + 1;
+        this.selectedYear = String(y);
+        this.selectedMonth = m;
+        this.startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+        this.endDate = new Date(y, m, 0).toISOString().split('T')[0];
+    }
+
+    applyFilter(): void {
+        const y = Number(this.selectedYear);
+        const m = this.selectedMonth;
+        this.startDate = `${y}-${String(m).padStart(2, '0')}-01`;
+        this.endDate = new Date(y, m, 0).toISOString().split('T')[0];
     }
 
     private countByStatus(status: Status): number {

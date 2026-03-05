@@ -222,6 +222,10 @@ export class AccessRequestListComponent {
         this.currentPage = 1;
     }
 
+    applyFilter(): void {
+        this.currentPage = 1;
+    }
+
     onPeriodChange(): void {
         const now = new Date();
         const year = now.getFullYear();

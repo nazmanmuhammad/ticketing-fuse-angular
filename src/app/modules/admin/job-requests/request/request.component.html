@@ -1,0 +1,361 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <div
+        class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
+    >
+        <span class="font-semibold text-gray-800 dark:text-white"
+            >Job Requests</span
+        >
+        <div class="text-secondary flex items-center gap-1">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Job Request List</span>
+        </div>
+    </div>
+
+    <div
+        class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
+    >
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+                    Job Requests
+                </h2>
+                <p class="text-secondary mt-0.5 text-sm">
+                    Manage and track job requisitions
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button
+                    (click)="toggleFilter()"
+                    class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                >
+                    <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                        />
+                    </svg>
+                    Filter
+                </button>
+                <button
+                    (click)="resetFilter()"
+                    class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+                >
+                    <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                        />
+                    </svg>
+                    Reset
+                </button>
+                <button
+                    class="flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+                    [routerLink]="['/job-requests/create']"
+                >
+                    <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"
+                        />
+                    </svg>
+                    New Request
+                </button>
+                <button
+                    (click)="toggleFilter()"
+                    class="ml-1 rounded-full border border-gray-200 p-2 text-gray-400 transition hover:bg-gray-50"
+                >
+                    <svg
+                        class="h-4 w-4 transition-transform duration-300"
+                        [class.rotate-180]="filterOpen"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                        />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
+    <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-100 mt-4">
+        
+        <!-- Search -->
+        <div class="flex flex-col w-72">
+            <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
+            <div class="relative">
+                <input type="text" [(ngModel)]="searchQuery" placeholder="Search change requests..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
+                <svg class="absolute right-3 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Period -->
+        <div class="flex flex-col w-40">
+            <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+                    <mat-option *ngFor="let p of periods" [value]="p.value">
+                        {{ p.label }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Start Date -->
+        <div class="flex flex-col w-44">
+            <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
+            <input type="date" [(ngModel)]="startDate" class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-gray-800" />
+        </div>
+
+        <!-- End Date -->
+        <div class="flex flex-col w-44">
+            <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
+            <input type="date" [(ngModel)]="endDate" class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-gray-800" />
+        </div>
+
+        <!-- Status -->
+        <div class="flex flex-col w-40">
+            <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
+            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                <mat-select [(ngModel)]="selectedStatus">
+                    <mat-option *ngFor="let s of statuses" [value]="s.value">
+                        {{ s.label }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+    </div>
+
+    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+        <button (click)="resetFilter()" class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2">
+            Reset
+        </button>
+        <button (click)="applyFilter()" class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">
+            Apply Filter
+        </button>
+    </div>
+</div>
+    </div>
+
+    <div class="space-y-6 px-8 pb-8">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div
+                *ngFor="let stat of stats"
+                class="rounded-2xl border border-t-4 border-gray-100 bg-white p-5 shadow-sm transition-all dark:bg-card hover:shadow-md"
+                [ngClass]="stat.border"
+            >
+                <div class="flex items-start justify-between">
+                    <div
+                        class="flex h-11 w-11 items-center justify-center rounded-xl"
+                        [ngClass]="stat.bg"
+                    >
+                        <svg
+                            class="h-6 w-6"
+                            [ngClass]="stat.icon"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                        >
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" />
+                            <path
+                                fill-rule="evenodd"
+                                d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                    </div>
+                    <span
+                        class="rounded-full px-2 py-0.5 text-xs font-semibold"
+                        [ngClass]="
+                            stat.up
+                                ? 'bg-emerald-50 text-emerald-600'
+                                : 'bg-red-50 text-red-600'
+                        "
+                    >
+                        {{ stat.trend }}
+                    </span>
+                </div>
+                <div class="mt-4">
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        {{ stat.value }}
+                    </h3>
+                    <p class="text-secondary text-xs">{{ stat.title }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div
+            class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:bg-card"
+        >
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[800px] table-auto">
+                    <thead class="bg-gray-50/50">
+                        <tr>
+                            <th
+                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Request ID
+                            </th>
+                            <th
+                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Job Title
+                            </th>
+                            <th
+                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Department
+                            </th>
+                            <th
+                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Requester
+                            </th>
+                            <th
+                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Status
+                            </th>
+                            <th
+                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Date
+                            </th>
+                            <th
+                                class="text-secondary px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider"
+                            >
+                                Action
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr
+                            *ngFor="let req of requests"
+                            class="group transition-colors hover:bg-gray-50/50"
+                        >
+                            <td class="px-6 py-4">
+                                <span class="font-medium text-indigo-600">{{
+                                    req.code
+                                }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    class="font-semibold text-gray-900 dark:text-white"
+                                    >{{ req.title }}</span
+                                >
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm text-gray-600">{{
+                                    req.department
+                                }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-600"
+                                    >
+                                        {{ req.requester.charAt(0) }}
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span
+                                            class="text-sm font-medium text-gray-900 dark:text-white"
+                                            >{{ req.requester }}</span
+                                        >
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium"
+                                    [ngClass]="getStatusClass(req.status)"
+                                >
+                                    {{ req.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-gray-500">
+                                {{ req.requestDate | date : 'mediumDate' }}
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <button
+                                    class="text-gray-400 transition-colors hover:text-indigo-600"
+                                >
+                                    <svg
+                                        class="h-5 w-5"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                        />
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 5 8.268 7.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                        />
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div
+                class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+            >
+                <div class="text-sm text-gray-500">
+                    Showing <span class="font-medium">1</span> to
+                    <span class="font-medium">5</span> of
+                    <span class="font-medium">12</span> results
+                </div>
+                <div class="flex gap-2">
+                    <button
+                        class="rounded-lg border border-gray-200 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                        disabled
+                    >
+                        Previous
+                    </button>
+                    <button
+                        class="rounded-lg border border-gray-200 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                    >
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
