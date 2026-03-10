@@ -1,4 +1,4 @@
-<div class="w-full font-sans antialiased">
+<div class="w-full font-sans antialiased scroll-smooth">
 
   <!-- Header -->
   <header class="bg-white border-b sticky top-0 z-50 shadow-sm" style="border-color: #e5e7eb;">
@@ -7,10 +7,11 @@
         <img class="h-10" src="images/logo/logo-sig-member-color.svg" alt="SIG Helpdesk Logo">
       </div>
       <nav class="hidden md:flex items-center space-x-10">
-        <a href="#features" class="text-base text-gray-500 hover:text-gray-900 transition-colors">Features</a>
-        <a href="#solutions" class="text-base text-gray-500 hover:text-gray-900 transition-colors">Solutions</a>
-        <a href="#howitworks" class="text-base text-gray-500 hover:text-gray-900 transition-colors">How It Works</a>
-        <a href="#faq" class="text-base text-gray-500 hover:text-gray-900 transition-colors">FAQ</a>
+        <a href="#home" (click)="scrollTo('home', $event)" class="text-base text-gray-500 hover:text-gray-900 transition-colors">Home</a>
+        <a href="#features" (click)="scrollTo('features', $event)" class="text-base text-gray-500 hover:text-gray-900 transition-colors">Features</a>
+        <a href="#solutions" (click)="scrollTo('solutions', $event)" class="text-base text-gray-500 hover:text-gray-900 transition-colors">Solutions</a>
+        <a href="#howitworks" (click)="scrollTo('howitworks', $event)" class="text-base text-gray-500 hover:text-gray-900 transition-colors">How It Works</a>
+        <a href="#access" (click)="scrollTo('access', $event)" class="text-base text-gray-500 hover:text-gray-900 transition-colors">Access</a>
       </nav>
       <div class="flex items-center space-x-5">
         <a routerLink="/sign-in" class="text-base text-gray-500 hover:text-gray-900 transition-colors font-medium">Login</a>
@@ -22,7 +23,7 @@
   </header>
 
   <!-- Hero Section -->
-  <section class="py-28 px-10 bg-white overflow-hidden">
+  <section id="home" class="py-28 px-10 bg-white overflow-hidden scroll-mt-24">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-20 items-center">
       <div class="text-left">
         <!-- Badge -->
@@ -114,7 +115,7 @@
   </section>
 
   <!-- Features Section -->
-  <section id="features" class="py-24 px-10 bg-gray-50">
+  <section id="features" class="py-24 px-10 bg-gray-50 scroll-mt-24">
     <div class="max-w-7xl mx-auto">
       <div class="text-center mb-20">
         <span class="text-sm font-bold tracking-widest uppercase" style="color: #0D0E61;">Enterprise-Grade</span>
@@ -156,7 +157,7 @@
   </section>
 
   <!-- Why SIG Helpdesk Section -->
-  <section id="solutions" class="py-24 px-10 bg-white">
+  <section id="solutions" class="py-24 px-10 bg-white scroll-mt-24">
     <div class="max-w-7xl mx-auto">
       <h2 class="text-5xl font-bold text-gray-900 text-center mb-14">Why SIG teams rely on this platform</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -216,7 +217,7 @@
   </section>
 
   <!-- How It Works Section -->
-  <section id="howitworks" class="py-24 px-10 text-white" style="background-color: #0D0E61;">
+  <section id="howitworks" class="py-24 px-10 text-white scroll-mt-24" style="background-color: #0D0E61;">
     <div class="max-w-7xl mx-auto text-center">
       <p class="text-green-400 text-sm font-bold tracking-widest uppercase mb-4">How It Works</p>
       <h2 class="text-5xl font-bold max-w-3xl mx-auto leading-tight">
@@ -265,7 +266,7 @@
   </section>
 
   <!-- Access Levels Section (replaces Pricing) -->
-  <section class="py-24 px-10 bg-gray-50">
+  <section id="access" class="py-24 px-10 bg-gray-50 scroll-mt-24">
     <div class="max-w-7xl mx-auto text-center">
       <span class="text-sm font-bold tracking-widest uppercase" style="color: #0D0E61;">Access Levels</span>
       <h2 class="mt-4 text-5xl font-bold text-gray-900 mb-5">The right access for every role</h2>
@@ -375,7 +376,7 @@
       </div>
     </div>
     <div class="mt-16 pt-8 border-t border-gray-100 text-center">
-      <p class="text-sm text-gray-400">&copy; {{ currentYear }} SIG Helpdesk · PT Semen Indonesia Group. All rights reserved.</p>
+      <p class="text-sm text-gray-400">&copy; {{ currentYear }} SIG Helpdesk · PT Saraswanti Indo Genetech. All rights reserved.</p>
     </div>
   </footer>
 
