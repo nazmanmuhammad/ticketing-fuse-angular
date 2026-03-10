@@ -9,7 +9,7 @@ import { LayoutComponent } from 'app/layout/layout.component';
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 export const appRoutes: Route[] = [
     // Redirect empty path to '/example'
-    { path: '', pathMatch: 'full', redirectTo: 'example' },
+    { path: '', pathMatch: 'full', redirectTo: 'landing' },
 
     // Redirect signed-in user to the '/example'
     //
@@ -28,6 +28,10 @@ export const appRoutes: Route[] = [
             layout: 'empty',
         },
         children: [
+            {
+                path: 'landing',
+                loadChildren: () => import('app/modules/landing/landing.routes'),
+            },
             {
                 path: 'confirmation-required',
                 loadChildren: () =>
@@ -59,6 +63,11 @@ export const appRoutes: Route[] = [
                 loadChildren: () =>
                     import('app/modules/auth/sign-up/sign-up.routes'),
             },
+            {
+                path: 'request-access',
+                loadChildren: () =>
+                    import('app/modules/auth/request-access/request-access.routes'),
+            },
         ],
     },
 
@@ -87,21 +96,6 @@ export const appRoutes: Route[] = [
         ],
     },
 
-    // Landing routes
-    {
-        path: '',
-        component: LayoutComponent,
-        data: {
-            layout: 'empty',
-        },
-        children: [
-            {
-                path: 'home',
-                loadChildren: () =>
-                    import('app/modules/landing/home/home.routes'),
-            },
-        ],
-    },
 
     // Admin routes
     {

@@ -142,6 +142,18 @@ export class AuthService {
     }
 
     /**
+     * Request access
+     *
+     * @param user
+     */
+    requestAccess(user: {
+        name: string;
+        email: string;
+    }): Observable<any> {
+        return this._httpClient.post('api/auth/request-access', user);
+    }
+
+    /**
      * Unlock session
      *
      * @param credentials
