@@ -21,6 +21,7 @@ import { AuthService } from 'app/core/auth/auth.service';
 @Component({
     selector: 'auth-sign-in',
     templateUrl: './sign-in.component.html',
+    styleUrls: ['./sign-in.component.scss'],
     encapsulation: ViewEncapsulation.None,
     animations: fuseAnimations,
     imports: [
@@ -45,6 +46,7 @@ export class AuthSignInComponent implements OnInit {
     };
     signInForm: UntypedFormGroup;
     showAlert: boolean = false;
+    currentYear: number = new Date().getFullYear();
 
     /**
      * Constructor
