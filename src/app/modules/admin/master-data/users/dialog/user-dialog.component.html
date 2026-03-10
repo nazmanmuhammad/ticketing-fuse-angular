@@ -8,29 +8,33 @@
     <!-- Form -->
     <form [formGroup]="userForm" class="flex flex-col flex-auto px-8 pb-8">
         
-        <!-- Full Name -->
+        <!-- Select Employee -->
         <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Full Name<span class="text-red-500">*</span></label>
-            <input 
-                type="text" 
-                formControlName="fullName"
-                class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all dark:bg-gray-800 dark:border-gray-700"
-                placeholder="Enter full name">
-            <div *ngIf="userForm.get('fullName')?.touched && userForm.get('fullName')?.invalid" class="mt-1 text-xs text-red-500">
-                Full Name is required
-            </div>
-        </div>
-
-        <!-- Email -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Email<span class="text-red-500">*</span></label>
-            <input 
-                type="email" 
-                formControlName="email"
-                class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all dark:bg-gray-800 dark:border-gray-700"
-                placeholder="Enter email address">
-            <div *ngIf="userForm.get('email')?.touched && userForm.get('email')?.invalid" class="mt-1 text-xs text-red-500">
-                Valid Email is required
+            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Select Employee<span class="text-red-500">*</span></label>
+            <mat-form-field appearance="outline" class="w-full fuse-mat-small" subscriptSizing="dynamic">
+                <input 
+                    type="text"
+                    matInput
+                    placeholder="Search and select employee"
+                    [formControl]="employeeInput"
+                    [matAutocomplete]="auto"
+                    [matAutocompleteDisabled]="!employeeAutocompleteEnabled"
+                    (click)="enableEmployeeAutocomplete(employeeTrigger)"
+                    #employeeTrigger="matAutocompleteTrigger">
+                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event.option.value)" (closed)="onEmployeePanelClosed()">
+                    <mat-option *ngFor="let u of filteredEmployeesList" [value]="u">
+                        <div class="flex items-center gap-3 py-1">
+                            <img [src]="u.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
+                            <div class="flex flex-col">
+                                <span class="font-medium leading-none">{{ u.fullName }}</span>
+                                <span class="text-xs text-gray-500 mt-1">{{ u.email }}</span>
+                            </div>
+                        </div>
+                    </mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+            <div *ngIf="userForm.get('employee')?.touched && userForm.get('employee')?.invalid" class="mt-1 text-xs text-red-500">
+                Employee is required
             </div>
         </div>
 

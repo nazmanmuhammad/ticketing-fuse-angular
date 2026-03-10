@@ -34,18 +34,21 @@
         <!-- Members -->
         <div class="flex flex-col mb-5">
             <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Members<span class="text-red-500">*</span></label>
-            <mat-form-field appearance="outline" class="w-full rounded-xl">
-                <mat-select formControlName="members" multiple [compareWith]="compareUsers">
-                    <mat-select-trigger>
-                        <span *ngIf="(teamForm.get('members')?.value?.length || 0) > 0" class="flex items-center">
-                            {{ teamForm.get('members')?.value?.[0]?.fullName }}
-                            <span *ngIf="(teamForm.get('members')?.value?.length || 0) > 1" class="ml-2 text-gray-500 text-xs">
-                                (+{{ (teamForm.get('members')?.value?.length || 0) - 1 }} {{ (teamForm.get('members')?.value?.length || 0) === 2 ? 'other' : 'others' }})
-                            </span>
-                        </span>
-                    </mat-select-trigger>
-                    <mat-option *ngFor="let user of users" [value]="user">
+            <mat-form-field appearance="outline" class="w-full rounded-xl fuse-mat-small">
+                <input
+                    matInput
+                    placeholder="Search members..."
+                    [formControl]="triggerInput"
+                    (focus)="onTriggerFocus()"
+                    (blur)="onTriggerBlur()"
+                    (click)="autoTrigger.openPanel()"
+                    [matAutocomplete]="membersAuto"
+                    #autoTrigger="matAutocompleteTrigger"
+                />
+                <mat-autocomplete #membersAuto="matAutocomplete" [autoActiveFirstOption]="false" (optionSelected)="onMemberSelected($event.option.value, autoTrigger)">
+                    <mat-option *ngFor="let user of filteredUsersList" [value]="user">
                         <div class="flex items-center gap-3 py-1">
+                            <mat-checkbox [checked]="isSelected(user)" (click)="$event.stopPropagation()" (change)="toggleMember(user, $event)"></mat-checkbox>
                             <img [src]="user.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
                             <div class="flex flex-col">
                                 <span class="font-medium leading-none">{{ user.fullName }}</span>
@@ -53,7 +56,7 @@
                             </div>
                         </div>
                     </mat-option>
-                </mat-select>
+                </mat-autocomplete>
             </mat-form-field>
             <div *ngIf="teamForm.get('members')?.touched && teamForm.get('members')?.invalid" class="mt-1 text-xs text-red-500">
                 At least one member is required

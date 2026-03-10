@@ -122,7 +122,8 @@ export class UserListComponent {
     openUserDialog(user?: User): void {
         const dialogRef = this._matDialog.open(UserDialogComponent, {
             panelClass: 'user-dialog',
-            data: { user }
+            autoFocus: false,
+            data: { user, users: this.users }
         });
 
         dialogRef.afterClosed().subscribe(result => {

@@ -18,6 +18,21 @@ export const appRoutes: Route[] = [
     // location. This is a small convenience to keep all main routes together here on this file.
     { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: 'example' },
 
+    // Landing route for guests
+    {
+        path: '',
+        component: LayoutComponent,
+        data: {
+            layout: 'empty',
+        },
+        children: [
+            {
+                path: 'landing',
+                loadChildren: () => import('app/modules/landing/landing.routes'),
+            },
+        ],
+    },
+
     // Auth routes for guests
     {
         path: '',
@@ -28,10 +43,6 @@ export const appRoutes: Route[] = [
             layout: 'empty',
         },
         children: [
-            {
-                path: 'landing',
-                loadChildren: () => import('app/modules/landing/landing.routes'),
-            },
             {
                 path: 'confirmation-required',
                 loadChildren: () =>

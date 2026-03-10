@@ -953,24 +953,49 @@
         }
     }
 
+    /* Match mat-input (used by mat-autocomplete) to select styling */
+    &.mat-mdc-form-field-type-mat-input {
+        .mat-mdc-text-field-wrapper {
+            .mat-mdc-form-field-flex {
+                .mdc-notched-outline {
+                    .mdc-notched-outline__leading {
+                        border-top-left-radius: 12px !important;
+                        border-bottom-left-radius: 12px !important;
+                    }
+                    .mdc-notched-outline__trailing {
+                        border-top-right-radius: 12px !important;
+                        border-bottom-right-radius: 12px !important;
+                    }
+                }
+            }
+        }
+
+        .mat-mdc-form-field-infix {
+            min-height: 48px !important;
+            display: flex;
+            align-items: center;
+        }
+    }
+
     /* Small (38px height) */
     &.fuse-mat-small {
         .mat-mdc-text-field-wrapper {
             .mat-mdc-form-field-flex {
                 .mat-mdc-form-field-infix {
-                    min-height: 38px !important;
+                    min-height: 48px !important;
                     padding-top: 0 !important;
                     padding-bottom: 0 !important;
                 }
 
+
                 .mdc-notched-outline {
                     .mdc-notched-outline__leading {
-                        border-top-left-radius: 8px !important;
-                        border-bottom-left-radius: 8px !important;
+                        border-top-left-radius: 12px !important;
+                        border-bottom-left-radius: 12px !important;
                     }
                     .mdc-notched-outline__trailing {
-                        border-top-right-radius: 8px !important;
-                        border-bottom-right-radius: 8px !important;
+                        border-top-right-radius: 12px !important;
+                        border-bottom-right-radius: 12px !important;
                     }
                 }
             }
@@ -983,6 +1008,23 @@
             }
         }
     }
+}
+
+/* Autocomplete panel styling to align with selects */
+.mat-mdc-autocomplete-panel {
+    border-radius: 12px !important;
+    @apply shadow-lg bg-white dark:bg-card #{'!important'};
+    padding: 6px 0 !important;
+}
+.mat-mdc-option {
+    margin: 2px 6px !important;
+    border-radius: 8px !important;
+    min-height: 40px !important;
+    padding: 0 12px !important;
+}
+.mat-mdc-option.mat-mdc-option-active,
+.mat-mdc-option:hover {
+    @apply bg-gray-100 dark:bg-white/10 #{'!important'};
 }
 
 /* -------------------------------------------------------------------------- */
