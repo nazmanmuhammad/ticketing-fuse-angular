@@ -309,6 +309,7 @@ export class FuseVerticalNavigationComponent
 
         // Navigation
         if ('navigation' in changes) {
+            this._updateActiveAsideItemFromUrl();
             // Mark for check
             this._changeDetectorRef.markForCheck();
         }
@@ -320,6 +321,10 @@ export class FuseVerticalNavigationComponent
 
             // Open/close the navigation
             this._toggleOpened(this.opened);
+
+            if (this.opened) {
+                this._updateActiveAsideItemFromUrl();
+            }
         }
 
         // Position
@@ -363,6 +368,11 @@ export class FuseVerticalNavigationComponent
                 if (this.mode === 'over' && this.opened) {
                     // Close the navigation
                     this.close();
+                }
+
+                // Safety: ensure any stray overlay is removed on route change
+                if (this.mode === 'over') {
+                    this._hideOverlay();
                 }
 
                 // DON'T close aside for thin appearance in side mode
@@ -658,6 +668,14 @@ export class FuseVerticalNavigationComponent
             this.activeAsideItemId
         );
 
+        // Mobile behavior (mode: over): navigate directly to the first child and close nav
+        if (this.mode === 'over') {
+            this.activeAsideItemId = item.id || null;
+            this._navigateToFirstChild(item);
+            this.close(); // closes and removes overlay
+            return;
+        }
+
         // For thin in side mode, switch between items
         if (
             (this.appearance === 'thin' || this.appearance === 'compact') &&
@@ -707,7 +725,8 @@ export class FuseVerticalNavigationComponent
     }
 
     private _showOverlay(): void {
-        if (this._asideOverlay) {
+        // Prevent creating multiple main overlays
+        if (this._overlay) {
             return;
         }
 
@@ -873,7 +892,6 @@ export class FuseVerticalNavigationComponent
     private _updateActiveAsideItemFromUrl(): void {
         if (
             (this.appearance !== 'thin' && this.appearance !== 'compact') ||
-            this.mode !== 'side' ||
             !this.navigation
         ) {
             return;
@@ -898,7 +916,6 @@ export class FuseVerticalNavigationComponent
         if (activeItem) {
             // Only update if changed to prevent unnecessary detection cycles
             if (this.activeAsideItemId !== activeItem.id) {
-                console.log('🎯 Auto-selecting aside item:', activeItem.title);
                 this.activeAsideItemId = activeItem.id;
                 this._changeDetectorRef.markForCheck();
             }

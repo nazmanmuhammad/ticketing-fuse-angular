@@ -972,6 +972,8 @@
 
         .mat-mdc-form-field-infix {
             min-height: 48px !important;
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
             display: flex;
             align-items: center;
         }

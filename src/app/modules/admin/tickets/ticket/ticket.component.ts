@@ -72,6 +72,8 @@ export class TicketComponent {
     itemsPerPage = 5;
     currentPage = 1;
     activeActionId: number | null = null;
+    activeTab: 'all' | 'assigned' | 'unassigned' | 'overdue' = 'all';
+    currentUser = 'Alice';
 
     periods = [
         { label: 'Today', value: 'today' },
@@ -259,6 +261,25 @@ export class TicketComponent {
         );
     }
 
+    setTab(tab: 'all' | 'assigned' | 'unassigned' | 'overdue'): void {
+        this.activeTab = tab;
+        this.currentPage = 1;
+    }
+
+    private isAssignedToMe(t: Ticket): boolean {
+        return !!t.assignee && t.assignee.toLowerCase() === this.currentUser.toLowerCase();
+    }
+    private isUnassigned(t: Ticket): boolean {
+        return !t.assignee || t.assignee.trim() === '';
+    }
+    private isOverdue(t: Ticket): boolean {
+        const parsed = new Date(t.date);
+        if (isNaN(parsed.getTime())) return false;
+        const threshold = new Date();
+        threshold.setDate(threshold.getDate() - 7);
+        return t.status !== 'CLOSED' && parsed < threshold;
+    }
+
     resetFilter(): void {
         this.searchQuery = '';
         this.selectedPeriod = 'this_month';
@@ -308,18 +329,25 @@ export class TicketComponent {
     }
 
     get filteredTickets(): Ticket[] {
-        return this.tickets.filter((t) => {
+        const base = this.tickets.filter((t) => {
             const matchSearch =
                 !this.searchQuery.trim() ||
-                t.title
-                    .toLowerCase()
-                    .includes(this.searchQuery.toLowerCase()) ||
-                t.assignee
-                    .toLowerCase()
-                    .includes(this.searchQuery.toLowerCase());
-            const matchStatus =
-                !this.selectedStatus || t.status === this.selectedStatus;
+                t.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                t.assignee.toLowerCase().includes(this.searchQuery.toLowerCase());
+            const matchStatus = !this.selectedStatus || t.status === this.selectedStatus;
             return matchSearch && matchStatus;
+        });
+        return base.filter((t) => {
+            switch (this.activeTab) {
+                case 'assigned':
+                    return this.isAssignedToMe(t);
+                case 'unassigned':
+                    return this.isUnassigned(t);
+                case 'overdue':
+                    return this.isOverdue(t);
+                default:
+                    return true;
+            }
         });
     }
 
@@ -359,5 +387,18 @@ export class TicketComponent {
     }
     navigateToCreate(): void {
         /* router.navigate(['/tickets/create']) */
+    }
+
+    get countAll(): number {
+        return this.tickets.length;
+    }
+    get countAssigned(): number {
+        return this.tickets.filter((t) => this.isAssignedToMe(t)).length;
+    }
+    get countUnassigned(): number {
+        return this.tickets.filter((t) => this.isUnassigned(t)).length;
+    }
+    get countOverdue(): number {
+        return this.tickets.filter((t) => this.isOverdue(t)).length;
     }
 }
