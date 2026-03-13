@@ -1,0 +1,20 @@
+<?php
+
+namespace {{ namespace }};
+
+{{ factoryImport }}
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\Uuid;
+
+class {{ class }} extends Model
+{
+    use SoftDeletes, Uuid;
+    {{ factory }}
+    public $incrementing = false;
+    protected $keyType = "uuid";
+
+    protected $fillable = [
+        //
+    ];
+}

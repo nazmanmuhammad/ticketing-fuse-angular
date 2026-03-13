@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { Department } from '../department.types';
 import { DepartmentDialogComponent } from '../dialog/department-dialog.component';
@@ -32,6 +33,7 @@ import {
         MatSelectModule,
         MatOptionModule,
         MatFormFieldModule,
+        MatInputModule,
         FormsModule
     ],
     templateUrl: './department-list.component.html',

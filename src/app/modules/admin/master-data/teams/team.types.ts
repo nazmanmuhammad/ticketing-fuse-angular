@@ -5,4 +5,5 @@ export interface Team {
     name: string;
     description: string;
     members: User[];
+    status?: 'Active' | 'Inactive';
 }

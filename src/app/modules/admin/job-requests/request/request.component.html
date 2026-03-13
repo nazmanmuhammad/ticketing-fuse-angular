@@ -105,66 +105,85 @@
         </div>
 
         <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
-    <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-100 mt-4">
-        
-        <!-- Search -->
-        <div class="flex flex-col w-72">
-            <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
-            <div class="relative">
-                <input type="text" [(ngModel)]="searchQuery" placeholder="Search change requests..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
-                <svg class="absolute right-3 top-2.5 h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                </svg>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-5 pt-4 border-t border-gray-100 mt-4">
+                <div class="md:col-span-2 flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <span matPrefix class="flex items-center mr-2">
+                            <svg
+                                class="h-4 w-4 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                                />
+                            </svg>
+                        </span>
+                        <input matInput type="text" [(ngModel)]="searchQuery" placeholder="Search job requests..." />
+                    </mat-form-field>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+                    <div class="relative">
+                        <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                            <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+                                <mat-option *ngFor="let p of periods" [value]="p.value">
+                                    {{ p.label }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <input matInput type="date" [(ngModel)]="startDate" />
+                    </mat-form-field>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <input matInput type="date" [(ngModel)]="endDate" />
+                    </mat-form-field>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
+                    <div class="relative">
+                        <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                            <mat-select [(ngModel)]="selectedStatus">
+                                <mat-option *ngFor="let s of statuses" [value]="s.value">
+                                    {{ s.label }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+                <button 
+                    (click)="resetFilter()"
+                    class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
+                >
+                    Reset
+                </button>
+                <button 
+                    (click)="applyFilter()"
+                    class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
+                >
+                    Apply Filter
+                </button>
             </div>
         </div>
-
-        <!-- Period -->
-        <div class="flex flex-col w-40">
-            <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
-            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
-                    <mat-option *ngFor="let p of periods" [value]="p.value">
-                        {{ p.label }}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-        <!-- Start Date -->
-        <div class="flex flex-col w-44">
-            <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
-            <input type="date" [(ngModel)]="startDate" class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-gray-800" />
-        </div>
-
-        <!-- End Date -->
-        <div class="flex flex-col w-44">
-            <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
-            <input type="date" [(ngModel)]="endDate" class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-gray-800" />
-        </div>
-
-        <!-- Status -->
-        <div class="flex flex-col w-40">
-            <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
-            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                <mat-select [(ngModel)]="selectedStatus">
-                    <mat-option *ngFor="let s of statuses" [value]="s.value">
-                        {{ s.label }}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-    </div>
-
-    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
-        <button (click)="resetFilter()" class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2">
-            Reset
-        </button>
-        <button (click)="applyFilter()" class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">
-            Apply Filter
-        </button>
-    </div>
-</div>
     </div>
 
     <div class="space-y-6 px-8 pb-8">
@@ -268,9 +287,14 @@
                                 }}</span>
                             </td>
                             <td class="px-6 py-4">
-                                <span
-                                    class="font-semibold text-gray-900 dark:text-white"
-                                    >{{ req.title }}</span
+                                <a
+                                    class="font-semibold text-gray-900 hover:text-indigo-600 dark:text-white"
+                                    [routerLink]="[
+                                        '/job-requests',
+                                        'detail',
+                                        req.id,
+                                    ]"
+                                    >{{ req.title }}</a
                                 >
                             </td>
                             <td class="px-6 py-4">
@@ -307,6 +331,11 @@
                             <td class="px-6 py-4 text-right">
                                 <button
                                     class="text-gray-400 transition-colors hover:text-indigo-600"
+                                    [routerLink]="[
+                                        '/job-requests',
+                                        'detail',
+                                        req.id,
+                                    ]"
                                 >
                                     <svg
                                         class="h-5 w-5"

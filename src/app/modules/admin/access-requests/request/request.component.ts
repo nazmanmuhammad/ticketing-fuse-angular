@@ -9,6 +9,8 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterModule } from '@angular/router';
 
@@ -28,7 +30,7 @@ interface AccessRequest {
 @Component({
     selector: 'app-access-request-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, MatFormFieldModule, MatSelectModule],
+    imports: [CommonModule, FormsModule, RouterModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatOptionModule],
     templateUrl: './request.component.html',
     animations: [
         trigger('collapseFilter', [

@@ -305,6 +305,9 @@ export class FuseVerticalNavigationComponent
             setTimeout(() => {
                 this._enableAnimations();
             }, 500);
+
+            // Ensure active aside sync when mode switches (desktop <-> mobile)
+            this._updateActiveAsideItemFromUrl();
         }
 
         // Navigation
@@ -363,17 +366,6 @@ export class FuseVerticalNavigationComponent
             .subscribe(() => {
                 // Update active aside item based on URL
                 this._updateActiveAsideItemFromUrl();
-
-                // If the mode is 'over' and the navigation is opened...
-                if (this.mode === 'over' && this.opened) {
-                    // Close the navigation
-                    this.close();
-                }
-
-                // Safety: ensure any stray overlay is removed on route change
-                if (this.mode === 'over') {
-                    this._hideOverlay();
-                }
 
                 // DON'T close aside for thin appearance in side mode
                 if (
@@ -668,11 +660,12 @@ export class FuseVerticalNavigationComponent
             this.activeAsideItemId
         );
 
-        // Mobile behavior (mode: over): navigate directly to the first child and close nav
+        // Mobile behavior (mode: over): navigate directly to the first child and keep nav open
         if (this.mode === 'over') {
             this.activeAsideItemId = item.id || null;
             this._navigateToFirstChild(item);
-            this.close(); // closes and removes overlay
+            // Keep sidebar open; overlay remains so user can switch sections
+            this._changeDetectorRef.markForCheck();
             return;
         }
 

@@ -240,6 +240,19 @@ export class DashboardComponent {
         { label: '20% Low', count: '052', color: '#22c55e' },
     ];
 
+    get donutTotal(): number {
+        return (this.donutSeries as number[]).reduce((a, b) => a + b, 0);
+    }
+
+    donutPercentAt(index: number): number {
+        const series = this.donutSeries as number[];
+        const total = this.donutTotal;
+        if (!total || index < 0 || index >= series.length) {
+            return 0;
+        }
+        return Math.round((series[index] / total) * 100);
+    }
+
     activities = [
         {
             id: '#TKT-2451',

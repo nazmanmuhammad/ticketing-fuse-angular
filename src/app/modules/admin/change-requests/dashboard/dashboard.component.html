@@ -106,43 +106,50 @@
 
         <!-- COLLAPSIBLE FILTER FIELDS -->
         <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
-    <div class="flex flex-wrap gap-4 pt-4 border-t border-gray-100 mt-4">
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-4 pt-4 border-t border-gray-100 mt-4">
+                <div class="col-span-1 md:col-span-2 flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+                    <div class="relative">
+                        <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                            <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
+                                <mat-option *ngFor="let p of periods" [value]="p.value">
+                                    {{ p.label }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                </div>
 
-        <!-- Period -->
-        <div class="flex flex-col w-72">
-            <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
-            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
-                    <mat-option *ngFor="let p of periods" [value]="p.value">
-                        {{ p.label }}
-                    </mat-option>
-                </mat-select>
-            </mat-form-field>
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">From</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <input matInput type="date" [(ngModel)]="startDate" />
+                    </mat-form-field>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">To</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <input matInput type="date" [(ngModel)]="endDate" />
+                    </mat-form-field>
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
+                <button 
+                    (click)="resetFilter()"
+                    class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
+                >
+                    Reset
+                </button>
+                <button 
+                    (click)="applyFilter()"
+                    class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
+                >
+                    Apply Filter
+                </button>
+            </div>
         </div>
-
-        <!-- From -->
-        <div class="flex flex-col w-44">
-            <label class="text-secondary mb-1 ml-1 text-xs">From</label>
-            <input type="date" [(ngModel)]="startDate" class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-gray-800" />
-        </div>
-
-        <!-- To -->
-        <div class="flex flex-col w-44">
-            <label class="text-secondary mb-1 ml-1 text-xs">To</label>
-            <input type="date" [(ngModel)]="endDate" class="h-[38px] w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 dark:bg-gray-800" />
-        </div>
-
-    </div>
-
-    <div class="flex justify-end mt-4 pt-4 border-t border-gray-100">
-        <button (click)="resetFilter()" class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2">
-            Reset
-        </button>
-        <button (click)="applyFilter()" class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700">
-            Apply Filter
-        </button>
-    </div>
-</div>
     </div>
 
     <div class="space-y-6 px-8 pb-8">

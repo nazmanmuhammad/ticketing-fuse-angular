@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { MatInputModule } from '@angular/material/input';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { User } from '../user.types';
 import { UserDialogComponent } from '../dialog/user-dialog.component';
@@ -21,7 +22,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
     selector: 'user-list',
     standalone: true,
-    imports: [CommonModule, MatDialogModule, MatIconModule, MatButtonModule, MatMenuModule, FormsModule, MatFormFieldModule, MatSelectModule],
+    imports: [CommonModule, MatDialogModule, MatIconModule, MatButtonModule, MatMenuModule, FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule],
     templateUrl: './user-list.component.html',
     animations: [
         trigger('collapseFilter', [

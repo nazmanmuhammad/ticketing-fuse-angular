@@ -11,6 +11,7 @@ import {
     FuseNavigationService,
     FuseVerticalNavigationComponent,
 } from '@fuse/components/navigation';
+import { FuseConfigService, Scheme } from '@fuse/services/config';
 import { FuseMediaWatcherService } from '@fuse/services/media-watcher';
 import { NavigationService } from 'app/core/navigation/navigation.service';
 import { Navigation } from 'app/core/navigation/navigation.types';
@@ -74,6 +75,7 @@ import { Subject, takeUntil } from 'rxjs';
 export class ThinLayoutComponent implements OnInit, OnDestroy {
     isScreenSmall: boolean;
     navigation: Navigation;
+    scheme: Scheme = 'light';
     showNormalSidebar: boolean = true; // <-- ADD THIS
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -84,6 +86,7 @@ export class ThinLayoutComponent implements OnInit, OnDestroy {
         private _activatedRoute: ActivatedRoute,
         private _router: Router,
         private _navigationService: NavigationService,
+        private _fuseConfigService: FuseConfigService,
         private _fuseMediaWatcherService: FuseMediaWatcherService,
         private _fuseNavigationService: FuseNavigationService
     ) {}
@@ -112,6 +115,12 @@ export class ThinLayoutComponent implements OnInit, OnDestroy {
             .pipe(takeUntil(this._unsubscribeAll))
             .subscribe((navigation: Navigation) => {
                 this.navigation = navigation;
+            });
+
+        this._fuseConfigService.config$
+            .pipe(takeUntil(this._unsubscribeAll))
+            .subscribe((config) => {
+                this.scheme = config.scheme;
             });
 
         // Subscribe to media changes
@@ -166,5 +175,17 @@ export class ThinLayoutComponent implements OnInit, OnDestroy {
             // Sync local property
             this.showNormalSidebar = !this.showNormalSidebar;
         }
+    }
+
+    isDarkMode(): boolean {
+        if (this.scheme === 'dark') return true;
+        if (this.scheme === 'light') return false;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    toggleColorScheme(): void {
+        this._fuseConfigService.config = {
+            scheme: this.isDarkMode() ? 'light' : 'dark',
+        };
     }
 }

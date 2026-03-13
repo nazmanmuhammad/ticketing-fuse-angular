@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { Team } from '../team.types';
 import { TeamDialogComponent } from '../dialog/team-dialog.component';
@@ -32,6 +33,7 @@ import { User } from '../../users/user.types';
         MatSelectModule,
         MatOptionModule,
         MatFormFieldModule,
+        MatInputModule,
         FormsModule
     ],
     templateUrl: './team-list.component.html',
@@ -62,6 +64,7 @@ import { User } from '../../users/user.types';
 export class TeamListComponent {
     filterOpen = false;
     searchQuery = '';
+    selectedStatus: '' | 'Active' | 'Inactive' = '';
     
     // Mock Users for team members
     mockUsers: User[] = [
@@ -77,15 +80,30 @@ export class TeamListComponent {
             id: 1,
             name: 'Support Team',
             description: 'Handle support tickets',
-            members: [this.mockUsers[0], this.mockUsers[1]]
+            members: [this.mockUsers[0], this.mockUsers[1]],
+            status: 'Active'
         },
         {
             id: 2,
             name: 'Sales Team',
             description: 'Responsible for sales pipeline',
-            members: [this.mockUsers[2], this.mockUsers[3], this.mockUsers[4]]
+            members: [this.mockUsers[2], this.mockUsers[3], this.mockUsers[4]],
+            status: 'Inactive'
         }
     ];
+
+    get filteredTeams(): Team[] {
+        const q = this.searchQuery.toLowerCase().trim();
+        return this.teams.filter((t) => {
+            const matchSearch =
+                !q ||
+                t.name.toLowerCase().includes(q) ||
+                t.description.toLowerCase().includes(q);
+            const status = t.status ?? 'Active';
+            const matchStatus = !this.selectedStatus || status === this.selectedStatus;
+            return matchSearch && matchStatus;
+        });
+    }
 
     constructor(
         private _matDialog: MatDialog,
@@ -104,12 +122,13 @@ export class TeamListComponent {
                     // Update
                     const index = this.teams.findIndex(t => t.id === team.id);
                     if (index > -1) {
-                        this.teams[index] = { ...team, ...result };
+                        this.teams[index] = { ...team, ...result, status: (result.status ?? team.status ?? 'Active') };
                     }
                 } else {
                     // Create
                     this.teams.push({
                         id: this.teams.length + 1,
+                        status: result.status ?? 'Active',
                         ...result
                     });
                 }

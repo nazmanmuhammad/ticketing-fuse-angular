@@ -12,6 +12,7 @@ import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -35,7 +36,8 @@ import {
         NgApexchartsModule,
         MatSelectModule,
         MatOptionModule,
-        MatFormFieldModule
+        MatFormFieldModule,
+        MatInputModule
     ],
     templateUrl: './dashboard.component.html',
     animations: [

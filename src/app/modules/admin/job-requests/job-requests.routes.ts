@@ -30,6 +30,14 @@ const routes: Routes = [
             ),
         data: { title: 'Create Job Request' },
     },
+    {
+        path: 'detail/:id',
+        loadComponent: () =>
+            import('./detail/detail.component').then(
+                (m) => m.JobRequestDetailComponent
+            ),
+        data: { title: 'Job Request Detail' },
+    },
 ];
 
 export default routes;

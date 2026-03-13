@@ -53,15 +53,17 @@
                 <!-- Search -->
                 <div class="flex min-w-56 flex-1 flex-col">
                     <label class="mb-1 ml-1 text-xs text-gray-500">Search</label>
-                    <div class="relative">
-                        <input type="text" [(ngModel)]="filter.name" placeholder="Search by name..." class="h-[38px] w-full rounded-lg border border-gray-200 bg-white py-2 pl-4 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
-                        <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="absolute right-3 top-2.5 icon-size-4 text-gray-400"></mat-icon>
-                    </div>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <span matPrefix class="flex items-center mr-2">
+                            <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="icon-size-4 text-gray-400"></mat-icon>
+                        </span>
+                        <input matInput type="text" [(ngModel)]="filter.name" placeholder="Search by name..." />
+                    </mat-form-field>
                 </div>
                 <!-- Status -->
                 <div class="flex min-w-40 flex-col">
                     <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
-                    <mat-form-field class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <mat-select [(ngModel)]="filter.status">
                             <mat-option value="">All Status</mat-option>
                             <mat-option value="Active">Active</mat-option>
