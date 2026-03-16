@@ -64,6 +64,8 @@ import {
 export class DepartmentListComponent {
     departments: Department[] = [];
     filterOpen = false;
+    itemsPerPage = 5;
+    currentPage = 1;
     filter = {
         name: '',
         status: ''
@@ -138,6 +140,7 @@ export class DepartmentListComponent {
             name: '',
             status: ''
         };
+        this.currentPage = 1;
     }
 
     openDepartmentDialog(department?: Department): void {
@@ -183,5 +186,50 @@ export class DepartmentListComponent {
                 this.departments = this.departments.filter(d => d.id !== department.id);
             }
         });
+    }
+
+    get filteredDepartments(): Department[] {
+        const query = this.filter.name.toLowerCase().trim();
+        return this.departments.filter((department) => {
+            const matchName =
+                !query ||
+                department.name.toLowerCase().includes(query) ||
+                department.description.toLowerCase().includes(query);
+            const matchStatus =
+                !this.filter.status || department.status === this.filter.status;
+            return matchName && matchStatus;
+        });
+    }
+
+    get totalItems(): number {
+        return this.filteredDepartments.length;
+    }
+
+    get totalPages(): number {
+        return Math.max(1, Math.ceil(this.totalItems / this.itemsPerPage));
+    }
+
+    get paginatedDepartments(): Department[] {
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        return this.filteredDepartments.slice(start, start + this.itemsPerPage);
+    }
+
+    get rangeLabel(): string {
+        if (this.totalItems === 0) {
+            return '0 - 0 of 0';
+        }
+        const start = (this.currentPage - 1) * this.itemsPerPage + 1;
+        const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
+        return `${start} - ${end} of ${this.totalItems}`;
+    }
+
+    goToPage(page: number): void {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
+    }
+
+    onItemsPerPageChange(): void {
+        this.currentPage = 1;
     }
 }

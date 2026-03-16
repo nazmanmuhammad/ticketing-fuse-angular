@@ -64,7 +64,26 @@
                     </svg>
                     Reset
                 </button>
-                <button
+                 <button
+                    [routerLink]="['/tickets/create']"
+                    class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800"
+                >
+                    <svg
+                        class="h-4 w-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 4v16m8-8H4"
+                        />
+                    </svg>
+                    New Ticket
+                </button>
+                <!-- <button
                     class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700"
                 >
                     <svg
@@ -81,7 +100,7 @@
                         />
                     </svg>
                     Export
-                </button>
+                </button> -->
                 <!-- Chevron toggle -->
                 <button
                     (click)="toggleFilter()"
@@ -282,31 +301,13 @@
                         {{ totalItems }}
                     </span>
                 </h3>
-                <button
-                    [routerLink]="['/tickets/create']"
-                    class="flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-primary/90"
-                >
-                    <svg
-                        class="h-4 w-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                    >
-                        <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 4v16m8-8H4"
-                        />
-                    </svg>
-                    New Ticket
-                </button>
+               
             </div>
 
             <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                     <thead>
-                        <tr class="border-b bg-gray-50/80">
+                        <tr class="border-b bg-gray-50/50 dark:bg-gray-900/60">
                             <th
                                 class="text-secondary w-16 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >

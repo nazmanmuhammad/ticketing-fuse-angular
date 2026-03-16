@@ -20,6 +20,7 @@ class User extends Model
         'role',
         'department_id',
         'status',
+        'last_login_at',
     ];
 
     public function teams()

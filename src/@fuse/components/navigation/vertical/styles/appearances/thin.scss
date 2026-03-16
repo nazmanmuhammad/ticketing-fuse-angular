@@ -336,13 +336,13 @@ fuse-vertical-navigation {
                                 background-color: #ffffff;
 
                                 .fuse-vertical-navigation-item-icon {
-                                    color: rgb(var(--fuse-primary));
+                                    color: #3b5bdb;
                                 }
                             }
 
                             .fuse-vertical-navigation-item-icon {
                                 margin: 0;
-                                color: white;
+                                color: #ffffff;
                                 transition: color 0.2s ease;
                             }
 
@@ -356,10 +356,10 @@ fuse-vertical-navigation {
                         &.fuse-vertical-navigation-item-active,
                         &.fuse-vertical-navigation-item-active-forced {
                             .fuse-vertical-navigation-item {
-                                background-color: white !important;
+                                background-color: #ffffff !important;
 
                                 .fuse-vertical-navigation-item-icon {
-                                    color: rgb(var(--fuse-primary)) !important;
+                                    color: #3b5bdb !important;
                                 }
                             }
                         }
@@ -682,5 +682,98 @@ fuse-vertical-navigation.fuse-vertical-navigation-appearance-thin {
         max-width: 0 !important;
         padding: 0 !important;
         margin: 0 !important;
+    }
+}
+
+.dark {
+    fuse-vertical-navigation.fuse-vertical-navigation-appearance-thin {
+        .fuse-vertical-navigation-wrapper {
+            background: #020617 !important;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.45) !important;
+
+            .fuse-vertical-navigation-item-wrapper {
+                .fuse-vertical-navigation-item {
+                    &:hover {
+                        background-color: rgba(37, 99, 235, 0.22) !important;
+                    }
+
+                    .fuse-vertical-navigation-item-icon {
+                        color: #94a3b8 !important;
+                    }
+
+                    &.fuse-vertical-navigation-item-active,
+                    &.fuse-vertical-navigation-item-active-forced {
+                        background-color: rgba(37, 99, 235, 0.22) !important;
+
+                        .fuse-vertical-navigation-item-icon {
+                            color: #60a5fa !important;
+                        }
+                    }
+                }
+
+                &.fuse-vertical-navigation-item-active,
+                &.fuse-vertical-navigation-item-active-forced {
+                    .fuse-vertical-navigation-item {
+                        background-color: rgba(37, 99, 235, 0.22) !important;
+
+                        .fuse-vertical-navigation-item-icon {
+                            color: #60a5fa !important;
+                        }
+                    }
+                }
+            }
+        }
+
+        .fuse-vertical-navigation-aside-wrapper {
+            background: #0f172a !important;
+            border-right: 1px solid #334155 !important;
+
+            > div:first-child {
+                background: #0f172a !important;
+                border-bottom: 1px solid #334155 !important;
+            }
+
+            > fuse-vertical-navigation-aside-item {
+                > .fuse-vertical-navigation-item-wrapper {
+                    .fuse-vertical-navigation-item {
+                        .fuse-vertical-navigation-item-title {
+                            color: #94a3b8 !important;
+                        }
+                    }
+                }
+
+                > .fuse-vertical-navigation-item-children {
+                    fuse-vertical-navigation-basic-item {
+                        .fuse-vertical-navigation-item-wrapper {
+                            .fuse-vertical-navigation-item {
+                                &:hover {
+                                    background-color: #1e293b !important;
+                                }
+
+                                &.fuse-vertical-navigation-item-active,
+                                &.fuse-vertical-navigation-item-active-forced {
+                                    background-color: rgba(37, 99, 235, 0.22) !important;
+
+                                    .fuse-vertical-navigation-item-title,
+                                    .fuse-vertical-navigation-item-icon {
+                                        color: #93c5fd !important;
+                                    }
+                                }
+
+                                .fuse-vertical-navigation-item-icon {
+                                    color: #94a3b8 !important;
+                                }
+
+                                .fuse-vertical-navigation-item-title-wrapper {
+                                    .fuse-vertical-navigation-item-title {
+                                        color: #e2e8f0 !important;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

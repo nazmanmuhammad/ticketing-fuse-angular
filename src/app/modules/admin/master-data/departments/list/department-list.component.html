@@ -54,7 +54,7 @@
                 <div class="flex min-w-56 flex-1 flex-col">
                     <label class="mb-1 ml-1 text-xs text-gray-500">Search</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                        <span matPrefix class="flex items-center mr-2">
+                        <span matPrefix class="flex items-center ml-2">
                             <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="icon-size-4 text-gray-400"></mat-icon>
                         </span>
                         <input matInput type="text" [(ngModel)]="filter.name" placeholder="Search by name..." />
@@ -76,9 +76,9 @@
     </div>
 
     <!-- Main Content (Table) -->
-    <div class="mx-8 mb-8 overflow-hidden rounded-2xl bg-white shadow-sm dark:bg-card">
+    <div class="mx-8 mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-card">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-500 dark:text-gray-400">
+            <table class="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400">
                 <thead class="bg-white text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400 border-b border-gray-100">
                     <tr>
                         <th scope="col" class="px-6 py-4 font-semibold">ID</th>
@@ -90,7 +90,7 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                    <tr *ngFor="let dept of departments" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+                    <tr *ngFor="let dept of paginatedDepartments" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
                         <td class="px-6 py-4 font-medium text-blue-600">#{{ dept.id }}</td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
@@ -124,31 +124,47 @@
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-end border-t border-gray-100 bg-white px-6 py-4 dark:border-gray-700 dark:bg-gray-800">
-            <div class="flex items-center gap-2">
-                <span class="text-sm text-gray-500">Items per page:</span>
-                <mat-form-field class="fuse-mat-small w-20" subscriptSizing="dynamic">
-                    <mat-select [value]="5">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-t bg-gray-50/50 px-6 py-4">
+            <div class="text-secondary flex items-center gap-2 text-sm">
+                <span>Items per page:</span>
+                <mat-form-field appearance="outline" class="fuse-mat-small w-24" subscriptSizing="dynamic">
+                    <mat-select [(ngModel)]="itemsPerPage" (selectionChange)="onItemsPerPageChange()">
                         <mat-option [value]="5">5</mat-option>
                         <mat-option [value]="10">10</mat-option>
                         <mat-option [value]="20">20</mat-option>
                     </mat-select>
                 </mat-form-field>
-                <span class="mx-4 text-sm text-gray-500">0 of 0</span>
-                <div class="flex gap-1">
-                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
-                        <mat-icon [svgIcon]="'heroicons_outline:chevron-double-left'" class="icon-size-5"></mat-icon>
-                    </button>
-                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
-                        <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-5"></mat-icon>
-                    </button>
-                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
-                        <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-5"></mat-icon>
-                    </button>
-                    <button class="rounded-lg p-1 text-gray-400 hover:bg-gray-100 disabled:opacity-50" disabled>
-                        <mat-icon [svgIcon]="'heroicons_outline:chevron-double-right'" class="icon-size-5"></mat-icon>
-                    </button>
-                </div>
+            </div>
+            <div class="flex items-center gap-1 text-sm">
+                <span class="text-secondary mr-2">{{ rangeLabel }}</span>
+                <button
+                    (click)="goToPage(1)"
+                    [disabled]="currentPage === 1"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-double-left'" class="icon-size-5"></mat-icon>
+                </button>
+                <button
+                    (click)="goToPage(currentPage - 1)"
+                    [disabled]="currentPage === 1"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-5"></mat-icon>
+                </button>
+                <button
+                    (click)="goToPage(currentPage + 1)"
+                    [disabled]="currentPage === totalPages"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-5"></mat-icon>
+                </button>
+                <button
+                    (click)="goToPage(totalPages)"
+                    [disabled]="currentPage === totalPages"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-double-right'" class="icon-size-5"></mat-icon>
+                </button>
             </div>
         </div>
     </div>

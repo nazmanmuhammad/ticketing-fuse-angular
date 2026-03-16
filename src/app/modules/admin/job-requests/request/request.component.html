@@ -64,7 +64,7 @@
                     Reset
                 </button>
                 <button
-                    class="flex items-center gap-1.5 rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-700"
+                    class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800"
                     [routerLink]="['/job-requests/create']"
                 >
                     <svg
@@ -278,7 +278,7 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         <tr
-                            *ngFor="let req of requests"
+                            *ngFor="let req of paginatedRequests"
                             class="group transition-colors hover:bg-gray-50/50"
                         >
                             <td class="px-6 py-4">
@@ -364,24 +364,55 @@
             </div>
 
             <div
-                class="flex items-center justify-between border-t border-gray-100 px-6 py-4"
+                class="flex flex-wrap items-center justify-between gap-4 border-t bg-gray-50/50 px-6 py-4"
             >
-                <div class="text-sm text-gray-500">
-                    Showing <span class="font-medium">1</span> to
-                    <span class="font-medium">5</span> of
-                    <span class="font-medium">12</span> results
+                <div class="text-secondary flex items-center gap-2 text-sm">
+                    <span>Items per page:</span>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-24" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="itemsPerPage" (selectionChange)="onItemsPerPageChange()">
+                            <mat-option [value]="5">5</mat-option>
+                            <mat-option [value]="10">10</mat-option>
+                            <mat-option [value]="20">20</mat-option>
+                        </mat-select>
+                    </mat-form-field>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex items-center gap-1 text-sm">
+                    <span class="text-secondary mr-2">{{ rangeLabel }}</span>
                     <button
-                        class="rounded-lg border border-gray-200 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
-                        disabled
+                        (click)="goToPage(1)"
+                        [disabled]="currentPage === 1"
+                        class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
                     >
-                        Previous
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                        </svg>
                     </button>
                     <button
-                        class="rounded-lg border border-gray-200 px-3 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50"
+                        (click)="goToPage(currentPage - 1)"
+                        [disabled]="currentPage === 1"
+                        class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
                     >
-                        Next
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button
+                        (click)="goToPage(currentPage + 1)"
+                        [disabled]="currentPage === totalPages"
+                        class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                    <button
+                        (click)="goToPage(totalPages)"
+                        [disabled]="currentPage === totalPages"
+                        class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                        </svg>
                     </button>
                 </div>
             </div>

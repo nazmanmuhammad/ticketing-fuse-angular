@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignUuid('department_id')->nullable();
             $table->integer('role')->default(0);
             $table->boolean('status')->default(1);
+            $table->timestamp('last_login_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

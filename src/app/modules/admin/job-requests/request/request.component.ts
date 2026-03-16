@@ -61,7 +61,7 @@ export class JobRequestListComponent {
     startDate = '2026-02-01';
     endDate = '2026-02-28';
     selectedStatus: '' | Status = '';
-    itemsPerPage = 10;
+    itemsPerPage = 5;
     currentPage = 1;
 
     periods = [
@@ -217,5 +217,52 @@ export class JobRequestListComponent {
     onPeriodChange(): void {
         // Implement period change logic here if needed
         console.log('Period changed:', this.selectedPeriod);
+    }
+
+    get filteredRequests(): JobRequest[] {
+        const query = this.searchQuery.toLowerCase().trim();
+        return this.requests.filter((request) => {
+            const matchSearch =
+                !query ||
+                request.code.toLowerCase().includes(query) ||
+                request.title.toLowerCase().includes(query) ||
+                request.department.toLowerCase().includes(query) ||
+                request.requester.toLowerCase().includes(query);
+            const matchStatus =
+                !this.selectedStatus || request.status === this.selectedStatus;
+            return matchSearch && matchStatus;
+        });
+    }
+
+    get totalItems(): number {
+        return this.filteredRequests.length;
+    }
+
+    get totalPages(): number {
+        return Math.max(1, Math.ceil(this.totalItems / this.itemsPerPage));
+    }
+
+    get paginatedRequests(): JobRequest[] {
+        const start = (this.currentPage - 1) * this.itemsPerPage;
+        return this.filteredRequests.slice(start, start + this.itemsPerPage);
+    }
+
+    get rangeLabel(): string {
+        if (this.totalItems === 0) {
+            return '0 - 0 of 0';
+        }
+        const start = (this.currentPage - 1) * this.itemsPerPage + 1;
+        const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
+        return `${start} - ${end} of ${this.totalItems}`;
+    }
+
+    goToPage(page: number): void {
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+        }
+    }
+
+    onItemsPerPageChange(): void {
+        this.currentPage = 1;
     }
 }
