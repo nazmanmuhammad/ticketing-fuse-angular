@@ -1,16 +1,25 @@
 <!-- Button -->
-<button mat-icon-button [matMenuTriggerFor]="userActions">
+<button
+    mat-icon-button
+    [matMenuTriggerFor]="userActions"
+    class="h-12 w-12 min-h-12 min-w-12 p-0"
+>
     <span class="relative">
-        @if (showAvatar && user.avatar) {
-            <img class="h-7 w-7 rounded-full" [src]="user.avatar" />
+        @if (showAvatar && user.photo) {
+            <span class="block h-11 w-11 overflow-hidden rounded-full">
+                <img
+                    class="block h-full w-full object-cover"
+                    [src]="resolvePhotoUrl(user.photo)"
+                />
+            </span>
         }
-        @if (!showAvatar || !user.avatar) {
+        @if (!showAvatar || !user.photo) {
             <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
         }
         <span
             class="absolute bottom-0 right-0 h-2 w-2 rounded-full"
             [ngClass]="{
-                'mb-px mr-px': !showAvatar || !user.avatar,
+                'mb-px mr-px': !showAvatar || !user.photo,
                 'bg-green-500': user.status === 'online',
                 'bg-amber-500': user.status === 'away',
                 'bg-red-500': user.status === 'busy',
@@ -28,21 +37,21 @@
         </span>
     </button>
     <mat-divider class="my-2"></mat-divider>
-    <button mat-menu-item>
+    <!-- <button mat-menu-item>
         <mat-icon [svgIcon]="'heroicons_outline:user-circle'"></mat-icon>
         <span>Profile</span>
     </button>
     <button mat-menu-item>
         <mat-icon [svgIcon]="'heroicons_outline:cog-8-tooth'"></mat-icon>
         <span>Settings</span>
-    </button>
+    </button> -->
     <!-- <button mat-menu-item [matMenuTriggerFor]="userStatus">
         <mat-icon
             [svgIcon]="'heroicons_outline:ellipsis-horizontal-circle'"
         ></mat-icon>
         <span>Status</span>
     </button> -->
-    <mat-divider class="my-2"></mat-divider>
+    <!-- <mat-divider class="my-2"></mat-divider> -->
     <button mat-menu-item (click)="signOut()">
         <mat-icon
             [svgIcon]="'heroicons_outline:arrow-right-on-rectangle'"

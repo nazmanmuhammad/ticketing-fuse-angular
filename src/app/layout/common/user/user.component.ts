@@ -39,6 +39,11 @@ export class UserComponent implements OnInit, OnDestroy {
 
     @Input() showAvatar: boolean = true;
     user: User;
+    private readonly _hrisApiUrl: string =
+        (globalThis as any)?.__env?.HRIS_API_URL ||
+        (globalThis as any)?.process?.env?.HRIS_API_URL ||
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 
@@ -101,6 +106,18 @@ export class UserComponent implements OnInit, OnDestroy {
                 status,
             })
             .subscribe();
+    }
+
+    resolvePhotoUrl(photo?: string): string {
+        if (!photo) {
+            return '';
+        }
+
+        if (photo.startsWith('http://') || photo.startsWith('https://')) {
+            return photo;
+        }
+
+        return `${this._hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '')}/assets/img/user/${photo}`;
     }
 
     /**

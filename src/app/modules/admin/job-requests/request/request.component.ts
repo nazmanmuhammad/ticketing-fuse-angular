@@ -12,6 +12,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { RouterModule } from '@angular/router';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
+import { take } from 'rxjs';
 
 type Status = 'PENDING' | 'APPROVED' | 'REJECTED' | 'DRAFT';
 
@@ -63,6 +66,8 @@ export class JobRequestListComponent {
     selectedStatus: '' | Status = '';
     itemsPerPage = 5;
     currentPage = 1;
+    activeTab: 'all' | 'assigned' = 'all';
+    currentUser = 'Alice';
 
     periods = [
         { label: 'Today', value: 'today' },
@@ -175,6 +180,24 @@ export class JobRequestListComponent {
         ];
     }
 
+    constructor(private _userService: UserService) {
+        this._userService.user$.pipe(take(1)).subscribe((user: User) => {
+            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
+        });
+    }
+
+    setTab(tab: 'all' | 'assigned'): void {
+        this.activeTab = tab;
+        this.currentPage = 1;
+    }
+
+    private isAssignedToMe(request: JobRequest): boolean {
+        return (
+            !!request.requester &&
+            request.requester.toLowerCase() === this.currentUser.toLowerCase()
+        );
+    }
+
     toggleFilter(): void {
         this.filterOpen = !this.filterOpen;
     }
@@ -221,7 +244,7 @@ export class JobRequestListComponent {
 
     get filteredRequests(): JobRequest[] {
         const query = this.searchQuery.toLowerCase().trim();
-        return this.requests.filter((request) => {
+        const base = this.requests.filter((request) => {
             const matchSearch =
                 !query ||
                 request.code.toLowerCase().includes(query) ||
@@ -232,6 +255,20 @@ export class JobRequestListComponent {
                 !this.selectedStatus || request.status === this.selectedStatus;
             return matchSearch && matchStatus;
         });
+
+        if (this.activeTab === 'assigned') {
+            return base.filter((request) => this.isAssignedToMe(request));
+        }
+
+        return base;
+    }
+
+    get countAll(): number {
+        return this.requests.length;
+    }
+
+    get countAssigned(): number {
+        return this.requests.filter((request) => this.isAssignedToMe(request)).length;
     }
 
     get totalItems(): number {

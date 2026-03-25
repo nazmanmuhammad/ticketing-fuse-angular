@@ -13,6 +13,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterModule } from '@angular/router';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
+import { take } from 'rxjs';
 
 type Status = 'PENDING' | 'APPROVED' | 'REJECTED';
 
@@ -65,6 +68,8 @@ export class AccessRequestListComponent {
     selectedStatus: '' | Status = '';
     itemsPerPage = 5;
     currentPage = 1;
+    activeTab: 'all' | 'assigned' = 'all';
+    currentUser = 'Alice';
 
     periods = [
         { label: 'Today', value: 'today' },
@@ -209,7 +214,26 @@ export class AccessRequestListComponent {
         ];
     }
 
-    constructor(private router: Router) {}
+    constructor(
+        private router: Router,
+        private _userService: UserService
+    ) {
+        this._userService.user$.pipe(take(1)).subscribe((user: User) => {
+            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
+        });
+    }
+
+    setTab(tab: 'all' | 'assigned'): void {
+        this.activeTab = tab;
+        this.currentPage = 1;
+    }
+
+    private isAssignedToMe(request: AccessRequest): boolean {
+        return (
+            !!request.requester &&
+            request.requester.toLowerCase() === this.currentUser.toLowerCase()
+        );
+    }
 
     toggleFilter(): void {
         this.filterOpen = !this.filterOpen;
@@ -274,7 +298,7 @@ export class AccessRequestListComponent {
     }
 
     get filteredRequests(): AccessRequest[] {
-        return this.requests.filter((r) => {
+        const base = this.requests.filter((r) => {
             const q = this.searchQuery.toLowerCase().trim();
             const matchSearch =
                 !q ||
@@ -284,6 +308,20 @@ export class AccessRequestListComponent {
             const matchStatus = !this.selectedStatus || r.status === this.selectedStatus;
             return matchSearch && matchStatus;
         });
+
+        if (this.activeTab === 'assigned') {
+            return base.filter((request) => this.isAssignedToMe(request));
+        }
+
+        return base;
+    }
+
+    get countAll(): number {
+        return this.requests.length;
+    }
+
+    get countAssigned(): number {
+        return this.requests.filter((request) => this.isAssignedToMe(request)).length;
     }
 
     get totalItems(): number {

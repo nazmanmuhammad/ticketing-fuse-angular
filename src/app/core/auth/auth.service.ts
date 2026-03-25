@@ -248,6 +248,7 @@ export class AuthService {
                 meData?.nik ??
                 meData?.noktp ??
                 '',
+            photo: meData?.photo ?? meData?.avatar ?? '',
             avatar: meData?.avatar ?? '',
             status: appUser?.status ? 'online' : 'not-visible',
             role_name: appUser?.role_name ?? appUser?.roleName ?? '',

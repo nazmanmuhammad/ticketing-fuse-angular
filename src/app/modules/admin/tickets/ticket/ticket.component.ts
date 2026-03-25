@@ -72,7 +72,7 @@ export class TicketComponent {
     itemsPerPage = 5;
     currentPage = 1;
     activeActionId: number | null = null;
-    activeTab: 'all' | 'assigned' | 'unassigned' | 'overdue' = 'all';
+    activeTab: 'all' | 'assigned' = 'all';
     currentUser = 'Alice';
 
     periods = [
@@ -261,7 +261,7 @@ export class TicketComponent {
         );
     }
 
-    setTab(tab: 'all' | 'assigned' | 'unassigned' | 'overdue'): void {
+    setTab(tab: 'all' | 'assigned'): void {
         this.activeTab = tab;
         this.currentPage = 1;
     }
@@ -269,17 +269,6 @@ export class TicketComponent {
     private isAssignedToMe(t: Ticket): boolean {
         return !!t.assignee && t.assignee.toLowerCase() === this.currentUser.toLowerCase();
     }
-    private isUnassigned(t: Ticket): boolean {
-        return !t.assignee || t.assignee.trim() === '';
-    }
-    private isOverdue(t: Ticket): boolean {
-        const parsed = new Date(t.date);
-        if (isNaN(parsed.getTime())) return false;
-        const threshold = new Date();
-        threshold.setDate(threshold.getDate() - 7);
-        return t.status !== 'CLOSED' && parsed < threshold;
-    }
-
     resetFilter(): void {
         this.searchQuery = '';
         this.selectedPeriod = 'this_month';
@@ -337,18 +326,12 @@ export class TicketComponent {
             const matchStatus = !this.selectedStatus || t.status === this.selectedStatus;
             return matchSearch && matchStatus;
         });
-        return base.filter((t) => {
-            switch (this.activeTab) {
-                case 'assigned':
-                    return this.isAssignedToMe(t);
-                case 'unassigned':
-                    return this.isUnassigned(t);
-                case 'overdue':
-                    return this.isOverdue(t);
-                default:
-                    return true;
-            }
-        });
+
+        if (this.activeTab === 'assigned') {
+            return base.filter((t) => this.isAssignedToMe(t));
+        }
+
+        return base;
     }
 
     get totalItems(): number {
@@ -394,11 +377,5 @@ export class TicketComponent {
     }
     get countAssigned(): number {
         return this.tickets.filter((t) => this.isAssignedToMe(t)).length;
-    }
-    get countUnassigned(): number {
-        return this.tickets.filter((t) => this.isUnassigned(t)).length;
-    }
-    get countOverdue(): number {
-        return this.tickets.filter((t) => this.isOverdue(t)).length;
     }
 }

@@ -277,24 +277,12 @@
                     <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span>
                     <span *ngIf="activeTab==='assigned'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
                 </button>
-                <button (click)="setTab('unassigned')" class="relative pb-3 text-sm font-semibold"
-                        [ngClass]="activeTab==='unassigned' ? 'text-blue-700' : 'text-gray-500'">
-                    Unassigned
-                    <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countUnassigned }}</span>
-                    <span *ngIf="activeTab==='unassigned'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
-                </button>
-                <button (click)="setTab('overdue')" class="relative pb-3 text-sm font-semibold"
-                        [ngClass]="activeTab==='overdue' ? 'text-blue-700' : 'text-gray-500'">
-                    Overdue
-                    <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countOverdue }}</span>
-                    <span *ngIf="activeTab==='overdue'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
-                </button>
             </div>
 
             <!-- Table toolbar -->
             <div class="flex items-center justify-between border-b px-6 py-4">
                 <h3 class="font-bold text-gray-900 dark:text-white">
-                    {{ activeTab === 'all' ? 'All Tickets' : (activeTab === 'assigned' ? 'Assigned to me' : (activeTab === 'unassigned' ? 'Unassigned' : 'Overdue')) }}
+                    {{ activeTab === 'all' ? 'All Tickets' : 'Assigned to me' }}
                     <span
                         class="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600"
                     >

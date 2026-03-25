@@ -13,6 +13,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
+import { UserService } from 'app/core/user/user.service';
+import { User } from 'app/core/user/user.types';
+import { take } from 'rxjs';
 
 type Status = 'OPEN' | 'INPROGRESS' | 'CLOSED';
 type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -72,6 +75,8 @@ export class ChangeRequestListComponent {
     selectedStatus: '' | Status = '';
     itemsPerPage = 5;
     currentPage = 1;
+    activeTab: 'all' | 'assigned' = 'all';
+    currentUser = 'Alice';
 
     statuses = [
         { label: 'All Status', value: '' },
@@ -185,6 +190,24 @@ export class ChangeRequestListComponent {
         C: 'bg-blue-400',
     };
 
+    constructor(private _userService: UserService) {
+        this._userService.user$.pipe(take(1)).subscribe((user: User) => {
+            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
+        });
+    }
+
+    setTab(tab: 'all' | 'assigned'): void {
+        this.activeTab = tab;
+        this.currentPage = 1;
+    }
+
+    private isAssignedToMe(request: ChangeRequest): boolean {
+        return (
+            !!request.requester &&
+            request.requester.toLowerCase() === this.currentUser.toLowerCase()
+        );
+    }
+
     statusConfig: Record<Status, { label: string; classes: string }> = {
         OPEN: {
             label: 'OPEN',
@@ -201,7 +224,7 @@ export class ChangeRequestListComponent {
     };
 
     get filteredRequests(): ChangeRequest[] {
-        return this.requests.filter((r) => {
+        const base = this.requests.filter((r) => {
             const q = this.searchQuery.toLowerCase().trim();
             const matchSearch =
                 !q ||
@@ -212,6 +235,20 @@ export class ChangeRequestListComponent {
                 !this.selectedStatus || r.status === this.selectedStatus;
             return matchSearch && matchStatus;
         });
+
+        if (this.activeTab === 'assigned') {
+            return base.filter((request) => this.isAssignedToMe(request));
+        }
+
+        return base;
+    }
+
+    get countAll(): number {
+        return this.requests.length;
+    }
+
+    get countAssigned(): number {
+        return this.requests.filter((request) => this.isAssignedToMe(request)).length;
     }
 
     get totalItems(): number {
