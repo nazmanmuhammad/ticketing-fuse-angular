@@ -184,6 +184,28 @@ export const defaultNavigation: FuseNavigationItem[] = [
             // },
         ],
     },
+    {
+        id: 'settings',
+        title: 'Settings',
+        type: 'aside',
+        icon: 'heroicons_outline:cog-6-tooth',
+        children: [
+            {
+                id: 'settings.application',
+                title: 'Application Setting',
+                type: 'basic',
+                icon: 'heroicons_outline:window',
+                link: '/settings/application',
+            },
+            {
+                id: 'settings.smtp',
+                title: 'SMTP Setting',
+                type: 'basic',
+                icon: 'heroicons_outline:envelope',
+                link: '/settings/smtp',
+            },
+        ],
+    },
 ];
 
 export const compactNavigation: FuseNavigationItem[] = defaultNavigation;

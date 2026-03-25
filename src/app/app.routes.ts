@@ -180,6 +180,11 @@ export const appRoutes: Route[] = [
                         'app/modules/admin/master-data/departments/departments.routes'
                     ),
             },
+            {
+                path: 'settings',
+                loadChildren: () =>
+                    import('app/modules/admin/settings/settings.routes'),
+            },
         ],
     },
 ];

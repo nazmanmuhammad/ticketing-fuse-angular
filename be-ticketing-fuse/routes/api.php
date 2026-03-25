@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -15,3 +16,7 @@ Route::resource('teams', TeamController::class);
 Route::post('teams/add-user', [TeamController::class, 'addUser']);
 Route::post('login-validation', [AuthController::class, 'loginValidation']);
 Route::get('me-validation', [AuthController::class, 'meValidation']);
+Route::get('settings/application', [SettingController::class, 'getApplicationSetting']);
+Route::post('settings/application', [SettingController::class, 'updateApplicationSetting']);
+Route::get('settings/smtp', [SettingController::class, 'getSmtpSetting']);
+Route::post('settings/smtp', [SettingController::class, 'updateSmtpSetting']);
