@@ -18,6 +18,21 @@ export const defaultNavigation: FuseNavigationItem[] = [
         ],
     },
     {
+        id: 'task',
+        title: 'Task',
+        type: 'aside',
+        icon: 'heroicons_outline:clipboard-document-list',
+        children: [
+            {
+                id: 'task.index',
+                title: 'Task',
+                type: 'basic',
+                icon: 'heroicons_outline:clipboard-document-list',
+                link: '/task',
+            },
+        ],
+    },
+    {
         id: 'tickets',
         title: 'Tickets',
         type: 'aside',

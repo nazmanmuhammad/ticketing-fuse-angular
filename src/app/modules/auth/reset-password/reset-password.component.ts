@@ -12,12 +12,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { FuseValidators } from '@fuse/validators';
 import { AuthService } from 'app/core/auth/auth.service';
-import { finalize } from 'rxjs';
+import { finalize, take } from 'rxjs';
 
 @Component({
     selector: 'auth-reset-password',
@@ -51,7 +51,8 @@ export class AuthResetPasswordComponent implements OnInit {
      */
     constructor(
         private _authService: AuthService,
-        private _formBuilder: UntypedFormBuilder
+        private _formBuilder: UntypedFormBuilder,
+        private _router: Router
     ) {}
 
     // -----------------------------------------------------------------------------------------------------
@@ -62,6 +63,15 @@ export class AuthResetPasswordComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        this._authService
+            .check()
+            .pipe(take(1))
+            .subscribe((authenticated) => {
+                if (authenticated) {
+                    this._router.navigateByUrl('/dashboard');
+                }
+            });
+
         // Create the form
         this.resetPasswordForm = this._formBuilder.group(
             {

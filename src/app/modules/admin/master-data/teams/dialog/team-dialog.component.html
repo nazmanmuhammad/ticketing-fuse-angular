@@ -48,7 +48,7 @@
                 <mat-autocomplete #membersAuto="matAutocomplete" [autoActiveFirstOption]="false" (optionSelected)="onMemberSelected($event.option.value, autoTrigger)">
                     <mat-option *ngFor="let user of filteredUsersList" [value]="user">
                         <div class="flex items-center gap-3 py-1">
-                            <mat-checkbox [checked]="isSelected(user)" (click)="$event.stopPropagation()" (change)="toggleMember(user, $event)"></mat-checkbox>
+                            <mat-checkbox [checked]="isSelected(user)" (click)="toggleMember(user, $event)"></mat-checkbox>
                             <img [src]="user.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
                             <div class="flex flex-col">
                                 <span class="font-medium leading-none">{{ user.fullName }}</span>

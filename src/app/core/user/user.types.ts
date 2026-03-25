@@ -4,4 +4,7 @@ export interface User {
     email: string;
     avatar?: string;
     status?: string;
+    role_name?: string;
+    hris_user_id?: number | string;
+    department_id?: string;
 }

@@ -2,9 +2,11 @@ import { provideHttpClient } from '@angular/common/http';
 import {
     ApplicationConfig,
     inject,
+    importProvidersFrom,
     isDevMode,
     provideAppInitializer,
 } from '@angular/core';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { LuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { DateAdapter, MAT_DATE_FORMATS } from '@angular/material/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -22,6 +24,7 @@ export const appConfig: ApplicationConfig = {
     providers: [
         provideAnimations(),
         provideHttpClient(),
+        importProvidersFrom(MatSnackBarModule),
         provideRouter(
             appRoutes,
             withInMemoryScrolling({ scrollPositionRestoration: 'enabled' })

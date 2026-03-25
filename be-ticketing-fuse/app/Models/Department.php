@@ -16,6 +16,17 @@ use SoftDeletes, Uuid;
     protected $fillable = [
         'name',
         'description',
-        'status'
+        'status',
+        'head_id'
     ];
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function head()
+    {
+        return $this->belongsTo(User::class, 'head_id');
+    }
 }

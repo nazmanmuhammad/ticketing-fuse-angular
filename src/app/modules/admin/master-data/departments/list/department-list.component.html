@@ -31,9 +31,9 @@
                     Reset
                 </button>
                 <!-- Export -->
-                <button class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700">
+                <button (click)="exportDepartments()" [disabled]="isExporting" class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700 disabled:opacity-60">
                     <mat-icon [svgIcon]="'heroicons_outline:arrow-down-tray'" class="icon-size-4 text-white"></mat-icon>
-                    Export
+                    {{ isExporting ? 'Exporting...' : 'Export' }}
                 </button>
                 <!-- Add Department -->
                 <button (click)="openDepartmentDialog()" class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">
@@ -57,14 +57,14 @@
                         <span matPrefix class="flex items-center ml-2">
                             <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="icon-size-4 text-gray-400"></mat-icon>
                         </span>
-                        <input matInput type="text" [(ngModel)]="filter.name" placeholder="Search by name..." />
+                        <input matInput type="text" [(ngModel)]="filter.name" (ngModelChange)="applyFilters()" placeholder="Search by name..." />
                     </mat-form-field>
                 </div>
                 <!-- Status -->
                 <div class="flex min-w-40 flex-col">
                     <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                        <mat-select [(ngModel)]="filter.status">
+                        <mat-select [(ngModel)]="filter.status" (selectionChange)="applyFilters()">
                             <mat-option value="">All Status</mat-option>
                             <mat-option value="Active">Active</mat-option>
                             <mat-option value="Inactive">Inactive</mat-option>
@@ -81,7 +81,7 @@
             <table class="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400">
                 <thead class="bg-white text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400 border-b border-gray-100">
                     <tr>
-                        <th scope="col" class="px-6 py-4 font-semibold">ID</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">No</th>
                         <th scope="col" class="px-6 py-4 font-semibold">Department</th>
                         <th scope="col" class="px-6 py-4 font-semibold">Head</th>
                         <th scope="col" class="px-6 py-4 font-semibold">Status</th>
@@ -90,8 +90,21 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
-                    <tr *ngFor="let dept of paginatedDepartments" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
-                        <td class="px-6 py-4 font-medium text-blue-600">#{{ dept.id }}</td>
+                    <tr *ngIf="isLoadingDepartments" class="bg-white dark:bg-gray-800" >
+                        <td class="px-6 py-4" colspan="6">
+                            <div class="space-y-3">
+                                <div *ngFor="let _ of skeletonRows" class="grid grid-cols-6 gap-4">
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700 col-span-2"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let dept of paginatedDepartments; let i = index" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+                        <td class="px-6 py-4 font-medium text-blue-600">{{ getRowNumber(i) }}</td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
                                 <span class="font-bold text-gray-900 dark:text-white text-base">{{ dept.name }}</span>
@@ -105,19 +118,26 @@
                             </div>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="font-bold text-gray-900 dark:text-white uppercase">{{ dept.status }}</span>
+                            <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="dept.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-400'">
+                                {{ dept.status }}
+                            </span>
                         </td>
                         <td class="px-6 py-4 text-gray-500">{{ dept.createdAt }}</td>
-                        <td class="px-6 py-4 text-center">
+                        <td class="px-6 py-4">
                             <div class="flex items-center justify-center gap-2">
-                                <button (click)="openDepartmentDialog(dept)" class="text-gray-500 hover:text-blue-600 transition-colors">
-                                    <mat-icon [svgIcon]="'heroicons_outline:pencil-square'" class="icon-size-5"></mat-icon>
+                                <button mat-button color="primary" (click)="openDepartmentDialog(dept)" class="text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil-square'" class="mr-2 icon-size-4"></mat-icon>
+                                    Edit
                                 </button>
-                                <button (click)="deleteDepartment(dept)" class="text-gray-500 hover:text-red-600 transition-colors">
-                                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="icon-size-5"></mat-icon>
+                                <button mat-button color="warn" (click)="deleteDepartment(dept)" class="text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="mr-2 icon-size-4"></mat-icon>
+                                    Delete
                                 </button>
                             </div>
                         </td>
+                    </tr>
+                    <tr *ngIf="!isLoadingDepartments && paginatedDepartments.length === 0" class="bg-white dark:bg-gray-800">
+                        <td class="px-6 py-8 text-center text-gray-500" colspan="6">No data</td>
                     </tr>
                 </tbody>
             </table>

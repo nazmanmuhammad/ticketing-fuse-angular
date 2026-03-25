@@ -25,15 +25,18 @@
                     <mat-icon [svgIcon]="'heroicons_outline:funnel'" class="icon-size-4"></mat-icon>
                     Filter
                 </button>
+                <button (click)="toggleViewMode()" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="isTableView ? 'heroicons_outline:squares-2x2' : 'heroicons_outline:table-cells'" class="icon-size-4"></mat-icon>
+                </button>
                 <!-- Reset -->
-                <button (click)="searchQuery=''; selectedStatus='';" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                <button (click)="resetFilters()" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
                     <mat-icon [svgIcon]="'heroicons_outline:arrow-path'" class="icon-size-4"></mat-icon>
                     Reset
                 </button>
                 <!-- Export -->
-                <button class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700">
+                <button (click)="exportUsers()" [disabled]="isExporting" class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700 disabled:opacity-60">
                     <mat-icon [svgIcon]="'heroicons_outline:arrow-down-tray'" class="icon-size-4 text-white"></mat-icon>
-                    Export
+                    {{ isExporting ? 'Exporting...' : 'Export' }}
                 </button>
                 <!-- Add User -->
                 <button (click)="openUserDialog()" class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">
@@ -57,14 +60,14 @@
                         <span matPrefix class="flex items-center ml-2">
                             <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="icon-size-4 text-gray-400"></mat-icon>
                         </span>
-                        <input matInput type="text" [(ngModel)]="searchQuery" placeholder="Search users..." />
+                        <input matInput type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Search users..." />
                     </mat-form-field>
                 </div>
                 <!-- Status -->
                 <div class="flex min-w-40 flex-col">
                     <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                        <mat-select [(ngModel)]="selectedStatus">
+                        <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
                             <mat-option [value]="">All Status</mat-option>
                             <mat-option [value]="'Active'">Active</mat-option>
                             <mat-option [value]="'Inactive'">Inactive</mat-option>
@@ -75,13 +78,40 @@
         </div>
     </div>
 
-    <!-- Main Content (Grid) -->
-    <div class="mx-8 mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    <div *ngIf="isLoadingUsers" class="mx-8 mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div *ngFor="let _ of skeletonCards" class="flex h-96 flex-col overflow-hidden rounded-2xl bg-card shadow">
+            <div class="flex flex-col items-center p-8 pb-4">
+                <div class="h-24 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                <div class="mt-4 h-5 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="mt-2 h-4 w-52 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="mt-3 flex items-center gap-2">
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+            </div>
+            <div class="flex flex-auto flex-col px-8 py-2">
+                <div class="flex items-center justify-between border-t py-2">
+                    <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="flex items-center justify-between border-t py-2">
+                    <div class="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between bg-gray-50 px-6 py-4 dark:bg-gray-900/50">
+                <div class="h-8 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div class="h-8 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="!isLoadingUsers && !isTableView && users.length > 0; else tableOrNoDataState" class="mx-8 mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <div *ngFor="let user of users" class="flex h-96 flex-col overflow-hidden rounded-2xl bg-card shadow transition-shadow hover:shadow-lg">
             <!-- Card Header (Avatar & Info) -->
             <div class="flex flex-col items-center p-8 pb-4">
-                <div class="relative flex h-24 w-24 items-center justify-center rounded-full bg-gray-100 text-4xl text-gray-400 dark:bg-gray-700">
-                    <mat-icon [svgIcon]="'heroicons_outline:user'" class="icon-size-12"></mat-icon>
+                <div class="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-gray-100 text-4xl text-gray-400 dark:bg-gray-700">
+                    <img [src]="user.avatar || 'assets/images/avatars/male-01.jpg'" class="h-full w-full object-cover">
                 </div>
                 <div class="mt-4 text-center">
                     <div class="text-lg font-bold leading-tight">{{ user.fullName }}</div>
@@ -122,16 +152,91 @@
             </div>
         </div>
     </div>
+    <ng-template #tableOrNoDataState>
+        <div *ngIf="!isLoadingUsers && isTableView && users.length > 0" class="mx-8 mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-card">
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400">
+                    <thead class="bg-white text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400 border-b border-gray-100">
+                        <tr>
+                            <th scope="col" class="px-6 py-4 font-semibold">No</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">User</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Role</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Department</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                            <th scope="col" class="px-6 py-4 font-semibold">Last Login</th>
+                            <th scope="col" class="px-6 py-4 font-semibold text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                        <tr *ngFor="let user of users; let i = index" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+                            <td class="px-6 py-4 font-medium text-blue-600">{{ getRowNumber(i) }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <img [src]="user.avatar || 'assets/images/avatars/male-01.jpg'" class="h-10 w-10 rounded-full object-cover border-2 border-white shadow-sm">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold text-gray-900 dark:text-white">{{ user.fullName }}</span>
+                                        <span class="text-xs text-gray-500">{{ user.email }}</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getRoleClass(user.role)">
+                                    {{ user.role }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-700">{{ user.department || '-' }}</td>
+                            <td class="px-6 py-4">
+                                <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="user.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-400'">
+                                    {{ user.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-gray-500">{{ user.lastLogin || '-' }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button mat-button color="primary" (click)="openUserDialog(user)" class="text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10">
+                                        <mat-icon [svgIcon]="'heroicons_outline:pencil-square'" class="mr-2 icon-size-4"></mat-icon>
+                                        Edit
+                                    </button>
+                                    <button mat-button color="warn" (click)="deleteUser(user)" class="text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10">
+                                        <mat-icon [svgIcon]="'heroicons_outline:trash'" class="mr-2 icon-size-4"></mat-icon>
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <ng-container *ngIf="!isLoadingUsers && (!isTableView || users.length === 0)" [ngTemplateOutlet]="noDataState"></ng-container>
+    </ng-template>
+    <ng-template #noDataState>
+        <div *ngIf="!isLoadingUsers" class="mx-8 mb-8 rounded-2xl border border-gray-100 bg-white p-10 shadow-sm dark:bg-card">
+            <div class="flex flex-col items-center justify-center text-center">
+                <img src="/icons/no-data.png" class="h-56 w-56 object-contain">
+                <h3 class="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No Data Found</h3>
+                <p class="mt-1 text-sm text-gray-500">Data user belum tersedia atau tidak ditemukan dari filter yang dipilih.</p>
+            </div>
+        </div>
+    </ng-template>
     
     <!-- Pagination (Placeholder) -->
-    <div class="mx-8 mb-8 flex items-center justify-between rounded-xl border border-gray-100 bg-white px-6 py-3 shadow-sm dark:bg-card">
-        <div class="text-sm text-gray-500">Showing 1 to {{ users.length }} of {{ users.length }} entries</div>
+    <div *ngIf="isLoadingUsers" class="mx-8 mb-8 flex items-center justify-between rounded-xl border border-gray-100 bg-white px-6 py-3 shadow-sm dark:bg-card">
+        <div class="h-4 w-56 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
         <div class="flex items-center gap-2">
-            <button class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+            <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-10 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+            <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+        </div>
+    </div>
+    <div *ngIf="totalItems > 0" class="mx-8 mb-8 flex items-center justify-between rounded-xl border border-gray-100 bg-white px-6 py-3 shadow-sm dark:bg-card">
+        <div class="text-sm text-gray-500">Showing {{ fromItem }} to {{ toItem }} of {{ totalItems }} entries</div>
+        <div class="flex items-center gap-2">
+            <button (click)="goToPreviousPage()" class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" [disabled]="currentPage <= 1">
                 <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-4"></mat-icon>
             </button>
-            <span class="rounded-lg bg-gray-100 px-3 py-1 text-sm font-medium text-gray-900">1</span>
-            <button class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" disabled>
+            <span class="rounded-lg bg-gray-100 px-3 py-1 text-sm font-medium text-gray-900">{{ currentPage }}</span>
+            <button (click)="goToNextPage()" class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 disabled:opacity-50" [disabled]="currentPage >= lastPage">
                 <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-4"></mat-icon>
             </button>
         </div>

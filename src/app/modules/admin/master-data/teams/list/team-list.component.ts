@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -6,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
@@ -20,6 +22,8 @@ import {
 } from '@angular/animations';
 import { FormsModule } from '@angular/forms';
 import { User } from '../../users/user.types';
+import { SnackbarService } from 'app/core/services/snackbar.service';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'team-list',
@@ -32,6 +36,7 @@ import { User } from '../../users/user.types';
         MatMenuModule, 
         MatSelectModule,
         MatOptionModule,
+        MatTooltipModule,
         MatFormFieldModule,
         MatInputModule,
         FormsModule
@@ -61,76 +66,99 @@ import { User } from '../../users/user.types';
         ]),
     ],
 })
-export class TeamListComponent {
+export class TeamListComponent implements OnInit {
     filterOpen = false;
+    isTableView = false;
     searchQuery = '';
     selectedStatus: '' | 'Active' | 'Inactive' = '';
-    
-    // Mock Users for team members
-    mockUsers: User[] = [
-        { id: 1, fullName: 'John Doe', email: 'john.doe@example.com', role: 'Admin', department: 'IT', lastLogin: '05 Mar 2026', status: 'Active', avatar: 'assets/images/avatars/male-01.jpg' },
-        { id: 2, fullName: 'Sarah Connor', email: 'sarah.connor@example.com', role: 'Agent', department: 'Support', lastLogin: '10 Nov 2025', status: 'Inactive', avatar: 'assets/images/avatars/female-02.jpg' },
-        { id: 3, fullName: 'Michael Scott', email: 'michael.scott@example.com', role: 'Manager', department: 'Sales', lastLogin: '01 Dec 2025', status: 'Active', avatar: 'assets/images/avatars/male-03.jpg' },
-        { id: 4, fullName: 'Pam Beesly', email: 'pam.beesly@example.com', role: 'Agent', department: 'Support', lastLogin: '18 Dec 2025', status: 'Active', avatar: 'assets/images/avatars/female-04.jpg' },
-        { id: 5, fullName: 'Jim Halpert', email: 'jim.halpert@example.com', role: 'Manager', department: 'Sales', lastLogin: '17 Dec 2025', status: 'Active', avatar: 'assets/images/avatars/male-05.jpg' },
-    ];
-
-    teams: Team[] = [
-        {
-            id: 1,
-            name: 'Support Team',
-            description: 'Handle support tickets',
-            members: [this.mockUsers[0], this.mockUsers[1]],
-            status: 'Active'
-        },
-        {
-            id: 2,
-            name: 'Sales Team',
-            description: 'Responsible for sales pipeline',
-            members: [this.mockUsers[2], this.mockUsers[3], this.mockUsers[4]],
-            status: 'Inactive'
-        }
-    ];
-
-    get filteredTeams(): Team[] {
-        const q = this.searchQuery.toLowerCase().trim();
-        return this.teams.filter((t) => {
-            const matchSearch =
-                !q ||
-                t.name.toLowerCase().includes(q) ||
-                t.description.toLowerCase().includes(q);
-            const status = t.status ?? 'Active';
-            const matchStatus = !this.selectedStatus || status === this.selectedStatus;
-            return matchSearch && matchStatus;
-        });
-    }
+    users: User[] = [];
+    teams: Team[] = [];
+    currentPage = 1;
+    lastPage = 1;
+    perPage = 12;
+    totalItems = 0;
+    fromItem = 0;
+    toItem = 0;
+    isLoadingTeams = false;
+    isLoadingUsers = false;
+    isExporting = false;
+    skeletonCards = Array.from({ length: 4 });
+    private readonly _backendApiUrl: string =
+        (globalThis as any)?.__env?.API_URL ||
+        (globalThis as any)?.process?.env?.API_URL ||
+        (globalThis as any)?.API_URL ||
+        'http://127.0.0.1:9010/api';
+    private readonly _hrisApiUrl: string =
+        (globalThis as any)?.__env?.HRIS_API_URL ||
+        (globalThis as any)?.process?.env?.HRIS_API_URL ||
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
 
     constructor(
+        private _httpClient: HttpClient,
         private _matDialog: MatDialog,
-        private _fuseConfirmationService: FuseConfirmationService
+        private _fuseConfirmationService: FuseConfirmationService,
+        private _snackbarService: SnackbarService
     ) {}
 
+    ngOnInit(): void {
+        this._loadUsers();
+        this._loadTeams();
+    }
+
+    applyFilters(): void {
+        this.currentPage = 1;
+        this._loadTeams();
+    }
+
+    resetFilters(): void {
+        this.searchQuery = '';
+        this.selectedStatus = '';
+        this.currentPage = 1;
+        this._loadTeams();
+    }
+
     openTeamDialog(team?: Team): void {
+        if (this.isLoadingUsers) {
+            this._snackbarService.info('Data member masih dimuat, coba lagi sebentar');
+            return;
+        }
+
+        if (this.users.length === 0) {
+            this._snackbarService.error('Data member belum tersedia');
+            this._loadUsers();
+            return;
+        }
+
         const dialogRef = this._matDialog.open(TeamDialogComponent, {
             panelClass: 'team-dialog',
-            data: { team, users: this.mockUsers }
+            data: { team, users: this.users }
         });
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 if (team) {
-                    // Update
-                    const index = this.teams.findIndex(t => t.id === team.id);
-                    if (index > -1) {
-                        this.teams[index] = { ...team, ...result, status: (result.status ?? team.status ?? 'Active') };
-                    }
+                    this._httpClient
+                        .put(
+                            this._buildTeamsUrl(String(team.id)),
+                            this._buildTeamPayload(result)
+                        )
+                        .subscribe(() => {
+                            this.currentPage = 1;
+                            this._loadTeams();
+                            this._snackbarService.success('Team berhasil diperbarui');
+                        });
                 } else {
-                    // Create
-                    this.teams.push({
-                        id: this.teams.length + 1,
-                        status: result.status ?? 'Active',
-                        ...result
-                    });
+                    this._httpClient
+                        .post(
+                            this._buildTeamsUrl(),
+                            this._buildTeamPayload(result)
+                        )
+                        .subscribe(() => {
+                            this.currentPage = 1;
+                            this._loadTeams();
+                            this._snackbarService.success('Team berhasil ditambahkan');
+                        });
                 }
             }
         });
@@ -149,8 +177,209 @@ export class TeamListComponent {
 
         confirmation.afterClosed().subscribe((result) => {
             if (result === 'confirmed') {
-                this.teams = this.teams.filter(t => t.id !== team.id);
+                this._httpClient
+                    .delete(this._buildTeamsUrl(String(team.id)))
+                    .subscribe(() => {
+                        this.currentPage = 1;
+                        this._loadTeams();
+                        this._snackbarService.success('Team berhasil dihapus');
+                    });
             }
         });
+    }
+
+    goToPreviousPage(): void {
+        if (this.currentPage <= 1) {
+            return;
+        }
+        this.currentPage -= 1;
+        this._loadTeams();
+    }
+
+    goToNextPage(): void {
+        if (this.currentPage >= this.lastPage) {
+            return;
+        }
+        this.currentPage += 1;
+        this._loadTeams();
+    }
+
+    exportTeams(): void {
+        if (this.isExporting) {
+            return;
+        }
+        this.isExporting = true;
+        this._httpClient
+            .get(this._buildTeamsExportUrl(), {
+                params: this._buildQueryParams(),
+                responseType: 'blob',
+            })
+            .pipe(
+                finalize(() => {
+                    this.isExporting = false;
+                })
+            )
+            .subscribe((blob: Blob) => {
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `teams_export_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+                anchor.click();
+                URL.revokeObjectURL(url);
+            });
+    }
+
+    toggleViewMode(): void {
+        this.isTableView = !this.isTableView;
+    }
+
+    getRowNumber(index: number): number {
+        const start =
+            this.fromItem > 0
+                ? this.fromItem
+                : (this.currentPage - 1) * this.perPage + 1;
+        return start + index;
+    }
+
+    getMemberNames(team: Team): string {
+        const names = (team.members || [])
+            .map((member) => member?.fullName)
+            .filter((name) => !!name);
+        return names.length ? names.join(', ') : '-';
+    }
+
+    private _loadTeams(): void {
+        this.isLoadingTeams = true;
+        this.teams = [];
+        this._httpClient
+            .get<any>(this._buildTeamsUrl(), { params: this._buildQueryParams() })
+            .pipe(
+                finalize(() => {
+                    this.isLoadingTeams = false;
+                })
+            )
+            .subscribe((response) => {
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                this.teams = rows.map((row: any) => this._mapTeam(row));
+                this.currentPage = Number(response?.meta?.current_page ?? this.currentPage);
+                this.lastPage = Number(response?.meta?.last_page ?? 1);
+                this.perPage = Number(response?.meta?.per_page ?? this.perPage);
+                this.totalItems = Number(response?.meta?.total ?? this.teams.length);
+                this.fromItem = Number(response?.meta?.from ?? (this.teams.length ? 1 : 0));
+                this.toItem = Number(response?.meta?.to ?? this.teams.length);
+            });
+    }
+
+    private _loadUsers(): void {
+        this.isLoadingUsers = true;
+        this._httpClient
+            .get<any>(`${this._backendApiUrl.replace(/\/$/, '')}/users`, {
+                params: new HttpParams().set('per_page', 300),
+            })
+            .pipe(
+                finalize(() => {
+                    this.isLoadingUsers = false;
+                })
+            )
+            .subscribe((response) => {
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                const photoBase = this._hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '');
+                this.users = rows.map((row: any) => {
+                    const photo = row?.photo || '';
+                    const roleNumber = Number(row?.role ?? 0);
+                    const role =
+                        roleNumber === 2 ? 'Admin' : roleNumber === 1 ? 'Agent' : 'User';
+                    return {
+                        id: row?.id,
+                        fullName: row?.name ?? '',
+                        email: row?.email ?? '',
+                        role,
+                        status: Number(row?.status ?? 1) === 0 ? 'Inactive' : 'Active',
+                        department: row?.department?.name ?? '',
+                        avatar: photo
+                            ? `${photoBase}/assets/img/user/${photo}`
+                            : 'assets/images/avatars/male-01.jpg',
+                        photo,
+                    } as User;
+                });
+            });
+    }
+
+    private _buildTeamsUrl(id?: string): string {
+        const base = this._backendApiUrl.replace(/\/$/, '');
+        return id ? `${base}/teams/${id}` : `${base}/teams`;
+    }
+
+    private _buildTeamsExportUrl(): string {
+        return `${this._backendApiUrl.replace(/\/$/, '')}/teams/export`;
+    }
+
+    private _buildQueryParams(): HttpParams {
+        let params = new HttpParams()
+            .set('page', this.currentPage)
+            .set('per_page', this.perPage);
+
+        const search = (this.searchQuery || '').trim();
+        if (search) {
+            params = params.set('search', search);
+        }
+
+        if (this.selectedStatus) {
+            params = params.set('status', this.selectedStatus === 'Active' ? '1' : '0');
+        }
+
+        return params;
+    }
+
+    private _buildTeamPayload(result: any): any {
+        const members: User[] = Array.isArray(result?.members) ? result.members : [];
+        return {
+            name: result?.name || '',
+            description: result?.description || '',
+            members: members.map((member) => member.id),
+        };
+    }
+
+    private _mapTeam(item: any): Team {
+        const members = Array.isArray(item?.team_users)
+            ? item.team_users
+                  .map((entry: any) => {
+                      const user = entry?.user;
+                      if (!user) {
+                          return null;
+                      }
+                      const existing =
+                          this.users.find((u) => String(u.id) === String(user?.id)) || null;
+                      if (existing) {
+                          return existing;
+                      }
+                      return {
+                          id: user?.id,
+                          fullName: user?.name ?? '-',
+                          email: user?.email ?? '-',
+                          role: 'User',
+                          status: Number(user?.status ?? 1) === 0 ? 'Inactive' : 'Active',
+                          avatar: 'assets/images/avatars/male-01.jpg',
+                      } as User;
+                  })
+                  .filter((member: User | null) => Boolean(member))
+            : [];
+
+        return {
+            id: item?.id,
+            name: item?.name ?? '',
+            description: item?.description ?? '',
+            members,
+            status: Number(item?.status ?? 1) === 0 ? 'Inactive' : 'Active',
+            createdAt: item?.created_at ?? '',
+        };
+    }
+
+    getOverflowMembersTooltip(team: Team): string {
+        const names = (team.members || [])
+            .slice(3)
+            .map((member) => member?.fullName)
+            .filter((name) => !!name);
+        return names.join(', ');
     }
 }

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,6 +21,8 @@ import {
     transition,
     trigger,
 } from '@angular/animations';
+import { SnackbarService } from 'app/core/services/snackbar.service';
+import { finalize } from 'rxjs';
 
 @Component({
     selector: 'department-list',
@@ -61,78 +64,44 @@ import {
         ]),
     ],
 })
-export class DepartmentListComponent {
+export class DepartmentListComponent implements OnInit {
     departments: Department[] = [];
+    users: User[] = [];
     filterOpen = false;
-    itemsPerPage = 5;
+    itemsPerPage = 10;
     currentPage = 1;
+    lastPage = 1;
+    totalItems = 0;
+    fromItem = 0;
+    toItem = 0;
+    isLoadingDepartments = false;
+    isExporting = false;
+    skeletonRows = Array.from({ length: 6 });
     filter = {
         name: '',
         status: ''
     };
-
-    // Mock Users for Head selection
-    mockUsers: User[] = [
-        {
-            id: 1,
-            fullName: 'John Doe',
-            email: 'john.doe@company.com',
-            role: 'Admin',
-            status: 'Active',
-            department: 'IT',
-            avatar: 'assets/images/avatars/male-01.jpg'
-        },
-        {
-            id: 2,
-            fullName: 'Jane Smith',
-            email: 'jane.smith@company.com',
-            role: 'Manager',
-            status: 'Active',
-            department: 'HR',
-            avatar: 'assets/images/avatars/female-02.jpg'
-        },
-        {
-            id: 3,
-            fullName: 'Robert Johnson',
-            email: 'robert.j@company.com',
-            role: 'User',
-            status: 'Inactive',
-            department: 'Sales',
-            avatar: 'assets/images/avatars/male-03.jpg'
-        }
-    ];
+    private readonly _backendApiUrl: string =
+        (globalThis as any)?.__env?.API_URL ||
+        (globalThis as any)?.process?.env?.API_URL ||
+        (globalThis as any)?.API_URL ||
+        'http://127.0.0.1:9010/api';
+    private readonly _hrisApiUrl: string =
+        (globalThis as any)?.__env?.HRIS_API_URL ||
+        (globalThis as any)?.process?.env?.HRIS_API_URL ||
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
 
     constructor(
+        private _httpClient: HttpClient,
         private _matDialog: MatDialog,
-        private _fuseConfirmationService: FuseConfirmationService
-    ) {
-        // Initialize with mock data matching the image
-        this.departments = [
-            {
-                id: 1,
-                name: 'Customer Support',
-                description: 'Handle customer inquiries and support tickets',
-                head: this.mockUsers[0],
-                status: 'Active',
-                createdAt: '05 Jan 2025'
-            },
-            {
-                id: 2,
-                name: 'Sales',
-                description: 'Manage sales pipeline and opportunities',
-                head: { ...this.mockUsers[1], fullName: 'Sarah Connor', avatar: 'assets/images/avatars/female-05.jpg' },
-                status: 'Active',
-                createdAt: '12 Jan 2025'
-            },
-            {
-                id: 3,
-                name: 'Finance',
-                description: 'Oversee company financial operations and reporting',
-                head: { ...this.mockUsers[2], fullName: 'Michael Scott', avatar: 'assets/images/avatars/male-06.jpg' },
-                status: 'Inactive',
-                createdAt: '20 Dec 2024'
-            }
-        ];
+        private _fuseConfirmationService: FuseConfirmationService,
+        private _snackbarService: SnackbarService
+    ) {}
+
+    ngOnInit(): void {
+        this._loadDepartmentUsers();
+        this._loadDepartments();
     }
 
     resetFilter(): void {
@@ -141,30 +110,44 @@ export class DepartmentListComponent {
             status: ''
         };
         this.currentPage = 1;
+        this._loadDepartments();
+    }
+
+    applyFilters(): void {
+        this.currentPage = 1;
+        this._loadDepartments();
     }
 
     openDepartmentDialog(department?: Department): void {
         const dialogRef = this._matDialog.open(DepartmentDialogComponent, {
             panelClass: 'department-dialog',
-            data: { department, users: this.mockUsers }
+            data: { department, users: this.users }
         });
 
         dialogRef.afterClosed().subscribe(result => {
             if (result) {
                 if (department) {
-                    // Update existing department
-                    const index = this.departments.findIndex(d => d.id === department.id);
-                    if (index > -1) {
-                        this.departments[index] = { ...department, ...result };
-                    }
+                    this._httpClient
+                        .put(
+                            this._buildDepartmentsUrl(String(department.id)),
+                            this._buildDepartmentPayload(result)
+                        )
+                        .subscribe(() => {
+                            this.currentPage = 1;
+                            this._loadDepartments();
+                            this._snackbarService.success('Department berhasil diperbarui');
+                        });
                 } else {
-                    // Add new department
-                    const newDepartment: Department = {
-                        id: this.departments.length + 1,
-                        ...result,
-                        createdAt: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                    };
-                    this.departments.push(newDepartment);
+                    this._httpClient
+                        .post(
+                            this._buildDepartmentsUrl(),
+                            this._buildDepartmentPayload(result)
+                        )
+                        .subscribe(() => {
+                            this.currentPage = 1;
+                            this._loadDepartments();
+                            this._snackbarService.success('Department berhasil ditambahkan');
+                        });
                 }
             }
         });
@@ -183,53 +166,196 @@ export class DepartmentListComponent {
 
         confirmation.afterClosed().subscribe((result) => {
             if (result === 'confirmed') {
-                this.departments = this.departments.filter(d => d.id !== department.id);
+                this._httpClient
+                    .delete(this._buildDepartmentsUrl(String(department.id)))
+                    .subscribe(() => {
+                        this.currentPage = 1;
+                        this._loadDepartments();
+                        this._snackbarService.success('Department berhasil dihapus');
+                    });
             }
         });
     }
 
-    get filteredDepartments(): Department[] {
-        const query = this.filter.name.toLowerCase().trim();
-        return this.departments.filter((department) => {
-            const matchName =
-                !query ||
-                department.name.toLowerCase().includes(query) ||
-                department.description.toLowerCase().includes(query);
-            const matchStatus =
-                !this.filter.status || department.status === this.filter.status;
-            return matchName && matchStatus;
-        });
-    }
-
-    get totalItems(): number {
-        return this.filteredDepartments.length;
-    }
-
-    get totalPages(): number {
-        return Math.max(1, Math.ceil(this.totalItems / this.itemsPerPage));
+    exportDepartments(): void {
+        if (this.isExporting) {
+            return;
+        }
+        this.isExporting = true;
+        this._httpClient
+            .get(this._buildDepartmentsExportUrl(), {
+                params: this._buildQueryParams(),
+                responseType: 'blob',
+            })
+            .pipe(
+                finalize(() => {
+                    this.isExporting = false;
+                })
+            )
+            .subscribe((blob: Blob) => {
+                const url = URL.createObjectURL(blob);
+                const anchor = document.createElement('a');
+                anchor.href = url;
+                anchor.download = `departments_export_${new Date().toISOString().replace(/[:.]/g, '-')}.csv`;
+                anchor.click();
+                URL.revokeObjectURL(url);
+            });
     }
 
     get paginatedDepartments(): Department[] {
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        return this.filteredDepartments.slice(start, start + this.itemsPerPage);
+        return this.departments;
+    }
+
+    get totalPages(): number {
+        return Math.max(1, this.lastPage);
     }
 
     get rangeLabel(): string {
-        if (this.totalItems === 0) {
+        if (this.totalItems === 0 || this.isLoadingDepartments) {
             return '0 - 0 of 0';
         }
-        const start = (this.currentPage - 1) * this.itemsPerPage + 1;
-        const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
-        return `${start} - ${end} of ${this.totalItems}`;
+        return `${this.fromItem} - ${this.toItem} of ${this.totalItems}`;
     }
 
     goToPage(page: number): void {
         if (page >= 1 && page <= this.totalPages) {
             this.currentPage = page;
+            this._loadDepartments();
         }
     }
 
     onItemsPerPageChange(): void {
         this.currentPage = 1;
+        this._loadDepartments();
+    }
+
+    private _loadDepartments(): void {
+        this.isLoadingDepartments = true;
+        this.departments = [];
+        this._httpClient
+            .get<any>(this._buildDepartmentsUrl(), { params: this._buildQueryParams() })
+            .pipe(
+                finalize(() => {
+                    this.isLoadingDepartments = false;
+                })
+            )
+            .subscribe((response) => {
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                this.departments = rows.map((item: any) => this._mapDepartment(item));
+                this.currentPage = Number(response?.meta?.current_page ?? this.currentPage);
+                this.lastPage = Number(response?.meta?.last_page ?? 1);
+                this.totalItems = Number(response?.meta?.total ?? this.departments.length);
+                this.fromItem = Number(response?.meta?.from ?? (this.departments.length ? 1 : 0));
+                this.toItem = Number(response?.meta?.to ?? this.departments.length);
+            });
+    }
+
+    private _loadDepartmentUsers(): void {
+        this._httpClient
+            .get<any>(`${this._backendApiUrl.replace(/\/$/, '')}/users`, {
+                params: new HttpParams().set('per_page', 200),
+            })
+            .subscribe((response) => {
+                const rows = Array.isArray(response?.data) ? response.data : [];
+                const photoBase = this._hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '');
+                this.users = rows.map((row: any) => {
+                    const photo = row?.photo || '';
+                    const roleValue = Number(row?.role ?? 0);
+                    const role =
+                        roleValue === 2
+                            ? 'Admin'
+                            : roleValue === 1
+                              ? 'Agent'
+                              : 'User';
+
+                    return {
+                        id: row?.id,
+                        fullName: row?.name ?? '',
+                        email: row?.email ?? '',
+                        role,
+                        status: Number(row?.status ?? 1) === 0 ? 'Inactive' : 'Active',
+                        department: row?.department?.name ?? '',
+                        avatar: photo
+                            ? `${photoBase}/assets/img/user/${photo}`
+                            : 'assets/images/avatars/male-01.jpg',
+                        photo,
+                    } as User;
+                });
+            });
+    }
+
+    private _buildDepartmentsUrl(id?: string): string {
+        const base = this._backendApiUrl.replace(/\/$/, '');
+        return id ? `${base}/departments/${id}` : `${base}/departments`;
+    }
+
+    private _buildDepartmentsExportUrl(): string {
+        return `${this._backendApiUrl.replace(/\/$/, '')}/departments/export`;
+    }
+
+    private _buildQueryParams(): HttpParams {
+        let params = new HttpParams()
+            .set('page', this.currentPage)
+            .set('per_page', this.itemsPerPage);
+
+        const search = (this.filter.name || '').trim();
+        if (search) {
+            params = params.set('search', search);
+        }
+
+        if (this.filter.status) {
+            params = params.set('status', this.filter.status === 'Active' ? '1' : '0');
+        }
+
+        return params;
+    }
+
+    private _buildDepartmentPayload(result: any): any {
+        const headId = result?.head?.id ?? result?.head_id ?? null;
+        return {
+            name: result?.name || '',
+            description: result?.description || '',
+            status: result?.status === 'Inactive' ? 0 : 1,
+            head_id: headId,
+        };
+    }
+
+    private _mapDepartment(item: any): Department {
+        const headId = item?.head_id ?? item?.head?.id ?? item?.headId ?? null;
+        const headUser =
+            this.users.find((user) => String(user.id) === String(headId)) ||
+            (item?.head
+                ? ({
+                      id: item?.head?.id,
+                      fullName: item?.head?.name ?? '-',
+                      email: item?.head?.email ?? '-',
+                      role: 'User',
+                      status: Number(item?.head?.status ?? 1) === 0 ? 'Inactive' : 'Active',
+                      avatar: item?.head?.photo
+                          ? `${this._hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '')}/assets/img/user/${item.head.photo}`
+                          : 'assets/images/avatars/male-01.jpg',
+                      photo: item?.head?.photo ?? '',
+                  } as User)
+                : null);
+
+        return {
+            id: item?.id,
+            name: item?.name ?? '',
+            description: item?.description ?? '',
+            head: headUser,
+            status: Number(item?.status ?? 1) === 0 ? 'Inactive' : 'Active',
+            createdAt: item?.created_at
+                ? new Date(item.created_at).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                  })
+                : '-',
+        };
+    }
+
+    getRowNumber(index: number): number {
+        const base = this.fromItem > 0 ? this.fromItem : 1;
+        return base + index;
     }
 }

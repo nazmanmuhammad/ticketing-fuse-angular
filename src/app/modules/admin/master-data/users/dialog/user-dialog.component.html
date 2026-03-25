@@ -21,7 +21,7 @@
                     [matAutocompleteDisabled]="!employeeAutocompleteEnabled"
                     (click)="enableEmployeeAutocomplete(employeeTrigger)"
                     #employeeTrigger="matAutocompleteTrigger">
-                <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onEmployeeSelected($event.option.value)" (closed)="onEmployeePanelClosed()">
+                <mat-autocomplete #auto="matAutocomplete" (opened)="onEmployeePanelOpened(employeeTrigger)" (optionSelected)="onEmployeeSelected($event.option.value)" (closed)="onEmployeePanelClosed()">
                     <mat-option *ngFor="let u of filteredEmployeesList" [value]="u">
                         <div class="flex items-center gap-3 py-1">
                             <img [src]="u.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
@@ -30,6 +30,12 @@
                                 <span class="text-xs text-gray-500 mt-1">{{ u.email }}</span>
                             </div>
                         </div>
+                    </mat-option>
+                    <mat-option *ngIf="isLoadingEmployees" disabled>
+                        Loading employees...
+                    </mat-option>
+                    <mat-option *ngIf="!isLoadingEmployees && !filteredEmployeesList.length" disabled>
+                        No employee found
                     </mat-option>
                 </mat-autocomplete>
             </mat-form-field>

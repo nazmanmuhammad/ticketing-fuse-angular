@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
 import { ActivatedRoute, RouterModule } from '@angular/router';
 
 interface Attachment {
@@ -55,7 +57,7 @@ interface ChangeRequestDetail {
 @Component({
     selector: 'app-change-request-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule],
+    imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatMenuModule],
     templateUrl: './detail.component.html',
 })
 export class ChangeRequestDetailComponent {

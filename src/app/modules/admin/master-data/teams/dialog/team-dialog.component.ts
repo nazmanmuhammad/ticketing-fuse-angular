@@ -101,9 +101,9 @@ export class TeamDialogComponent {
         return !!arr.find(u => u.id === user.id);
     }
 
-    toggleMember(user: User, event?: Event): void {
-        event?.preventDefault();
-        event?.stopPropagation();
+    toggleMember(user: User, event?: any): void {
+        event?.preventDefault?.();
+        event?.stopPropagation?.();
         const members: User[] = [...(this.teamForm.get('members')?.value || [])];
         const idx = members.findIndex(u => u.id === user.id);
         if (idx > -1) {

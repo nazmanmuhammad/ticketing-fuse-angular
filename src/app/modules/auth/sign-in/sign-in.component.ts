@@ -17,6 +17,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { fuseAnimations } from '@fuse/animations';
 import { FuseAlertComponent, FuseAlertType } from '@fuse/components/alert';
 import { AuthService } from 'app/core/auth/auth.service';
+import { SnackbarService } from 'app/core/services/snackbar.service';
+import { take } from 'rxjs';
 
 @Component({
     selector: 'auth-sign-in',
@@ -55,7 +57,8 @@ export class AuthSignInComponent implements OnInit {
         private _activatedRoute: ActivatedRoute,
         private _authService: AuthService,
         private _formBuilder: UntypedFormBuilder,
-        private _router: Router
+        private _router: Router,
+        private _snackbarService: SnackbarService
     ) {}
 
     // -----------------------------------------------------------------------------------------------------
@@ -66,13 +69,22 @@ export class AuthSignInComponent implements OnInit {
      * On init
      */
     ngOnInit(): void {
+        this._authService
+            .check()
+            .pipe(take(1))
+            .subscribe((authenticated) => {
+                if (authenticated) {
+                    this._router.navigateByUrl('/dashboard');
+                }
+            });
+
         // Create the form
         this.signInForm = this._formBuilder.group({
             email: [
-                'hughes.brian@company.com',
+                'nazman.nadev@gmail.com',
                 [Validators.required, Validators.email],
             ],
-            password: ['admin', Validators.required],
+            password: ['', Validators.required],
             rememberMe: [''],
         });
     }
@@ -106,7 +118,9 @@ export class AuthSignInComponent implements OnInit {
                 const redirectURL =
                     this._activatedRoute.snapshot.queryParamMap.get(
                         'redirectURL'
-                    ) || '/signed-in-redirect';
+                    ) || '/dashboard';
+
+                this._snackbarService.success('Login berhasil');
 
                 // Navigate to the redirect url
                 this._router.navigateByUrl(redirectURL);
@@ -121,7 +135,10 @@ export class AuthSignInComponent implements OnInit {
                 // Set the alert
                 this.alert = {
                     type: 'error',
-                    message: 'Wrong email or password',
+                    message:
+                        response?.error?.message ||
+                        response?.error?.error ||
+                        'Email/password salah atau akun belum terdaftar.',
                 };
 
                 // Show the alert

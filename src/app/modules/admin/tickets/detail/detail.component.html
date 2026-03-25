@@ -9,16 +9,27 @@
         <span class="font-semibold text-gray-800 dark:text-white"
             >Ticket Detail</span
         >
-        <div class="text-secondary flex items-center gap-1">
-            <span>Dashboard</span>
-            <span>•</span>
-            <a
-                class="cursor-pointer hover:text-primary"
-                [routerLink]="['/tickets', 'data']"
-                >Tickets</a
-            >
-            <span>•</span>
-            <span class="font-semibold text-primary">{{ detail.code }}</span>
+        <div class="flex items-center gap-3">
+            <div class="text-secondary flex items-center gap-1">
+                <span>Dashboard</span>
+                <span>•</span>
+                <a
+                    class="cursor-pointer hover:text-primary"
+                    [routerLink]="['/tickets', 'data']"
+                    >Tickets</a
+                >
+                <span>•</span>
+                <span class="font-semibold text-primary">{{ detail.code }}</span>
+            </div>
+            <button mat-stroked-button [matMenuTriggerFor]="actionsMenu" class="rounded-lg">
+                Actions
+            </button>
+            <mat-menu #actionsMenu="matMenu">
+                <button mat-menu-item>Start Process</button>
+                <button mat-menu-item>Approve</button>
+                <button mat-menu-item>Reject</button>
+                <button mat-menu-item>Request Revision</button>
+            </mat-menu>
         </div>
     </div>
 

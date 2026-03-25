@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('description');
             $table->boolean('status')->default(1);
+            $table->foreignUuid('head_id')->nullable()->constrained('users');
             $table->timestamps();
             $table->softDeletes();
         });

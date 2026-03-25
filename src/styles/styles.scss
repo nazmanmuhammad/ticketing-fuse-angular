@@ -96,3 +96,18 @@
 .dark .apexcharts-yaxis line {
     stroke: #334155 !important;
 }
+
+.app-snackbar-success {
+    --mdc-snackbar-container-color: #16a34a !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+}
+
+.app-snackbar-error {
+    --mdc-snackbar-container-color: #dc2626 !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+}
+
+.app-snackbar-info {
+    --mdc-snackbar-container-color: #2563eb !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+}

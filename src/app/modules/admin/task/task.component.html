@@ -1,0 +1,77 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Task</span>
+        <div class="flex items-center gap-1 text-gray-500">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Task</span>
+        </div>
+    </div>
+
+    <div class="mx-8 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">
+            My Task
+        </h2>
+        <p class="mt-0.5 text-sm text-gray-500">
+            Daftar task yang di-assign ke {{ currentUser?.name || 'user login' }}
+        </p>
+        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-xl border border-gray-100 bg-slate-50 px-4 py-3">
+                <div class="text-sm text-gray-500">Tickets</div>
+                <div class="mt-1 text-2xl font-bold text-gray-900">{{ countByType('Ticket') }}</div>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-slate-50 px-4 py-3">
+                <div class="text-sm text-gray-500">Access Request</div>
+                <div class="mt-1 text-2xl font-bold text-gray-900">{{ countByType('Access Request') }}</div>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-slate-50 px-4 py-3">
+                <div class="text-sm text-gray-500">Job Request</div>
+                <div class="mt-1 text-2xl font-bold text-gray-900">{{ countByType('Job Request') }}</div>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-slate-50 px-4 py-3">
+                <div class="text-sm text-gray-500">Change Request</div>
+                <div class="mt-1 text-2xl font-bold text-gray-900">{{ countByType('Change Request') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mx-8 mb-8 mt-6 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm text-gray-500">
+                <thead class="bg-white text-xs uppercase text-gray-500 border-b border-gray-100">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 font-semibold">Type</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Code</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Title</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Priority</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Updated</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    <tr *ngFor="let task of tasks" class="bg-white hover:bg-gray-50">
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ task.type }}</td>
+                        <td class="px-6 py-4 font-semibold text-blue-700">{{ task.code }}</td>
+                        <td class="px-6 py-4 text-gray-700">{{ task.title }}</td>
+                        <td class="px-6 py-4">
+                            <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getPriorityClass(task.priority)">
+                                {{ task.priority }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="getStatusClass(task.status)">
+                                {{ task.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">{{ task.updatedAt }}</td>
+                    </tr>
+                    <tr *ngIf="tasks.length === 0">
+                        <td class="px-6 py-10 text-center text-gray-500" colspan="6">
+                            Tidak ada task yang di-assign ke user ini.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

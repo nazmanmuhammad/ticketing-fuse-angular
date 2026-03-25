@@ -16,7 +16,7 @@ export const appRoutes: Route[] = [
     // After the user signs in, the sign-in page will redirect the user to the 'signed-in-redirect'
     // path. Below is another redirection for that path to redirect the user to the desired
     // location. This is a small convenience to keep all main routes together here on this file.
-    { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: 'example' },
+    { path: 'signed-in-redirect', pathMatch: 'full', redirectTo: 'task' },
 
     // Landing route for guests
     {
@@ -122,6 +122,11 @@ export const appRoutes: Route[] = [
                 path: 'dashboard',
                 loadChildren: () =>
                     import('app/modules/admin/dashboard/dashboard.routes'),
+            },
+            {
+                path: 'task',
+                loadChildren: () =>
+                    import('app/modules/admin/task/task.routes'),
             },
             {
                 path: 'example',
