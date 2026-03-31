@@ -19,9 +19,15 @@
                     >Tickets</a
                 >
                 <span>•</span>
-                <span class="font-semibold text-primary">{{ detail.code }}</span>
+                <span class="font-semibold text-primary">{{
+                    detail.code
+                }}</span>
             </div>
-            <button mat-stroked-button [matMenuTriggerFor]="actionsMenu" class="rounded-lg">
+            <button
+                mat-stroked-button
+                [matMenuTriggerFor]="actionsMenu"
+                class="rounded-lg"
+            >
                 Actions
             </button>
             <mat-menu #actionsMenu="matMenu">
@@ -150,7 +156,8 @@
                         <span
                             class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300"
                         >
-                        {{ approvedCount() }} / {{ approvalsTotal() }} Approved
+                            {{ approvedCount() }} /
+                            {{ approvalsTotal() }} Approved
                         </span>
                     </div>
                 </div>
@@ -843,7 +850,9 @@
                             {{ detail.assignTo }}
                         </div>
                         <div class="text-secondary text-xs">
-                            {{ detail.assignType === 'team' ? 'Team' : 'Agent' }}
+                            {{
+                                detail.assignType === 'team' ? 'Team' : 'Member'
+                            }}
                         </div>
                     </div>
                 </div>

@@ -6,10 +6,11 @@ export interface User {
     hrisUserId?: number;
     userId?: number;
     photo?: string;
-    role: 'Admin' | 'Agent' | 'Manager' | 'Staff' | 'User';
+    role: 'Admin' | 'Agent' | 'Manager' | 'Staff' | 'User' | 'Technical';
     department?: string;
     departmentId?: string;
     lastLogin?: string;
     status: 'Active' | 'Inactive';
     avatar?: string;
+    phone?: string;
 }

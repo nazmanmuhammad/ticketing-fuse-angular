@@ -575,9 +575,29 @@ fuse-vertical-navigation {
                                     }
                                 }
 
-                                .fuse-vertical-navigation-item-badge,
                                 .fuse-vertical-navigation-item-arrow {
                                     display: none;
+                                }
+
+                                /* Show badge in aside wrapper */
+                                .fuse-vertical-navigation-item-badge {
+                                    display: block !important;
+                                    margin-left: auto;
+
+                                    .fuse-vertical-navigation-item-badge-content {
+                                        display: flex !important;
+                                        align-items: center;
+                                        justify-content: center;
+                                        padding: 0 8px;
+                                        width: 20px;
+                                        height: 20px;
+                                        border-radius: 9999px;
+                                        font-size: 11px;
+                                        font-weight: 600;
+                                        line-height: 20px;
+                                        background-color: #ef4444 !important; /* Red background */
+                                        color: #ffffff !important; /* White text */
+                                    }
                                 }
                             }
                         }

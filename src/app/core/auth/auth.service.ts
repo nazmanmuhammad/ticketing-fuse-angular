@@ -71,22 +71,13 @@ export class AuthService {
             .set('email', credentials.email)
             .set('password', credentials.password);
 
-        return this._validateLogin(credentials).pipe(
-            switchMap((isValid: boolean) => {
-                if (!isValid) {
-                    return throwError('Akun tidak terdaftar.');
-                }
-
-                return this._httpClient.post(
-                    this._buildUrl('/auth/login'),
-                    body.toString(),
-                    {
-                        headers: new HttpHeaders({
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        }),
-                    }
-                );
-            }),
+        return this._httpClient
+            .post(this._buildUrl('/auth/login'), body.toString(), {
+                headers: new HttpHeaders({
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }),
+            })
+            .pipe(
             switchMap((response: any) => {
                 const token = this._extractToken(response);
                 if (token) {

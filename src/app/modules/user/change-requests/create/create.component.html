@@ -1,0 +1,284 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <!-- Breadcrumb Header -->
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Create Change Request</span>
+        <div class="text-secondary flex items-center gap-1">
+            <a class="cursor-pointer hover:text-primary" [routerLink]="['/user/change-requests']">My Change Requests</a>
+            <span>•</span>
+            <span class="font-semibold text-primary">Create</span>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="mx-8 my-8">
+        <div class="rounded-2xl border border-gray-100 bg-white px-8 py-8 shadow-sm dark:bg-card">
+            <!-- Header -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Create New Change Request</h2>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    Fill in the required information to submit a new change request
+                </p>
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <!-- Requester Information -->
+                <div class="mb-8">
+                    <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        Requester Information
+                    </h3>
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Full Name <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                formControlName="fullName"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Enter your full name"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Email <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="email"
+                                formControlName="email"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="your.email@example.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                formControlName="phone"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="+62 812 3456 7890"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Department
+                            </label>
+                            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="department">
+                                    <mat-option *ngFor="let dept of departments" [value]="dept">
+                                        {{ dept }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Change Request Details -->
+                <div class="mb-8">
+                    <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        Change Request Details
+                    </h3>
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Change Type <span class="text-red-500">*</span>
+                            </label>
+                            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="changeType">
+                                    <mat-option *ngFor="let type of changeTypes" [value]="type">
+                                        {{ type }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Priority <span class="text-red-500">*</span>
+                            </label>
+                            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="priority">
+                                    <mat-option *ngFor="let p of priorities" [value]="p">
+                                        {{ p }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Change Title <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                formControlName="changeTitle"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Brief title of the change"
+                            />
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Change Description <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                formControlName="changeDescription"
+                                rows="4"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Describe the change in detail..."
+                            ></textarea>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Justification <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                formControlName="justification"
+                                rows="3"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Why is this change necessary?"
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Impact Level
+                            </label>
+                            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="impactLevel">
+                                    <mat-option *ngFor="let level of impactLevels" [value]="level">
+                                        {{ level }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Risk Level
+                            </label>
+                            <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="riskLevel">
+                                    <mat-option *ngFor="let level of riskLevels" [value]="level">
+                                        {{ level }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Planned Start Date <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="date"
+                                formControlName="plannedStartDate"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                            />
+                        </div>
+
+                        <div>
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Planned End Date
+                            </label>
+                            <input
+                                type="date"
+                                formControlName="plannedEndDate"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                            />
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Rollback Plan
+                            </label>
+                            <textarea
+                                formControlName="rollbackPlan"
+                                rows="3"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Describe the rollback plan if the change fails..."
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attachments -->
+                <div class="mb-8">
+                    <h3 class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                        Supporting Documents
+                    </h3>
+                    <div
+                        class="rounded-xl border-2 border-dashed p-8 text-center transition-colors"
+                        [ngClass]="isDragging ? 'border-primary bg-primary/5' : 'border-gray-300 dark:border-gray-600'"
+                        (dragover)="onDragOver($event)"
+                        (dragleave)="onDragLeave()"
+                        (drop)="onDrop($event)"
+                    >
+                        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            Drag and drop files here, or
+                            <label class="cursor-pointer font-medium text-primary hover:underline">
+                                browse
+                                <input type="file" multiple class="hidden" (change)="onFileSelect($event)" />
+                            </label>
+                        </p>
+                    </div>
+
+                    <div *ngIf="uploadedFiles.length" class="mt-4 space-y-2">
+                        <div
+                            *ngFor="let file of uploadedFiles; let i = index"
+                            class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+                        >
+                            <div class="flex items-center gap-3">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">{{ file.name }}</p>
+                                    <p class="text-xs text-gray-500">{{ formatSize(file.size) }}</p>
+                                </div>
+                            </div>
+                            <button type="button" (click)="removeFile(i)" class="text-gray-400 transition-colors hover:text-red-500">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-end gap-3 border-t pt-6">
+                    <button
+                        type="button"
+                        (click)="onCancel()"
+                        class="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        (click)="onSaveDraft()"
+                        class="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                        Save as Draft
+                    </button>
+                    <button
+                        type="submit"
+                        class="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                    >
+                        Submit Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

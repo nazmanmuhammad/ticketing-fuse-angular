@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\Uuid;
+use App\UserRoleEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -30,6 +31,10 @@ class User extends Model
         'role_name'
     ];
 
+    protected $casts = [
+        'role' => UserRoleEnum::class,
+    ];
+
     public function teams()
     {
         return $this->hasMany(TeamUser::class);
@@ -37,7 +42,7 @@ class User extends Model
 
     public function getRoleNameAttribute()
     {
-        return $this->role == 0 ? 'User' : 'Admin';
+        return $this->role?->label();
     }
 
     public function department()

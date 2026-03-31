@@ -1,0 +1,382 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <!-- Breadcrumb Header -->
+    <div
+        class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
+    >
+        <span class="font-semibold text-gray-800 dark:text-white"
+            >Create Ticket</span
+        >
+        <div class="text-secondary flex items-center gap-1">
+            <a
+                class="cursor-pointer hover:text-primary"
+                [routerLink]="['/user/tickets']"
+                >My Tickets</a
+            >
+            <span>•</span>
+            <span class="font-semibold text-primary">Create</span>
+        </div>
+    </div>
+
+    <!-- Form Container -->
+    <div class="mx-8 my-8">
+        <div
+            class="rounded-2xl border border-gray-100 bg-white px-8 py-8 shadow-sm dark:bg-card"
+        >
+            <!-- Header -->
+            <div class="mb-8">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                    Create New Ticket
+                </h2>
+                <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
+                    Fill in the details to submit your ticket request
+                </p>
+            </div>
+
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <!-- Requester Information -->
+                <div class="mb-8">
+                    <h3
+                        class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                    >
+                        Requester Information
+                    </h3>
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Full Name
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                formControlName="fullName"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Enter your full name"
+                            />
+                            <div
+                                *ngIf="
+                                    form.get('fullName')?.invalid &&
+                                    form.get('fullName')?.touched
+                                "
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                Full name is required
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Email
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="email"
+                                formControlName="email"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="your.email@example.com"
+                            />
+                            <div
+                                *ngIf="
+                                    form.get('email')?.invalid &&
+                                    form.get('email')?.touched
+                                "
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                Valid email is required
+                            </div>
+                        </div>
+
+                        <div>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                formControlName="phone"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="+62 812 3456 7890"
+                            />
+                        </div>
+
+                        <div>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Extension
+                            </label>
+                            <input
+                                type="text"
+                                formControlName="extension"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="123"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ticket Details -->
+                <div class="mb-8">
+                    <h3
+                        class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                    >
+                        Ticket Details
+                    </h3>
+                    <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                        <div>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Department
+                            </label>
+                            <mat-form-field
+                                appearance="outline"
+                                class="fuse-mat-small w-full"
+                                subscriptSizing="dynamic"
+                            >
+                                <mat-select formControlName="department">
+                                    <mat-option
+                                        *ngFor="let dept of departments"
+                                        [value]="dept"
+                                    >
+                                        {{ dept }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div>
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Help Topic
+                            </label>
+                            <mat-form-field
+                                appearance="outline"
+                                class="fuse-mat-small w-full"
+                                subscriptSizing="dynamic"
+                            >
+                                <mat-select formControlName="helpTopic">
+                                    <mat-option
+                                        *ngFor="let topic of helpTopics"
+                                        [value]="topic"
+                                    >
+                                        {{ topic }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Priority
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <mat-form-field
+                                appearance="outline"
+                                class="fuse-mat-small w-full"
+                                subscriptSizing="dynamic"
+                            >
+                                <mat-select formControlName="priority">
+                                    <mat-option
+                                        *ngFor="let p of priorities"
+                                        [value]="p"
+                                    >
+                                        {{ p }}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Subject
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                formControlName="subject"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Brief description of the issue"
+                            />
+                            <div
+                                *ngIf="
+                                    form.get('subject')?.invalid &&
+                                    form.get('subject')?.touched
+                                "
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                Subject is required
+                            </div>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label
+                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                                Issue Detail
+                                <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                formControlName="issueDetail"
+                                rows="6"
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                placeholder="Provide detailed information about your issue..."
+                            ></textarea>
+                            <div
+                                *ngIf="
+                                    form.get('issueDetail')?.invalid &&
+                                    form.get('issueDetail')?.touched
+                                "
+                                class="mt-1 text-xs text-red-500"
+                            >
+                                Issue detail is required
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attachments -->
+                <div class="mb-8">
+                    <h3
+                        class="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
+                    >
+                        Attachments
+                    </h3>
+                    <div
+                        class="rounded-xl border-2 border-dashed p-8 text-center transition-colors"
+                        [ngClass]="
+                            isDragging
+                                ? 'border-primary bg-primary/5'
+                                : 'border-gray-300 dark:border-gray-600'
+                        "
+                        (dragover)="onDragOver($event)"
+                        (dragleave)="onDragLeave()"
+                        (drop)="onDrop($event)"
+                    >
+                        <svg
+                            class="mx-auto h-12 w-12 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                            />
+                        </svg>
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            Drag and drop files here, or
+                            <label
+                                class="cursor-pointer font-medium text-primary hover:underline"
+                            >
+                                browse
+                                <input
+                                    type="file"
+                                    multiple
+                                    class="hidden"
+                                    (change)="onFileSelect($event)"
+                                />
+                            </label>
+                        </p>
+                        <p class="mt-1 text-xs text-gray-500">
+                            Maximum file size: 10MB
+                        </p>
+                    </div>
+
+                    <!-- Uploaded Files -->
+                    <div
+                        *ngIf="uploadedFiles.length"
+                        class="mt-4 space-y-2"
+                    >
+                        <div
+                            *ngFor="let file of uploadedFiles; let i = index"
+                            class="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
+                        >
+                            <div class="flex items-center gap-3">
+                                <svg
+                                    class="h-5 w-5 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                    />
+                                </svg>
+                                <div>
+                                    <p
+                                        class="text-sm font-medium text-gray-900 dark:text-white"
+                                    >
+                                        {{ file.name }}
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        {{ formatSize(file.size) }}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                (click)="removeFile(i)"
+                                class="text-gray-400 transition-colors hover:text-red-500"
+                            >
+                                <svg
+                                    class="h-5 w-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div
+                    class="flex items-center justify-end gap-3 border-t pt-6"
+                >
+                    <button
+                        type="button"
+                        (click)="onCancel()"
+                        class="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        (click)="onSaveDraft()"
+                        class="rounded-lg border border-gray-300 px-6 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+                    >
+                        Save as Draft
+                    </button>
+                    <button
+                        type="submit"
+                        class="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                    >
+                        Submit Ticket
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,16 +1,3 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { FuseConfirmationService } from '@fuse/services/confirmation';
-import { User } from '../user.types';
-import { UserDialogComponent } from '../dialog/user-dialog.component';
 import {
     animate,
     state,
@@ -18,14 +5,37 @@ import {
     transition,
     trigger,
 } from '@angular/animations';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatSelectModule } from '@angular/material/select';
+import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { SnackbarService } from 'app/core/services/snackbar.service';
 import { finalize } from 'rxjs';
+import { UserDialogComponent } from '../dialog/user-dialog.component';
+import { User } from '../user.types';
 
 @Component({
     selector: 'user-list',
     standalone: true,
-    imports: [CommonModule, MatDialogModule, MatIconModule, MatButtonModule, MatMenuModule, FormsModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+    imports: [
+        CommonModule,
+        MatDialogModule,
+        MatIconModule,
+        MatButtonModule,
+        MatMenuModule,
+        FormsModule,
+        MatFormFieldModule,
+        MatInputModule,
+        MatSelectModule,
+    ],
     templateUrl: './user-list.component.html',
     animations: [
         trigger('collapseFilter', [
@@ -106,7 +116,9 @@ export class UserListComponent implements OnInit {
                         .subscribe(() => {
                             this.currentPage = 1;
                             this._loadUsers();
-                            this._snackbarService.success('User berhasil diperbarui');
+                            this._snackbarService.success(
+                                'User berhasil diperbarui'
+                            );
                         });
                 } else {
                     this._httpClient
@@ -117,7 +129,9 @@ export class UserListComponent implements OnInit {
                         .subscribe(() => {
                             this.currentPage = 1;
                             this._loadUsers();
-                            this._snackbarService.success('User berhasil ditambahkan');
+                            this._snackbarService.success(
+                                'User berhasil ditambahkan'
+                            );
                         });
                 }
             }
@@ -130,9 +144,9 @@ export class UserListComponent implements OnInit {
             message: `Are you sure you want to delete <strong>${user.fullName}</strong>? This action cannot be undone.`,
             actions: {
                 confirm: {
-                    label: 'Delete'
-                }
-            }
+                    label: 'Delete',
+                },
+            },
         });
 
         confirmation.afterClosed().subscribe((result) => {
@@ -219,10 +233,16 @@ export class UserListComponent implements OnInit {
 
     getRoleClass(role: string): string {
         switch (role) {
-            case 'Admin': return 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-400';
-            case 'Manager': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-400';
-            case 'Agent': return 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-400';
-            default: return 'bg-gray-100 text-gray-700';
+            case 'Admin':
+                return 'bg-blue-100 text-blue-700 dark:bg-blue-800/30 dark:text-blue-400';
+            case 'Manager':
+                return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-800/30 dark:text-indigo-400';
+            case 'Agent':
+                return 'bg-purple-100 text-purple-700 dark:bg-purple-800/30 dark:text-purple-400';
+            case 'Technical':
+                return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-800/30 dark:text-yellow-400';
+            default:
+                return 'bg-gray-100 text-gray-700';
         }
     }
 
@@ -243,11 +263,17 @@ export class UserListComponent implements OnInit {
                       ? response
                       : [];
                 this.users = rows.map((row: any) => this._mapApiUser(row));
-                this.currentPage = Number(response?.meta?.current_page ?? this.currentPage);
+                this.currentPage = Number(
+                    response?.meta?.current_page ?? this.currentPage
+                );
                 this.lastPage = Number(response?.meta?.last_page ?? 1);
                 this.perPage = Number(response?.meta?.per_page ?? this.perPage);
-                this.totalItems = Number(response?.meta?.total ?? this.users.length);
-                this.fromItem = Number(response?.meta?.from ?? (this.users.length ? 1 : 0));
+                this.totalItems = Number(
+                    response?.meta?.total ?? this.users.length
+                );
+                this.fromItem = Number(
+                    response?.meta?.from ?? (this.users.length ? 1 : 0)
+                );
                 this.toItem = Number(response?.meta?.to ?? this.users.length);
             });
     }
@@ -287,7 +313,8 @@ export class UserListComponent implements OnInit {
             name: result?.fullName || '',
             email: result?.email || '',
             photo:
-                result?.photo || this._extractPhotoFromUrl(result?.avatar || ''),
+                result?.photo ||
+                this._extractPhotoFromUrl(result?.avatar || ''),
             role: this._mapRoleToNumber(result?.role),
             department_id: result?.departmentId || null,
             status: result?.status === 'Inactive' ? 0 : 1,
@@ -298,8 +325,16 @@ export class UserListComponent implements OnInit {
         const hasRoleNumber = row?.role !== undefined && row?.role !== null;
         const roleNumber = Number(row?.role ?? 0);
         const roleNameFromNumber =
-            roleNumber === 2 ? 'Admin' : roleNumber === 1 ? 'Agent' : 'User';
-        const roleName = hasRoleNumber ? roleNameFromNumber : row?.role_name ?? 'User';
+            roleNumber === 3
+                ? 'Admin'
+                : roleNumber === 2
+                  ? 'Technical'
+                  : roleNumber === 1
+                    ? 'Agent'
+                    : 'User';
+        const roleName = hasRoleNumber
+            ? roleNameFromNumber
+            : (row?.role_name ?? 'User');
         const normalizedRole =
             roleName === 'Admin'
                 ? 'Admin'
@@ -307,8 +342,8 @@ export class UserListComponent implements OnInit {
                   ? 'Agent'
                   : roleName === 'Manager'
                     ? 'Manager'
-                    : roleName === 'Staff'
-                      ? 'Staff'
+                    : roleName === 'Technical'
+                      ? 'Technical'
                       : 'User';
 
         const photo = row?.photo || '';
@@ -347,6 +382,9 @@ export class UserListComponent implements OnInit {
 
     private _mapRoleToNumber(role: string): number {
         if (role === 'Admin') {
+            return 3;
+        }
+        if (role === 'Technical') {
             return 2;
         }
         if (role === 'Agent') {

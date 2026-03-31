@@ -160,6 +160,62 @@ export const appRoutes: Route[] = [
                     ),
             },
             {
+                path: 'user/tickets',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/tickets/ticket/ticket.component'
+                    ).then((m) => m.UserTicketComponent),
+            },
+            {
+                path: 'user/tickets/create',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/tickets/create/create.component'
+                    ).then((m) => m.UserTicketCreateComponent),
+            },
+            {
+                path: 'user/access-requests',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/access-requests/request/request.component'
+                    ).then((m) => m.UserAccessRequestListComponent),
+            },
+            {
+                path: 'user/access-requests/create',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/access-requests/create/create.component'
+                    ).then((m) => m.UserAccessRequestCreateComponent),
+            },
+            {
+                path: 'user/change-requests',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/change-requests/request/request.component'
+                    ).then((m) => m.UserChangeRequestListComponent),
+            },
+            {
+                path: 'user/change-requests/create',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/change-requests/create/create.component'
+                    ).then((m) => m.UserChangeRequestCreateComponent),
+            },
+            {
+                path: 'user/job-requests',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/job-requests/request/request.component'
+                    ).then((m) => m.UserJobRequestListComponent),
+            },
+            {
+                path: 'user/job-requests/create',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/job-requests/create/create.component'
+                    ).then((m) => m.UserJobRequestCreateComponent),
+            },
+            {
                 path: 'master-data/users',
                 loadChildren: () =>
                     import(

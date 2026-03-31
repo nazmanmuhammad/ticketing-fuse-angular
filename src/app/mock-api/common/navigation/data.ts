@@ -37,6 +37,10 @@ export const defaultNavigation: FuseNavigationItem[] = [
         title: 'Tickets',
         type: 'aside',
         icon: 'heroicons_outline:ticket',
+        badge: {
+            title: '12',
+            classes: 'bg-red-500 text-white',
+        },
         children: [
             {
                 id: 'tickets.dashboard',
@@ -66,6 +70,10 @@ export const defaultNavigation: FuseNavigationItem[] = [
         title: 'Access Request',
         type: 'aside',
         icon: 'heroicons_outline:lock-closed',
+        badge: {
+            title: '8',
+            classes: 'bg-red-500 text-white',
+        },
         children: [
             {
                 id: 'access_requests.dashboard',
@@ -95,6 +103,10 @@ export const defaultNavigation: FuseNavigationItem[] = [
         title: 'Change Request',
         type: 'aside',
         icon: 'heroicons_outline:arrow-path',
+        badge: {
+            title: '5',
+            classes: 'bg-red-500 text-white',
+        },
         children: [
             {
                 id: 'change_requests.dashboard',
@@ -124,6 +136,10 @@ export const defaultNavigation: FuseNavigationItem[] = [
         title: 'Job Request',
         type: 'aside',
         icon: 'heroicons_outline:briefcase',
+        badge: {
+            title: '3',
+            classes: 'bg-red-500 text-white',
+        },
         children: [
             {
                 id: 'job_requests.dashboard',

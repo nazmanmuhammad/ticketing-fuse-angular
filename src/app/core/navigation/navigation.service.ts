@@ -12,6 +12,12 @@ export class NavigationService {
     private _userService = inject(UserService);
     private _navigation: ReplaySubject<Navigation> =
         new ReplaySubject<Navigation>(1);
+    private _requestCounts = {
+        tickets: 12,
+        access: 8,
+        change: 5,
+        job: 3,
+    };
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
@@ -56,28 +62,117 @@ export class NavigationService {
         roleName?: string
     ): Navigation {
         const normalizedRoleName = (roleName || '').toLowerCase();
-        const isAgent = normalizedRoleName === 'agent';
-        if (!isAgent) {
+        const isUser = normalizedRoleName === 'user';
+        const shouldHideMasterDataAndSettings =
+            normalizedRoleName === 'agent' ||
+            normalizedRoleName === 'technical';
+
+        if (isUser) {
+            return {
+                compact: this._getUserDefaultNavigation(navigation.compact),
+                default: this._getUserDefaultNavigation(navigation.default),
+                futuristic: this._getUserDefaultNavigation(
+                    navigation.futuristic
+                ),
+                horizontal: this._getUserDefaultNavigation(
+                    navigation.horizontal
+                ),
+            };
+        }
+
+        if (!shouldHideMasterDataAndSettings) {
             return navigation;
         }
 
         return {
-            compact: this._removeNavigationItemById(
+            compact: this._removeNavigationItemsByIds(
                 navigation.compact,
-                'master_data'
+                ['master_data', 'settings']
             ),
-            default: this._removeNavigationItemById(
+            default: this._removeNavigationItemsByIds(
                 navigation.default,
-                'master_data'
+                ['master_data', 'settings']
             ),
-            futuristic: this._removeNavigationItemById(
+            futuristic: this._removeNavigationItemsByIds(
                 navigation.futuristic,
-                'master_data'
+                ['master_data', 'settings']
             ),
-            horizontal: this._removeNavigationItemById(
+            horizontal: this._removeNavigationItemsByIds(
                 navigation.horizontal,
-                'master_data'
+                ['master_data', 'settings']
             ),
+        };
+    }
+
+    private _getUserDefaultNavigation(
+        items: FuseNavigationItem[]
+    ): FuseNavigationItem[] {
+        const dashboardMenu = items.find((item) => item.id === 'dashboard');
+
+        return [
+            ...(dashboardMenu ? [dashboardMenu] : []),
+            this._buildUserRequestMenu(),
+        ];
+    }
+
+    private _buildUserRequestMenu(): FuseNavigationItem {
+        const totalCount = this._requestCounts.tickets + this._requestCounts.access + this._requestCounts.change + this._requestCounts.job;
+        
+        return {
+            id: 'user_requests',
+            title: 'Requests',
+            type: 'aside',
+            icon: 'heroicons_outline:clipboard-document-list',
+            badge: {
+                title: `${totalCount}`,
+                classes: 'bg-red-500 text-white',
+            },
+            children: [
+                {
+                    id: 'user_requests.tickets',
+                    title: 'Tickets',
+                    type: 'basic',
+                    icon: 'heroicons_outline:ticket',
+                    link: '/user/tickets',
+                    badge: {
+                        title: `${this._requestCounts.tickets}`,
+                        classes: 'bg-red-500 text-white',
+                    },
+                },
+                {
+                    id: 'user_requests.access',
+                    title: 'Access Request',
+                    type: 'basic',
+                    icon: 'heroicons_outline:key',
+                    link: '/user/access-requests',
+                    badge: {
+                        title: `${this._requestCounts.access}`,
+                        classes: 'bg-red-500 text-white',
+                    },
+                },
+                {
+                    id: 'user_requests.change',
+                    title: 'Change Request',
+                    type: 'basic',
+                    icon: 'heroicons_outline:arrow-path-rounded-square',
+                    link: '/user/change-requests',
+                    badge: {
+                        title: `${this._requestCounts.change}`,
+                        classes: 'bg-red-500 text-white',
+                    },
+                },
+                {
+                    id: 'user_requests.job',
+                    title: 'Job Request',
+                    type: 'basic',
+                    icon: 'heroicons_outline:user-plus',
+                    link: '/user/job-requests',
+                    badge: {
+                        title: `${this._requestCounts.job}`,
+                        classes: 'bg-red-500 text-white',
+                    },
+                },
+            ],
         };
     }
 
@@ -93,5 +188,16 @@ export class NavigationService {
                     ? this._removeNavigationItemById(item.children, removeId)
                     : item.children,
             }));
+    }
+
+    private _removeNavigationItemsByIds(
+        items: FuseNavigationItem[],
+        removeIds: string[]
+    ): FuseNavigationItem[] {
+        return removeIds.reduce(
+            (currentItems, removeId) =>
+                this._removeNavigationItemById(currentItems, removeId),
+            items
+        );
     }
 }
