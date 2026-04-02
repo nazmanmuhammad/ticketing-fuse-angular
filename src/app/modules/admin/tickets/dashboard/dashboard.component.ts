@@ -6,13 +6,14 @@ import {
     trigger,
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -37,7 +38,8 @@ import {
         MatSelectModule,
         MatOptionModule,
         MatFormFieldModule,
-        MatInputModule
+        MatInputModule,
+        TranslocoModule
     ],
     templateUrl: './dashboard.component.html',
     animations: [
@@ -64,7 +66,7 @@ import {
         ]),
     ],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit, OnDestroy {
     // Filter state
     filterOpen = false;
     searchQuery = '';
@@ -131,6 +133,125 @@ export class DashboardComponent {
             icon: 'text-red-500',
         },
     ];
+
+    constructor(private _translocoService: TranslocoService) {}
+
+    ngOnInit(): void {
+        // Update translations when language changes
+        this._translocoService.langChanges$.subscribe(() => {
+            this.updateTranslations();
+        });
+
+        // Initial translation load
+        this.updateTranslations();
+    }
+
+    ngOnDestroy(): void {}
+
+    private updateTranslations(): void {
+        // Update periods
+        this.periods = [
+            { label: this._translocoService.translate('TICKETS.FILTERS.PERIODS.TODAY'), value: 'today' },
+            { label: this._translocoService.translate('TICKETS.FILTERS.PERIODS.THIS_WEEK'), value: 'this_week' },
+            { label: this._translocoService.translate('TICKETS.FILTERS.PERIODS.THIS_MONTH'), value: 'this_month' },
+            { label: this._translocoService.translate('TICKETS.FILTERS.PERIODS.LAST_MONTH'), value: 'last_month' },
+            { label: this._translocoService.translate('TICKETS.FILTERS.PERIODS.THIS_YEAR'), value: 'this_year' },
+            { label: this._translocoService.translate('TICKETS.FILTERS.PERIODS.CUSTOM'), value: 'custom' },
+        ];
+
+        // Update stats
+        this.stats = [
+            {
+                title: this._translocoService.translate('DASHBOARD.STATS.CREATED'),
+                value: '2,358',
+                trend: '+7.2%',
+                up: true,
+                bg: 'bg-orange-100',
+                icon: 'text-orange-500',
+            },
+            {
+                title: this._translocoService.translate('DASHBOARD.STATS.CLOSED'),
+                value: '434',
+                trend: '-6%',
+                up: false,
+                bg: 'bg-teal-100',
+                icon: 'text-teal-500',
+            },
+            {
+                title: this._translocoService.translate('DASHBOARD.STATS.REOPENED'),
+                value: '2,358',
+                trend: '+7.6%',
+                up: true,
+                bg: 'bg-blue-100',
+                icon: 'text-blue-500',
+            },
+            {
+                title: this._translocoService.translate('DASHBOARD.STATS.ASSIGNED'),
+                value: '2,358',
+                trend: '+7.0%',
+                up: true,
+                bg: 'bg-indigo-100',
+                icon: 'text-indigo-500',
+            },
+            {
+                title: this._translocoService.translate('DASHBOARD.STATS.TRANSFERRED'),
+                value: '2,358',
+                trend: '+3%',
+                up: true,
+                bg: 'bg-purple-100',
+                icon: 'text-purple-500',
+            },
+            {
+                title: this._translocoService.translate('DASHBOARD.STATS.OVERDUE'),
+                value: '2,358',
+                trend: '+7.0%',
+                up: true,
+                bg: 'bg-red-100',
+                icon: 'text-red-500',
+            },
+        ];
+
+        // Update donut chart labels
+        this.donutLabels = [
+            this._translocoService.translate('DASHBOARD.PRIORITY.EMERGENCY'),
+            this._translocoService.translate('DASHBOARD.PRIORITY.HIGH'),
+            this._translocoService.translate('DASHBOARD.PRIORITY.MEDIUM'),
+            this._translocoService.translate('DASHBOARD.PRIORITY.LOW'),
+        ];
+
+        // Update line chart series
+        this.lineChartSeries = [
+            { name: this._translocoService.translate('DASHBOARD.STATS.CREATED'), data: [30, 45, 38, 55, 48, 62, 70, 65, 80] },
+            { name: this._translocoService.translate('DASHBOARD.STATS.ASSIGNED'), data: [20, 35, 28, 42, 38, 50, 58, 52, 65] },
+            { name: this._translocoService.translate('DASHBOARD.STATS.CLOSED'), data: [15, 28, 20, 35, 30, 42, 48, 44, 55] },
+            { name: this._translocoService.translate('DASHBOARD.STATS.OVERDUE'), data: [10, 18, 14, 22, 18, 28, 32, 30, 38] },
+            { name: this._translocoService.translate('DASHBOARD.STATS.REOPENED'), data: [5, 10, 8, 12, 10, 15, 18, 16, 20] },
+            { name: this._translocoService.translate('DASHBOARD.STATS.TRANSFERRED'), data: [3, 6, 5, 8, 6, 10, 12, 11, 14] },
+        ];
+
+        // Update donut chart total label
+        this.donutPlotOptions = {
+            pie: {
+                donut: {
+                    size: '70%',
+                    labels: {
+                        show: true,
+                        total: {
+                            show: true,
+                            label: this._translocoService.translate('DASHBOARD.CHARTS.TOTAL'),
+                            fontSize: '13px',
+                            color: '#94a3b8',
+                            formatter: (w) => {
+                                return w.globals.seriesTotals
+                                    .reduce((a: number, b: number) => a + b, 0)
+                                    .toLocaleString();
+                            },
+                        },
+                    },
+                },
+            },
+        };
+    }
 
     // LINE CHART
     lineChartSeries: ApexAxisChartSeries = [
@@ -219,7 +340,7 @@ export class DashboardComponent {
                     show: true,
                     total: {
                         show: true,
-                        label: 'Total',
+                        label: this._translocoService.translate('DASHBOARD.CHARTS.TOTAL'),
                         fontSize: '13px',
                         color: '#94a3b8',
                         formatter: (w) => {

@@ -1,5 +1,229 @@
 {
     "welcome-back": "Welcome back",
     "Project": "Project",
-    "Analytics": "Analytics"
+    "Analytics": "Analytics",
+    
+    "DASHBOARD": {
+        "TITLE": "Ticket Dashboard",
+        "SUBTITLE": "Ticket summary and analytics",
+        "STATS": {
+            "CREATED": "Created",
+            "CLOSED": "Closed",
+            "REOPENED": "Reopened",
+            "ASSIGNED": "Assigned",
+            "TRANSFERRED": "Transferred",
+            "OVERDUE": "Overdue"
+        },
+        "CHARTS": {
+            "TICKET_TRENDS": "Ticket Trends",
+            "TICKET_TRENDS_SUBTITLE": "Tickets over time",
+            "PRIORITY_DISTRIBUTION": "Priority Distribution",
+            "PRIORITY_DISTRIBUTION_SUBTITLE": "Distribution",
+            "RECENT_ACTIVITIES": "Recent Activities",
+            "TOTAL": "Total"
+        },
+        "PRIORITY": {
+            "EMERGENCY": "Emergency",
+            "HIGH": "High",
+            "MEDIUM": "Medium",
+            "LOW": "Low"
+        },
+        "ACTIVITY": {
+            "TICKET_ID": "Ticket ID",
+            "SUBJECT": "Subject",
+            "STATUS": "Status",
+            "PRIORITY": "Priority",
+            "ASSIGNEE": "Assignee",
+            "TIME": "Time"
+        }
+    },
+    
+    "TICKETS": {
+        "TITLE": "Tickets",
+        "SUBTITLE": "Manage your support tickets",
+        "BREADCRUMB": {
+            "DASHBOARD": "Dashboard",
+            "TICKETS": "Tickets",
+            "CREATE": "Create New",
+            "EDIT": "Edit",
+            "DETAIL": "Detail"
+        },
+        "TABS": {
+            "ALL_TICKETS": "All Tickets",
+            "ASSIGNED_TO_ME": "Assigned to Me"
+        },
+        "BUTTONS": {
+            "FILTER": "Filter",
+            "RESET": "Reset",
+            "NEW_TICKET": "New Ticket",
+            "EXPORT": "Export",
+            "APPLY_FILTER": "Apply Filter",
+            "BACK_TO_TICKETS": "Back to Tickets",
+            "SUBMIT_TICKET": "Submit Ticket",
+            "UPDATE_TICKET": "Update Ticket",
+            "SAVE_FORM": "Save Form",
+            "CANCEL": "Cancel",
+            "SUBMITTING": "Submitting...",
+            "UPDATING": "Updating..."
+        },
+        "STATS": {
+            "NEW_TODAY": "New Tickets (Today)",
+            "PENDING_RESPONSE": "Pending Response",
+            "OPEN_TICKETS": "Open Tickets",
+            "CLOSED_THIS_MONTH": "Closed Tickets (This Month)"
+        },
+        "FILTERS": {
+            "SEARCH": "Search",
+            "SEARCH_PLACEHOLDER": "Search tickets...",
+            "PERIOD": "Period",
+            "START_DATE": "Start Date",
+            "END_DATE": "End Date",
+            "STATUS": "Status",
+            "PERIODS": {
+                "TODAY": "Today",
+                "THIS_WEEK": "This Week",
+                "THIS_MONTH": "This Month",
+                "LAST_MONTH": "Last Month",
+                "THIS_YEAR": "This Year",
+                "CUSTOM": "Custom Range"
+            }
+        },
+        "TABLE": {
+            "COLUMNS": {
+                "NUMBER": "#",
+                "TITLE": "Ticket Title",
+                "DESCRIPTION": "Description",
+                "REQUESTER": "Requester",
+                "ASSIGNED_TO": "Assigned To",
+                "PRIORITY": "Priority",
+                "STATUS": "Status",
+                "DATE": "Date",
+                "ACTION": "Action"
+            },
+            "EMPTY": "No tickets found",
+            "ITEMS_PER_PAGE": "Items per page:"
+        },
+        "FORM": {
+            "CREATE_TITLE": "Create New Ticket",
+            "CREATE_SUBTITLE": "Fill in the required fields below to create a new support ticket",
+            "EDIT_TITLE": "Edit Ticket",
+            "EDIT_SUBTITLE": "Update ticket information and assignment",
+            "LOADING": "Loading ticket data...",
+            "SECTIONS": {
+                "USER_INFO": "User Information",
+                "USER_INFO_DESC": "Enter requester information",
+                "TICKET_DETAILS": "Ticket Details",
+                "TICKET_DETAILS_DESC": "Provide ticket information",
+                "RESPONSE_NOTES": "Response & Notes",
+                "RESPONSE_NOTES_DESC": "Communication and internal notes",
+                "ATTACHMENTS": "Attachments",
+                "ATTACHMENTS_DESC": "Upload relevant screenshots or documents",
+                "ASSIGNMENT_PRIORITY": "Assignment & Priority",
+                "ASSIGNMENT_PRIORITY_DESC": "Configure assignment options"
+            },
+            "FIELDS": {
+                "REQUESTER_TYPE": "Requester Type",
+                "SELECT_EMPLOYEE": "Select Employee",
+                "BY_INPUT": "Manual Input",
+                "SEARCH_EMPLOYEE": "Search employee name or email...",
+                "NO_EMPLOYEE_FOUND": "No employees found",
+                "LOADING_EMPLOYEES": "Loading employee data...",
+                "SELECTED": "Selected",
+                "AUTO_FILLED": "Email and name data have been auto-filled below",
+                "EMAIL": "Email Address",
+                "FULL_NAME": "Full Name",
+                "PHONE": "Phone Number",
+                "EXTENSION": "Extension Number",
+                "TICKET_SOURCE": "Ticket Source",
+                "DEPARTMENT": "Department",
+                "HELP_TOPIC": "Help Topic",
+                "SUBJECT": "Subject / Issue Summary",
+                "ISSUE_DETAIL": "Issue Detail",
+                "ISSUE_DETAIL_PLACEHOLDER": "Describe in as much detail as possible to help us resolve your issue faster.",
+                "RESPONSE": "Response (Internal)",
+                "RESPONSE_PLACEHOLDER": "Write your response here...",
+                "MARK_INTERNAL": "Mark as internal note (visible to staff only)",
+                "INTERNAL_NOTE": "Internal Note",
+                "INTERNAL_NOTE_PLACEHOLDER": "Internal notes here...",
+                "PRIORITY": "Priority",
+                "ASSIGN_TO": "Assign To",
+                "MEMBER": "Member",
+                "TEAM": "Team",
+                "SELECT_MEMBER": "Select Member",
+                "SELECT_TEAM": "Select Team",
+                "SEARCH_MEMBER": "Search member...",
+                "SEARCH_TEAM": "Search team...",
+                "NO_MEMBER": "No members yet",
+                "NO_TEAM": "No teams yet",
+                "NOT_FOUND": "Not found",
+                "LOADING_DATA": "Loading data...",
+                "NOTIFY_ON_RESPONSE": "Notify me when there is a response"
+            },
+            "ATTACHMENTS": {
+                "DROP_FILES": "Drop files here or click to select",
+                "MAX_SIZE": "Maximum file size: 10MB per file"
+            },
+            "VALIDATION": {
+                "EMAIL_REQUIRED": "Valid email is required",
+                "REQUIRED": "is required"
+            }
+        },
+        "PRIORITY": {
+            "LOW": "Low",
+            "MEDIUM": "Medium",
+            "HIGH": "High",
+            "CRITICAL": "Critical",
+            "EMERGENCY": "Emergency"
+        },
+        "STATUS": {
+            "ALL": "All Status",
+            "PENDING": "Pending",
+            "PROCESS": "Process",
+            "RESOLVED": "Resolved",
+            "CLOSED": "Closed"
+        },
+        "SOURCES": {
+            "EMAIL": "Email",
+            "PHONE": "Phone",
+            "WEB_PORTAL": "Web Portal",
+            "WALK_IN": "Walk-in"
+        },
+        "DEPARTMENTS": {
+            "IT": "IT",
+            "HR": "HR",
+            "FINANCE": "Finance",
+            "OPERATIONS": "Operations",
+            "MARKETING": "Marketing"
+        },
+        "HELP_TOPICS": {
+            "GENERAL": "General Inquiry",
+            "TECHNICAL": "Technical Support",
+            "BILLING": "Billing",
+            "SALES": "Sales",
+            "OTHER": "Other"
+        },
+        "TOOLTIPS": {
+            "EDIT": "Edit ticket",
+            "DELETE": "Delete ticket",
+            "MORE_ACTIONS": "More actions and details",
+            "PRIORITY": "Priority",
+            "STATUS": "Status",
+            "CREATED": "Created"
+        },
+        "MESSAGES": {
+            "CREATED_SUCCESS": "Ticket created successfully!",
+            "UPDATED_SUCCESS": "Ticket updated successfully!",
+            "DELETED_SUCCESS": "Ticket deleted successfully",
+            "CREATE_FAILED": "Failed to create ticket. Please try again.",
+            "UPDATE_FAILED": "Failed to update ticket. Please try again.",
+            "DELETE_FAILED": "Failed to delete ticket",
+            "LOAD_FAILED": "Failed to load tickets",
+            "NOT_FOUND": "Ticket not found",
+            "INVALID_ID": "Invalid ticket ID"
+        },
+        "CONFIRM": {
+            "DELETE_TITLE": "Delete Ticket",
+            "DELETE_MESSAGE": "Are you sure you want to delete this ticket?"
+        }
+    }
 }

@@ -16,14 +16,14 @@ class TicketController extends Controller
      */
     public function index(Request $request)
     {
-        $perPage = (int) $request->query('per_page', 12);
+        $perPage = (int) $request->query('per_page', 5);
         if ($perPage < 1) {
-            $perPage = 12;
+            $perPage = 5;
         }
 
         $query = Ticket::query();
         $this->applyFilters($query, $request);
-        $data = $query
+        $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk'])
                 ->when($request->role === 'agent', function($q) use($request) {
                     $q->where('pic_helpdesk_id', $request->pic_helpdesk_id);
                 })
@@ -56,8 +56,7 @@ class TicketController extends Controller
         if ($search !== '') {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('hris_user_id', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -125,8 +124,30 @@ class TicketController extends Controller
      */
     public function show(string $id)
     {
-        $data = Ticket::find($id);
-        return $data;
+        $data = Ticket::with(['requester', 'pic_technical', 'pic_helpdesk', 'team'])->find($id);
+        
+        if (!$data) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Ticket tidak ditemukan',
+                'data' => null
+            ], 404);
+        }
+
+        // Add status name
+        $data->status_name = match($data->status) {
+            0 => 'Pending',
+            1 => 'Process', 
+            2 => 'Resolved',
+            3 => 'Closed',
+            default => 'Unknown'
+        };
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data Ticket berhasil diambil',
+            'data' => $data
+        ]);
     }
 
     /**
@@ -142,39 +163,75 @@ class TicketController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $data = Ticket::find($id);
+        $ticket = Ticket::find($id);
+        
+        if (!$ticket) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Ticket tidak ditemukan'
+            ], 404);
+        }
 
-        if($request->assign_technical)
+        $data = $request->all();
+
+        // Handle general ticket update
+        if ($request->has(['name', 'email', 'phone_number', 'extension_number', 'ticket_source', 'department_id', 'help_topic', 'subject_issue', 'issue_detail', 'priority', 'assign_status'])) {
+            $ticket->update($data);
+        }
+
+        // Handle assignment
+        if($request->assign_technical || $request->has('pic_technical_id'))
         {
-            $data->update([
+            $ticket->update([
                 'pic_technical_id' => $request->pic_technical_id,
                 'pic_technical_assign_date' => now()
             ]);
         }
 
+        // Handle status updates
         if($request->updateStatus && $request->reopened)
         {
-            $data->update(['status' => TicketStatusEnum::PROCESS->value]);
+            $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
         }
 
         if($request->updateStatus && $request->status === TicketStatusEnum::PROCESS->value)
         {
-            $data->update(['status' => TicketStatusEnum::PROCESS->value]);
+            $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
         }
 
         if($request->updateStatus && $request->status === TicketStatusEnum::RESOLVED->value)
         {
-            $data->update(['status' => TicketStatusEnum::RESOLVED->value]);
+            $ticket->update(['status' => TicketStatusEnum::RESOLVED->value]);
         }
 
         if($request->updateStatus && $request->status === TicketStatusEnum::CLOSED->value)
         {
-            $data->update(['status' => TicketStatusEnum::CLOSED->value]);
+            $ticket->update(['status' => TicketStatusEnum::CLOSED->value]);
         }
 
+        // Create ticket track based on update type
+        $action = 'updated';
+        $description = 'Ticket diperbarui';
+        
+        if ($request->has('pic_technical_id') || $request->assign_technical) {
+            $action = 'assigned';
+            $description = 'Ticket di-assign ke technical';
+        } elseif ($request->updateStatus) {
+            $action = 'status_changed';
+            $description = 'Status ticket diubah';
+        }
+        
+        TicketTrack::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => $request->user_id ?? $request->pic_helpdesk_id ?? $request->requester_id,
+            'action' => $action,
+            'description' => $description,
+        ]);
+
         return response()->json([
+            'status' => true,
             'message' => 'Ticket berhasil diperbarui',
-            'data' => $data
+            'data' => $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team'])
         ], 200);
     }
 
@@ -184,18 +241,29 @@ class TicketController extends Controller
     public function destroy(string $id)
     {
         $data = Ticket::find($id);
-        if($data->status != TicketStatusEnum::PENDING)
+        
+        if (!$data) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Ticket tidak ditemukan'
+            ], 404);
+        }
+        
+        if($data->status != TicketStatusEnum::PENDING->value)
         {
             return response()->json([
-                'message' => 'Ticket tidak bisa dihapus',
+                'status' => false,
+                'message' => 'Ticket tidak bisa dihapus karena sudah diproses',
                 'data' => $data
             ], 400);
         }
 
         $data->delete();
+        
         return response()->json([
-            'message' => 'Ticket tidak bisa dihapus',
+            'status' => true,
+            'message' => 'Ticket berhasil dihapus',
             'data' => $data
-        ], 400);
+        ], 200);
     }
 }

@@ -1,34 +1,64 @@
 import { Injectable } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+    providedIn: 'root',
+})
 export class SnackbarService {
-    constructor(private _matSnackBar: MatSnackBar) {}
+    constructor(private _snackBar: MatSnackBar) {}
 
-    success(message: string): void {
-        this._matSnackBar.open(message, 'OK', {
-            duration: 3000,
-            horizontalPosition: 'right',
+    /**
+     * Show success message
+     */
+    success(message: string, duration: number = 3000): void {
+        this._snackBar.open(message, 'Close', {
+            duration,
+            horizontalPosition: 'end',
             verticalPosition: 'top',
-            panelClass: ['app-snackbar-success'],
+            panelClass: ['snackbar-success'],
         });
     }
 
-    error(message: string): void {
-        this._matSnackBar.open(message, 'OK', {
-            duration: 3500,
-            horizontalPosition: 'right',
+    /**
+     * Show error message
+     */
+    error(message: string, duration: number = 5000): void {
+        this._snackBar.open(message, 'Close', {
+            duration,
+            horizontalPosition: 'end',
             verticalPosition: 'top',
-            panelClass: ['app-snackbar-error'],
+            panelClass: ['snackbar-error'],
         });
     }
 
-    info(message: string): void {
-        this._matSnackBar.open(message, 'OK', {
-            duration: 3000,
-            horizontalPosition: 'right',
+    /**
+     * Show warning message
+     */
+    warning(message: string, duration: number = 4000): void {
+        this._snackBar.open(message, 'Close', {
+            duration,
+            horizontalPosition: 'end',
             verticalPosition: 'top',
-            panelClass: ['app-snackbar-info'],
+            panelClass: ['snackbar-warning'],
         });
+    }
+
+    /**
+     * Show info message
+     */
+    info(message: string, duration: number = 3000): void {
+        this._snackBar.open(message, 'Close', {
+            duration,
+            horizontalPosition: 'end',
+            verticalPosition: 'top',
+            panelClass: ['snackbar-info'],
+        });
+    }
+
+    /**
+     * Dismiss all snackbars
+     */
+    dismiss(): void {
+        this._snackBar.dismiss();
     }
 }

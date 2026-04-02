@@ -22,6 +22,12 @@ const routes: Routes = [
         data: { title: 'Create Ticket' },
     },
     {
+        path: 'edit/:id',
+        loadComponent: () =>
+            import('./edit/edit.component').then((m) => m.EditComponent),
+        data: { title: 'Edit Ticket' },
+    },
+    {
         path: 'detail/:id',
         loadComponent: () =>
             import('./detail/detail.component').then((m) => m.DetailComponent),

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('ticket_id');
             $table->foreignUuid('user_id');
-            $table->enum('action', ['created', 'status_changed', 'comment', 'assigned', 'closed', 'reopened']);
+            $table->enum('action', ['created', 'updated', 'status_changed', 'comment', 'assigned', 'closed', 'reopened']);
             $table->string('description');
             $table->timestamps();
             $table->softDeletes();

@@ -10,6 +10,10 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { TicketService, TicketCreateRequest, PRIORITY_MAP } from '../../../admin/tickets/ticket.service';
+import { UserService } from 'app/core/user/user.service';
+import { SnackbarService } from 'app/core/services/snackbar.service';
+import { catchError, finalize, of } from 'rxjs';
 
 @Component({
     selector: 'app-user-ticket-create',
@@ -28,6 +32,8 @@ export class UserTicketCreateComponent {
     form: FormGroup;
     isDragging = false;
     uploadedFiles: File[] = [];
+    isSubmitting = false;
+    currentUser: any = null;
 
     priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
     departments = ['IT', 'HR', 'Finance', 'Operations', 'Marketing'];
@@ -41,7 +47,10 @@ export class UserTicketCreateComponent {
 
     constructor(
         private fb: FormBuilder,
-        private router: Router
+        private router: Router,
+        private _ticketService: TicketService,
+        private _userService: UserService,
+        private _snackbar: SnackbarService,
     ) {
         this.form = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
@@ -54,6 +63,18 @@ export class UserTicketCreateComponent {
             subject: ['', Validators.required],
             issueDetail: ['', Validators.required],
             priority: ['Low'],
+        });
+
+        // Get current user info
+        this._userService.user$.subscribe((user) => {
+            this.currentUser = user;
+            // Pre-fill form with user data
+            if (user) {
+                this.form.patchValue({
+                    email: user.email || '',
+                    fullName: user.name || '',
+                });
+            }
         });
     }
 
@@ -96,13 +117,63 @@ export class UserTicketCreateComponent {
     }
 
     onSubmit(): void {
-        if (this.form.valid) {
-            console.log('Submit:', this.form.value);
-            // TODO: Call API to create ticket
-            this.router.navigate(['/user/tickets']);
-        } else {
+        if (this.form.invalid) {
             this.form.markAllAsTouched();
+            return;
         }
+
+        if (this.isSubmitting) {
+            return;
+        }
+
+        this.isSubmitting = true;
+
+        // Prepare data for API
+        const formValue = this.form.value;
+        const ticketData: TicketCreateRequest = {
+            name: formValue.fullName,
+            email: formValue.email,
+            phone_number: formValue.phone || '',
+            extension_number: formValue.extension || '',
+            ticket_source: formValue.ticketSource,
+            department_id: formValue.department || '',
+            help_topic: formValue.helpTopic || '',
+            subject_issue: formValue.subject,
+            issue_detail: formValue.issueDetail,
+            priority: PRIORITY_MAP[formValue.priority] ?? 0, // Convert string to number
+            assign_status: 'member', // Default for user
+        };
+
+        // Add requester_id from current user
+        if (this.currentUser?.id) {
+            ticketData.requester_id = this.currentUser.id;
+        }
+
+        console.log('Submitting ticket data:', ticketData);
+
+        this._ticketService
+            .createTicket(ticketData)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error creating ticket:', error);
+                    this._snackbar.error(
+                        error?.error?.message ||
+                            'Failed to create ticket. Please try again.'
+                    );
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isSubmitting = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success(
+                        response.message || 'Ticket created successfully!'
+                    );
+                    this.router.navigate(['/user/tickets']);
+                }
+            });
     }
 
     onSaveDraft(): void {

@@ -3,9 +3,9 @@
     <div
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
     >
-        <span class="font-semibold text-gray-800 dark:text-white">Tickets</span>
+        <span class="font-semibold text-gray-800 dark:text-white">{{ 'TICKETS.TITLE' | transloco }}</span>
         <div class="text-secondary flex items-center gap-1">
-            <span class="font-semibold text-primary">Dashboard</span>
+            <span class="font-semibold text-primary">{{ 'TICKETS.BREADCRUMB.DASHBOARD' | transloco }}</span>
         </div>
     </div>
 
@@ -17,10 +17,10 @@
         <div class="flex items-start justify-between">
             <div>
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white">
-                    Ticket Dashboard
+                    {{ 'DASHBOARD.TITLE' | transloco }}
                 </h2>
                 <p class="text-secondary mt-0.5 text-sm">
-                    Filter your ticket data
+                    {{ 'DASHBOARD.SUBTITLE' | transloco }}
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -41,7 +41,7 @@
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
                         />
                     </svg>
-                    Filter
+                    {{ 'TICKETS.BUTTONS.FILTER' | transloco }}
                 </button>
                 <button
                     (click)="resetFilter()"
@@ -60,7 +60,7 @@
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                     </svg>
-                    Reset
+                    {{ 'TICKETS.BUTTONS.RESET' | transloco }}
                 </button>
                 <!-- <button
                     class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700"
@@ -108,7 +108,7 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-4 pt-4 border-t border-gray-100 mt-4">
                 <!-- Period -->
                 <div class="col-span-1 md:col-span-2 flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.PERIOD' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
@@ -122,7 +122,7 @@
 
                 <!-- Start Date -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.START_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="startDate" />
                     </mat-form-field>
@@ -130,7 +130,7 @@
 
                 <!-- End Date -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.END_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="endDate" />
                     </mat-form-field>
@@ -142,13 +142,13 @@
                     (click)="resetFilter()"
                     class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
                 >
-                    Reset
+                    {{ 'TICKETS.BUTTONS.RESET' | transloco }}
                 </button>
                 <button 
                     (click)="applyFilter()"
                     class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
                 >
-                    Apply Filter
+                    {{ 'TICKETS.BUTTONS.APPLY_FILTER' | transloco }}
                 </button>
             </div>
         </div>
@@ -208,9 +208,9 @@
                 <div class="mb-6 flex items-center justify-between">
                     <div>
                         <h3 class="font-bold text-gray-900 dark:text-white">
-                            Tickets Overview
+                            {{ 'DASHBOARD.CHARTS.TICKET_TRENDS' | transloco }}
                         </h3>
-                        <p class="text-secondary text-sm">Tickets over time</p>
+                        <p class="text-secondary text-sm">{{ 'DASHBOARD.CHARTS.TICKET_TRENDS_SUBTITLE' | transloco }}</p>
                     </div>
                     <button
                         class="rounded-lg p-2 text-gray-400 hover:bg-gray-50 hover:text-gray-600"
@@ -250,9 +250,9 @@
                 <div class="mb-6 flex items-center justify-between">
                     <div>
                         <h3 class="font-bold text-gray-900 dark:text-white">
-                            Tickets By Priority
+                            {{ 'DASHBOARD.CHARTS.PRIORITY_DISTRIBUTION' | transloco }}
                         </h3>
-                        <p class="text-secondary text-sm">Distribution</p>
+                        <p class="text-secondary text-sm">{{ 'DASHBOARD.CHARTS.PRIORITY_DISTRIBUTION_SUBTITLE' | transloco }}</p>
                     </div>
                 </div>
                 <apx-chart
@@ -293,7 +293,7 @@
         >
             <div class="flex items-center justify-between border-b px-6 py-5">
                 <h3 class="text-base font-bold text-gray-900 dark:text-white">
-                    Recent Ticket Activities
+                    {{ 'DASHBOARD.CHARTS.RECENT_ACTIVITIES' | transloco }}
                 </h3>
                 <button class="text-gray-400 hover:text-gray-600">
                     <svg
@@ -314,19 +314,19 @@
                             class="text-secondary border-b bg-gray-50/50 text-xs uppercase"
                         >
                             <th class="px-6 py-3 text-left font-semibold">
-                                Ticket
+                                {{ 'DASHBOARD.ACTIVITY.TICKET_ID' | transloco }}
                             </th>
                             <th class="px-6 py-3 text-left font-semibold">
-                                Status
+                                {{ 'DASHBOARD.ACTIVITY.STATUS' | transloco }}
                             </th>
                             <th class="px-6 py-3 text-left font-semibold">
-                                Priority
+                                {{ 'DASHBOARD.ACTIVITY.PRIORITY' | transloco }}
                             </th>
                             <th class="px-6 py-3 text-left font-semibold">
-                                Assigned To
+                                {{ 'DASHBOARD.ACTIVITY.ASSIGNEE' | transloco }}
                             </th>
                             <th class="px-6 py-3 text-left font-semibold">
-                                Time
+                                {{ 'DASHBOARD.ACTIVITY.TIME' | transloco }}
                             </th>
                         </tr>
                     </thead>

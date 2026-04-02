@@ -13,18 +13,18 @@ import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { catchError, finalize, of, Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { User } from 'app/modules/admin/master-data/users/user.types';
 import { Team } from 'app/modules/admin/master-data/teams/team.types';
-import { TicketService, TicketCreateRequest, PRIORITY_MAP } from '../ticket.service';
+import { TicketService, PRIORITY_MAP } from '../ticket.service';
 import { UserService } from 'app/core/user/user.service';
 import { SnackbarService } from 'app/core/services/snackbar.service';
 
 @Component({
-    selector: 'app-create',
+    selector: 'app-edit',
     standalone: true,
     imports: [
         CommonModule,
@@ -37,16 +37,19 @@ import { SnackbarService } from 'app/core/services/snackbar.service';
         MatAutocompleteModule,
         TranslocoModule,
     ],
-    templateUrl: './create.component.html',
+    templateUrl: './edit.component.html',
 })
-export class CreateComponent implements OnInit, OnDestroy {
+export class EditComponent implements OnInit, OnDestroy {
     form: FormGroup;
     isDragging = false;
     uploadedFiles: File[] = [];
     assignType: 'member' | 'team' = 'member';
     selectedAssignee: any = null;
     isSubmitting = false;
+    isLoading = false;
     currentUser: any = null;
+    ticketId: string = '';
+    ticketData: any = null;
 
     // ── Requester mode ──────────────────────────────────────────
     requesterMode: 'select_employee' | 'by_input' = 'select_employee';
@@ -108,6 +111,7 @@ export class CreateComponent implements OnInit, OnDestroy {
     constructor(
         private fb: FormBuilder,
         private router: Router,
+        private route: ActivatedRoute,
         private _httpClient: HttpClient,
         private _elRef: ElementRef,
         private _ticketService: TicketService,
@@ -161,11 +165,121 @@ export class CreateComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        // Get ticket ID from route
+        this.ticketId = this.route.snapshot.paramMap.get('id') || '';
+        
         // Get current user info
         this._userService.user$.subscribe((user) => {
             this.currentUser = user;
         });
-        // Assignment data is lazy-loaded when dropdown opens
+
+        // Load ticket data
+        if (this.ticketId) {
+            this.loadTicketData();
+        } else {
+            this._snackbar.error(this._translocoService.translate('TICKETS.MESSAGES.INVALID_ID'));
+            this.router.navigate(['/tickets/data']);
+        }
+    }
+
+    private loadTicketData(): void {
+        this.isLoading = true;
+        
+        this._ticketService.getTicket(this.ticketId)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading ticket:', error);
+                    this._snackbar.error(
+                        error?.error?.message || this._translocoService.translate('TICKETS.MESSAGES.LOAD_FAILED')
+                    );
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isLoading = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.ticketData = response.data;
+                    this.populateForm();
+                } else {
+                    this._snackbar.error(this._translocoService.translate('TICKETS.MESSAGES.NOT_FOUND'));
+                    this.router.navigate(['/tickets/data']);
+                }
+            });
+    }
+
+    private populateForm(): void {
+        if (!this.ticketData) return;
+
+        // Set requester mode based on saved requester_type
+        if (this.ticketData.requester_type) {
+            this.requesterMode = this.ticketData.requester_type;
+        } else {
+            // Fallback logic: if requester relation exists, use select_employee, otherwise by_input
+            this.requesterMode = this.ticketData.requester ? 'select_employee' : 'by_input';
+        }
+
+        // Get priority string from number
+        const priorityString = Object.keys(PRIORITY_MAP).find(
+            key => PRIORITY_MAP[key] === this.ticketData.priority
+        ) || 'Low';
+
+        // Populate form with ticket data
+        this.form.patchValue({
+            email: this.ticketData.email || '',
+            fullName: this.ticketData.name || '',
+            phone: this.ticketData.phone_number || '',
+            extension: this.ticketData.extension_number || '',
+            ticketSource: this.ticketData.ticket_source || '',
+            department: this.ticketData.department_id || '',
+            helpTopic: this.ticketData.help_topic || '',
+            subject: this.ticketData.subject_issue || '',
+            issueDetail: this.ticketData.issue_detail || '',
+            priority: priorityString,
+            assignType: this.ticketData.assign_status || 'member',
+        });
+
+        // Set assign type
+        this.assignType = this.ticketData.assign_status || 'member';
+
+        // Set selected assignee if exists
+        if (this.assignType === 'member' && this.ticketData.pic_technical) {
+            this.selectedAssignee = {
+                id: this.ticketData.pic_technical.id,
+                name: this.ticketData.pic_technical.name,
+                initial: this.getInitialOf(this.ticketData.pic_technical.name),
+                color: this.avatarColors[0],
+                avatar: this.ticketData.pic_technical.photo ? 
+                    `${this.employeePhotoBaseUrl}/assets/img/user/${this.ticketData.pic_technical.photo}` : null,
+            };
+            this.form.patchValue({ assignTo: this.selectedAssignee.name });
+        } else if (this.assignType === 'team' && this.ticketData.team) {
+            this.selectedAssignee = {
+                id: this.ticketData.team.id,
+                name: this.ticketData.team.name,
+                initial: this.getInitialOf(this.ticketData.team.name),
+                color: this.avatarColors[0],
+                avatar: null,
+            };
+            this.form.patchValue({ assignTo: this.selectedAssignee.name });
+        }
+
+        // Set selected employee if requester exists and mode is select_employee
+        if (this.requesterMode === 'select_employee' && this.ticketData.requester) {
+            this.selectedEmployee = {
+                id: this.ticketData.requester.id,
+                fullName: this.ticketData.requester.name,
+                email: this.ticketData.requester.email,
+                role: 'User' as User['role'],
+                status: 'Active' as User['status'],
+                department: this.ticketData.requester.department_id || '',
+                avatar: this.ticketData.requester.photo ? 
+                    `${this.employeePhotoBaseUrl}/assets/img/user/${this.ticketData.requester.photo}` : 'assets/images/avatars/male-01.jpg',
+                photo: this.ticketData.requester.photo || '',
+            };
+            this.employeeInput.setValue(this.employeeDisplay(this.selectedEmployee), { emitEvent: false });
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -544,7 +658,7 @@ export class CreateComponent implements OnInit, OnDestroy {
 
         // Prepare data for API
         const formValue = this.form.value;
-        const ticketData: TicketCreateRequest = {
+        const ticketData: any = {
             requester_type: this.requesterMode, // Add requester type
             name: formValue.fullName,
             email: formValue.email,
@@ -581,13 +695,13 @@ export class CreateComponent implements OnInit, OnDestroy {
         }
 
         this._ticketService
-            .createTicket(ticketData)
+            .updateTicket(this.ticketId, ticketData)
             .pipe(
                 catchError((error) => {
-                    console.error('Error creating ticket:', error);
+                    console.error('Error updating ticket:', error);
                     this._snackbar.error(
                         error?.error?.message ||
-                            this._translocoService.translate('TICKETS.MESSAGES.CREATE_FAILED')
+                            this._translocoService.translate('TICKETS.MESSAGES.UPDATE_FAILED')
                     );
                     return of(null);
                 }),
@@ -598,7 +712,7 @@ export class CreateComponent implements OnInit, OnDestroy {
             .subscribe((response) => {
                 if (response && response.status) {
                     this._snackbar.success(
-                        response.message || this._translocoService.translate('TICKETS.MESSAGES.CREATED_SUCCESS')
+                        response.message || this._translocoService.translate('TICKETS.MESSAGES.UPDATED_SUCCESS')
                     );
                     this.router.navigate(['/tickets/data']);
                 }

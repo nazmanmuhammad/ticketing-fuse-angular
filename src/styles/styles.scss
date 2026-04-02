@@ -1,3 +1,6 @@
+/* Import custom component styles */
+@use 'components/snackbar';
+
 /* ----------------------------------------------------------------------------------------------------- */
 /*  @ Import/write your custom styles here.
 /*  @ Styles from this file will override 'vendors.scss' and Fuse's base styles.
@@ -110,4 +113,29 @@
 .app-snackbar-info {
     --mdc-snackbar-container-color: #2563eb !important;
     --mdc-snackbar-supporting-text-color: #ffffff !important;
+}
+
+/* Custom Material Tooltip Styles */
+.mat-mdc-tooltip {
+    background-color: #1f2937 !important;
+    color: white !important;
+    font-size: 12px !important;
+    max-width: 300px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.custom-tooltip {
+    background-color: #1f2937 !important;
+    color: white !important;
+    font-size: 12px !important;
+    max-width: 300px !important;
+    white-space: normal !important;
+    word-wrap: break-word !important;
+    border-radius: 6px !important;
+    padding: 8px 12px !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }

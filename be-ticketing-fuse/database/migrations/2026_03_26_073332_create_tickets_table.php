@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->enum('requester_type', ['select_employee', 'by_input'])->nullable();
             $table->foreignUuid('requester_id')->nullable();
             $table->string('name')->nullable();
             $table->string('email')->nullable();
@@ -25,7 +26,8 @@ return new class extends Migration
             $table->text('issue_detail');
             $table->integer('priority')->default(0);
             $table->enum('assign_status', ['member', 'team']);
-            $table->foreignUuid('pic_id')->nullable();
+            $table->foreignUuid('team_id')->nullable();
+            $table->foreignUuid('pic_technical_id')->nullable();
             $table->string('pic_helpdesk_id')->nullable();
             $table->integer('status')->default(0);
             $table->timestamps();

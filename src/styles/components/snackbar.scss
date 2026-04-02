@@ -1,0 +1,72 @@
+/* Snackbar Styles */
+
+.snackbar-success {
+    .mdc-snackbar__surface {
+        background-color: #10b981 !important;
+        color: white !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+        color: white !important;
+    }
+
+    .mat-mdc-button {
+        color: white !important;
+    }
+}
+
+.snackbar-error {
+    .mdc-snackbar__surface {
+        background-color: #ef4444 !important;
+        color: white !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+        color: white !important;
+    }
+
+    .mat-mdc-button {
+        color: white !important;
+    }
+}
+
+.snackbar-warning {
+    .mdc-snackbar__surface {
+        background-color: #f59e0b !important;
+        color: white !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+        color: white !important;
+    }
+
+    .mat-mdc-button {
+        color: white !important;
+    }
+}
+
+.snackbar-info {
+    .mdc-snackbar__surface {
+        background-color: #3b82f6 !important;
+        color: white !important;
+    }
+
+    .mat-mdc-snack-bar-label {
+        color: white !important;
+    }
+
+    .mat-mdc-button {
+        color: white !important;
+    }
+}
+
+/* Snackbar positioning and animation */
+.mat-mdc-snack-bar-container {
+    margin: 8px !important;
+}
+
+.mdc-snackbar__surface {
+    border-radius: 8px !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}

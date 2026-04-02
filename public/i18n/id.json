@@ -1,0 +1,229 @@
+{
+    "welcome-back": "Selamat datang kembali",
+    "Project": "Proyek",
+    "Analytics": "Analitik",
+    
+    "DASHBOARD": {
+        "TITLE": "Dasbor Tiket",
+        "SUBTITLE": "Ringkasan dan analitik tiket",
+        "STATS": {
+            "CREATED": "Dibuat",
+            "CLOSED": "Ditutup",
+            "REOPENED": "Dibuka Kembali",
+            "ASSIGNED": "Ditugaskan",
+            "TRANSFERRED": "Ditransfer",
+            "OVERDUE": "Terlambat"
+        },
+        "CHARTS": {
+            "TICKET_TRENDS": "Tren Tiket",
+            "TICKET_TRENDS_SUBTITLE": "Tiket dari waktu ke waktu",
+            "PRIORITY_DISTRIBUTION": "Distribusi Prioritas",
+            "PRIORITY_DISTRIBUTION_SUBTITLE": "Distribusi",
+            "RECENT_ACTIVITIES": "Aktivitas Terbaru",
+            "TOTAL": "Total"
+        },
+        "PRIORITY": {
+            "EMERGENCY": "Darurat",
+            "HIGH": "Tinggi",
+            "MEDIUM": "Sedang",
+            "LOW": "Rendah"
+        },
+        "ACTIVITY": {
+            "TICKET_ID": "ID Tiket",
+            "SUBJECT": "Subjek",
+            "STATUS": "Status",
+            "PRIORITY": "Prioritas",
+            "ASSIGNEE": "Ditugaskan Ke",
+            "TIME": "Waktu"
+        }
+    },
+    
+    "TICKETS": {
+        "TITLE": "Tiket",
+        "SUBTITLE": "Kelola tiket dukungan Anda",
+        "BREADCRUMB": {
+            "DASHBOARD": "Dasbor",
+            "TICKETS": "Tiket",
+            "CREATE": "Buat Baru",
+            "EDIT": "Edit",
+            "DETAIL": "Detail"
+        },
+        "TABS": {
+            "ALL_TICKETS": "Semua Tiket",
+            "ASSIGNED_TO_ME": "Ditugaskan ke Saya"
+        },
+        "BUTTONS": {
+            "FILTER": "Filter",
+            "RESET": "Reset",
+            "NEW_TICKET": "Tiket Baru",
+            "EXPORT": "Ekspor",
+            "APPLY_FILTER": "Terapkan Filter",
+            "BACK_TO_TICKETS": "Kembali ke Tiket",
+            "SUBMIT_TICKET": "Kirim Tiket",
+            "UPDATE_TICKET": "Perbarui Tiket",
+            "SAVE_FORM": "Simpan Form",
+            "CANCEL": "Batal",
+            "SUBMITTING": "Mengirim...",
+            "UPDATING": "Memperbarui..."
+        },
+        "STATS": {
+            "NEW_TODAY": "Tiket Baru (Hari Ini)",
+            "PENDING_RESPONSE": "Menunggu Respon",
+            "OPEN_TICKETS": "Tiket Terbuka",
+            "CLOSED_THIS_MONTH": "Tiket Ditutup (Bulan Ini)"
+        },
+        "FILTERS": {
+            "SEARCH": "Cari",
+            "SEARCH_PLACEHOLDER": "Cari tiket...",
+            "PERIOD": "Periode",
+            "START_DATE": "Tanggal Mulai",
+            "END_DATE": "Tanggal Akhir",
+            "STATUS": "Status",
+            "PERIODS": {
+                "TODAY": "Hari Ini",
+                "THIS_WEEK": "Minggu Ini",
+                "THIS_MONTH": "Bulan Ini",
+                "LAST_MONTH": "Bulan Lalu",
+                "THIS_YEAR": "Tahun Ini",
+                "CUSTOM": "Rentang Kustom"
+            }
+        },
+        "TABLE": {
+            "COLUMNS": {
+                "NUMBER": "#",
+                "TITLE": "Judul Tiket",
+                "DESCRIPTION": "Deskripsi",
+                "REQUESTER": "Pemohon",
+                "ASSIGNED_TO": "Ditugaskan Ke",
+                "PRIORITY": "Prioritas",
+                "STATUS": "Status",
+                "DATE": "Tanggal",
+                "ACTION": "Aksi"
+            },
+            "EMPTY": "Tidak ada tiket ditemukan",
+            "ITEMS_PER_PAGE": "Item per halaman:"
+        },
+        "FORM": {
+            "CREATE_TITLE": "Buat Tiket Baru",
+            "CREATE_SUBTITLE": "Isi kolom yang diperlukan di bawah ini untuk membuat tiket dukungan baru",
+            "EDIT_TITLE": "Edit Tiket",
+            "EDIT_SUBTITLE": "Perbarui informasi tiket dan penugasan",
+            "LOADING": "Memuat data tiket...",
+            "SECTIONS": {
+                "USER_INFO": "Informasi Pengguna",
+                "USER_INFO_DESC": "Masukkan informasi pemohon",
+                "TICKET_DETAILS": "Detail Tiket",
+                "TICKET_DETAILS_DESC": "Berikan informasi tiket",
+                "RESPONSE_NOTES": "Respon & Catatan",
+                "RESPONSE_NOTES_DESC": "Komunikasi dan catatan internal",
+                "ATTACHMENTS": "Lampiran",
+                "ATTACHMENTS_DESC": "Unggah tangkapan layar atau dokumen yang relevan",
+                "ASSIGNMENT_PRIORITY": "Penugasan & Prioritas",
+                "ASSIGNMENT_PRIORITY_DESC": "Konfigurasi opsi penugasan"
+            },
+            "FIELDS": {
+                "REQUESTER_TYPE": "Tipe Pemohon",
+                "SELECT_EMPLOYEE": "Pilih Karyawan",
+                "BY_INPUT": "Input Manual",
+                "SEARCH_EMPLOYEE": "Cari nama atau email karyawan...",
+                "NO_EMPLOYEE_FOUND": "Tidak ada karyawan ditemukan",
+                "LOADING_EMPLOYEES": "Memuat data karyawan...",
+                "SELECTED": "Terpilih",
+                "AUTO_FILLED": "Data email dan nama telah otomatis terisi di bawah",
+                "EMAIL": "Alamat Email",
+                "FULL_NAME": "Nama Lengkap",
+                "PHONE": "Nomor Telepon",
+                "EXTENSION": "Nomor Extension",
+                "TICKET_SOURCE": "Sumber Tiket",
+                "DEPARTMENT": "Departemen",
+                "HELP_TOPIC": "Topik Bantuan",
+                "SUBJECT": "Subjek / Ringkasan Masalah",
+                "ISSUE_DETAIL": "Detail Masalah",
+                "ISSUE_DETAIL_PLACEHOLDER": "Jelaskan sedetail mungkin untuk membantu kami menyelesaikan masalah Anda lebih cepat.",
+                "RESPONSE": "Respon (Internal)",
+                "RESPONSE_PLACEHOLDER": "Tulis respon Anda di sini...",
+                "MARK_INTERNAL": "Tandai sebagai catatan internal (hanya terlihat oleh staff)",
+                "INTERNAL_NOTE": "Catatan Internal",
+                "INTERNAL_NOTE_PLACEHOLDER": "Catatan internal di sini...",
+                "PRIORITY": "Prioritas",
+                "ASSIGN_TO": "Tugaskan Ke",
+                "MEMBER": "Anggota",
+                "TEAM": "Tim",
+                "SELECT_MEMBER": "Pilih Member",
+                "SELECT_TEAM": "Pilih Team",
+                "SEARCH_MEMBER": "Cari member...",
+                "SEARCH_TEAM": "Cari team...",
+                "NO_MEMBER": "Belum ada member",
+                "NO_TEAM": "Belum ada team",
+                "NOT_FOUND": "Tidak ditemukan",
+                "LOADING_DATA": "Memuat data...",
+                "NOTIFY_ON_RESPONSE": "Beritahu saya saat ada respon"
+            },
+            "ATTACHMENTS": {
+                "DROP_FILES": "Letakkan file di sini atau klik untuk memilih",
+                "MAX_SIZE": "Ukuran file maksimal: 10MB per file"
+            },
+            "VALIDATION": {
+                "EMAIL_REQUIRED": "Email valid diperlukan",
+                "REQUIRED": "diperlukan"
+            }
+        },
+        "PRIORITY": {
+            "LOW": "Rendah",
+            "MEDIUM": "Sedang",
+            "HIGH": "Tinggi",
+            "CRITICAL": "Kritis",
+            "EMERGENCY": "Darurat"
+        },
+        "STATUS": {
+            "ALL": "Semua Status",
+            "PENDING": "Menunggu",
+            "PROCESS": "Proses",
+            "RESOLVED": "Terselesaikan",
+            "CLOSED": "Ditutup"
+        },
+        "SOURCES": {
+            "EMAIL": "Email",
+            "PHONE": "Telepon",
+            "WEB_PORTAL": "Portal Web",
+            "WALK_IN": "Datang Langsung"
+        },
+        "DEPARTMENTS": {
+            "IT": "IT",
+            "HR": "HR",
+            "FINANCE": "Keuangan",
+            "OPERATIONS": "Operasional",
+            "MARKETING": "Pemasaran"
+        },
+        "HELP_TOPICS": {
+            "GENERAL": "Pertanyaan Umum",
+            "TECHNICAL": "Dukungan Teknis",
+            "BILLING": "Penagihan",
+            "SALES": "Penjualan",
+            "OTHER": "Lainnya"
+        },
+        "TOOLTIPS": {
+            "EDIT": "Edit tiket",
+            "DELETE": "Hapus tiket",
+            "MORE_ACTIONS": "Aksi lainnya dan detail",
+            "PRIORITY": "Prioritas",
+            "STATUS": "Status",
+            "CREATED": "Dibuat"
+        },
+        "MESSAGES": {
+            "CREATED_SUCCESS": "Tiket berhasil dibuat!",
+            "UPDATED_SUCCESS": "Tiket berhasil diperbarui!",
+            "DELETED_SUCCESS": "Tiket berhasil dihapus",
+            "CREATE_FAILED": "Gagal membuat tiket. Silakan coba lagi.",
+            "UPDATE_FAILED": "Gagal memperbarui tiket. Silakan coba lagi.",
+            "DELETE_FAILED": "Gagal menghapus tiket",
+            "LOAD_FAILED": "Gagal memuat tiket",
+            "NOT_FOUND": "Tiket tidak ditemukan",
+            "INVALID_ID": "ID tiket tidak valid"
+        },
+        "CONFIRM": {
+            "DELETE_TITLE": "Hapus Tiket",
+            "DELETE_MESSAGE": "Apakah Anda yakin ingin menghapus tiket ini?"
+        }
+    }
+}

@@ -3,11 +3,11 @@
     <div
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
     >
-        <span class="font-semibold text-gray-800 dark:text-white">Tickets</span>
+        <span class="font-semibold text-gray-800 dark:text-white">{{ 'TICKETS.TITLE' | transloco }}</span>
         <div class="text-secondary flex items-center gap-1">
-            <span>Dashboard</span>
+            <span>{{ 'TICKETS.BREADCRUMB.DASHBOARD' | transloco }}</span>
             <span>•</span>
-            <span class="font-semibold text-primary">Tickets</span>
+            <span class="font-semibold text-primary">{{ 'TICKETS.BREADCRUMB.TICKETS' | transloco }}</span>
         </div>
     </div>
 
@@ -19,10 +19,10 @@
         <div class="flex items-start justify-between">
             <div>
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white">
-                    Tickets
+                    {{ 'TICKETS.TITLE' | transloco }}
                 </h2>
                 <p class="text-secondary mt-0.5 text-sm">
-                    Manage your support tickets
+                    {{ 'TICKETS.SUBTITLE' | transloco }}
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -43,7 +43,7 @@
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
                         />
                     </svg>
-                    Filter
+                    {{ 'TICKETS.BUTTONS.FILTER' | transloco }}
                 </button>
                 <button
                     (click)="resetFilter()"
@@ -62,7 +62,7 @@
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                     </svg>
-                    Reset
+                    {{ 'TICKETS.BUTTONS.RESET' | transloco }}
                 </button>
                  <button
                     [routerLink]="['/tickets/create']"
@@ -81,7 +81,7 @@
                             d="M12 4v16m8-8H4"
                         />
                     </svg>
-                    New Ticket
+                    {{ 'TICKETS.BUTTONS.NEW_TICKET' | transloco }}
                 </button>
                 <!-- <button
                     class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700"
@@ -129,9 +129,9 @@
             <div class="grid grid-cols-1 gap-4 md:grid-cols-5 pt-4 border-t border-gray-100 mt-4">
                 <!-- Search -->
                 <div class="md:col-span-2 flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.SEARCH' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                        <span matPrefix class="flex items-center mr-2">
+                        <span matPrefix class="flex items-center ml-2">
                             <svg
                                 class="h-4 w-4 text-gray-400"
                                 fill="none"
@@ -146,12 +146,12 @@
                                 />
                             </svg>
                         </span>
-                        <input matInput type="text" [(ngModel)]="searchQuery" placeholder="Search tickets..." />
+                        <input matInput type="text" [(ngModel)]="searchQuery" [placeholder]="'TICKETS.FILTERS.SEARCH_PLACEHOLDER' | transloco" />
                     </mat-form-field>
                 </div>
                 <!-- Period -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.PERIOD' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
@@ -164,21 +164,21 @@
                 </div>
                 <!-- Start Date -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.START_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="startDate" />
                     </mat-form-field>
                 </div>
                 <!-- End Date -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.END_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="endDate" />
                     </mat-form-field>
                 </div>
                 <!-- Status -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.STATUS' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedStatus">
@@ -196,13 +196,13 @@
                     (click)="resetFilter()"
                     class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
                 >
-                    Reset
+                    {{ 'TICKETS.BUTTONS.RESET' | transloco }}
                 </button>
                 <button 
                     (click)="applyFilter()"
                     class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
                 >
-                    Apply Filter
+                    {{ 'TICKETS.BUTTONS.APPLY_FILTER' | transloco }}
                 </button>
             </div>
         </div>
@@ -267,13 +267,13 @@
             <div class="flex items-center gap-6 px-6 pt-4 border-b border-gray-100">
                 <button (click)="setTab('all')" class="relative pb-3 text-sm font-semibold"
                         [ngClass]="activeTab==='all' ? 'text-blue-700' : 'text-gray-500'">
-                    All Tickets
+                    {{ 'TICKETS.TABS.ALL_TICKETS' | transloco }}
                     <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAll }}</span>
                     <span *ngIf="activeTab==='all'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
                 </button>
                 <button (click)="setTab('assigned')" class="relative pb-3 text-sm font-semibold"
                         [ngClass]="activeTab==='assigned' ? 'text-blue-700' : 'text-gray-500'">
-                    Assigned to me
+                    {{ 'TICKETS.TABS.ASSIGNED_TO_ME' | transloco }}
                     <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span>
                     <span *ngIf="activeTab==='assigned'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
                 </button>
@@ -282,7 +282,7 @@
             <!-- Table toolbar -->
             <div class="flex items-center justify-between border-b px-6 py-4">
                 <h3 class="font-bold text-gray-900 dark:text-white">
-                    {{ activeTab === 'all' ? 'All Tickets' : 'Assigned to me' }}
+                    {{ activeTab === 'all' ? ('TICKETS.TABS.ALL_TICKETS' | transloco) : ('TICKETS.TABS.ASSIGNED_TO_ME' | transloco) }}
                     <span
                         class="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600"
                     >
@@ -297,98 +297,177 @@
                     <thead>
                         <tr class="border-b bg-gray-50/50 dark:bg-gray-900/60">
                             <th
-                                class="text-secondary w-16 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                class="text-secondary sticky left-0 z-10 w-16 bg-gray-50/50 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider dark:bg-gray-900/60"
                             >
-                                ID
+                                {{ 'TICKETS.TABLE.COLUMNS.NUMBER' | transloco }}
+                            </th>
+                            <th
+                                class="text-secondary min-w-[200px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                {{ 'TICKETS.TABLE.COLUMNS.TITLE' | transloco }}
+                            </th>
+                            <th
+                                class="text-secondary min-w-[250px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                {{ 'TICKETS.TABLE.COLUMNS.DESCRIPTION' | transloco }}
+                            </th>
+                            <th
+                                class="text-secondary min-w-[180px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                {{ 'TICKETS.TABLE.COLUMNS.REQUESTER' | transloco }}
+                            </th>
+                            <th
+                                class="text-secondary min-w-[180px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                            >
+                                {{ 'TICKETS.TABLE.COLUMNS.ASSIGNED_TO' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Ticket Title
+                                {{ 'TICKETS.TABLE.COLUMNS.PRIORITY' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Assigned To
+                                {{ 'TICKETS.TABLE.COLUMNS.STATUS' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Status
+                                {{ 'TICKETS.TABLE.COLUMNS.DATE' | transloco }}
                             </th>
                             <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                                class="text-secondary sticky right-0 z-10 bg-gray-50/50 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider dark:bg-gray-900/60"
                             >
-                                Date
-                            </th>
-                            <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                Action
+                                {{ 'TICKETS.TABLE.COLUMNS.ACTION' | transloco }}
                             </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
                         <tr
-                            *ngFor="let ticket of paginatedTickets"
+                            *ngFor="let ticket of paginatedTickets; let i = index"
                             class="transition-colors hover:bg-gray-50/60"
                         >
-                            <td class="px-6 py-4">
+                            <td class="sticky left-0 z-10 bg-white px-6 py-4 dark:bg-gray-800">
                                 <span class="font-semibold text-indigo-600"
-                                    >#{{ ticket.id }}</span
+                                    >#{{ (currentPage - 1) * itemsPerPage + i + 1 }}</span
                                 >
                             </td>
-                            <td class="max-w-xs px-6 py-4">
+                            <td class="px-6 py-4">
                                 <a
-                                    class="truncate font-semibold text-gray-900 hover:text-indigo-600 dark:text-white"
+                                    class="font-semibold text-gray-900 hover:text-indigo-600 dark:text-white cursor-pointer"
                                     [routerLink]="[
                                         '/tickets',
                                         'detail',
                                         ticket.id,
                                     ]"
+                                    [matTooltip]="ticket.subject_issue"
+                                    matTooltipPosition="above"
+                                    matTooltipClass="custom-tooltip"
                                 >
-                                    {{ ticket.title }}
+                                    {{ ticket.subject_issue }}
                                 </a>
-                                <div
-                                    class="text-secondary mt-0.5 truncate text-xs"
+                            </td>
+                            <td class="px-6 py-4">
+                                <div 
+                                    class="text-secondary max-w-xs truncate text-sm cursor-help"
+                                    [matTooltip]="getDescriptionTooltip(ticket.issue_detail)"
+                                    matTooltipPosition="above"
+                                    matTooltipClass="custom-tooltip"
                                 >
-                                    {{ ticket.description }}
+                                    {{ ticket.issue_detail }}
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2.5">
-                                    <div
-                                        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                                        [ngClass]="avatarColors[ticket.avatar]"
+                                    <!-- Show image if photo exists, otherwise show initial -->
+                                    <img 
+                                        *ngIf="getRequesterAvatar(ticket)"
+                                        [src]="getRequesterAvatar(ticket)" 
+                                        class="h-8 w-8 flex-shrink-0 rounded-full border-2 border-white object-cover shadow-sm"
+                                        [alt]="getRequesterName(ticket)"
                                     >
-                                        {{ ticket.avatar }}
+                                    <div
+                                        *ngIf="!getRequesterAvatar(ticket)"
+                                        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-400 text-xs font-bold text-white"
+                                    >
+                                        {{ getRequesterInitial(ticket) }}
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div 
+                                            class="truncate font-medium text-gray-700 dark:text-gray-300 cursor-help"
+                                            [matTooltip]="getRequesterName(ticket)"
+                                            matTooltipPosition="above"
+                                        >
+                                            {{ getRequesterName(ticket) }}
+                                        </div>
+                                        <div 
+                                            class="text-secondary truncate text-xs cursor-help"
+                                            [matTooltip]="getRequesterEmail(ticket)"
+                                            matTooltipPosition="above"
+                                        >
+                                            {{ getRequesterEmail(ticket) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2.5">
+                                    <!-- Show image if photo exists, otherwise show initial -->
+                                    <img 
+                                        *ngIf="getAssignedAvatar(ticket)"
+                                        [src]="getAssignedAvatar(ticket)" 
+                                        class="h-8 w-8 flex-shrink-0 rounded-full border-2 border-white object-cover shadow-sm"
+                                        [alt]="getAssignedName(ticket)"
+                                    >
+                                    <div
+                                        *ngIf="!getAssignedAvatar(ticket)"
+                                        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-400 text-xs font-bold text-white"
+                                    >
+                                        {{ getAssignedInitial(ticket) }}
                                     </div>
                                     <span
-                                        class="font-medium text-gray-700 dark:text-gray-300"
-                                        >{{ ticket.assignee }}</span
+                                        class="font-medium text-gray-700 dark:text-gray-300 cursor-help"
+                                        [matTooltip]="getAssignedName(ticket)"
+                                        matTooltipPosition="above"
+                                        >{{ getAssignedName(ticket) }}</span
                                     >
                                 </div>
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="rounded-full px-3 py-1 text-xs font-bold tracking-wide"
-                                    [ngClass]="
-                                        statusConfig[ticket.status].classes
-                                    "
+                                    class="rounded-full px-3 py-1 text-xs font-bold tracking-wide cursor-help"
+                                    [ngClass]="getPriorityBadgeClass(ticket.priority)"
+                                    [matTooltip]="('TICKETS.TOOLTIPS.PRIORITY' | transloco) + ': ' + ('TICKETS.PRIORITY.' + getPriorityLabel(ticket.priority).toUpperCase() | transloco)"
+                                    matTooltipPosition="above"
                                 >
-                                    {{ statusConfig[ticket.status].label }}
+                                    {{ 'TICKETS.PRIORITY.' + getPriorityLabel(ticket.priority).toUpperCase() | transloco }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    class="rounded-full px-3 py-1 text-xs font-bold tracking-wide cursor-help"
+                                    [ngClass]="getStatusBadgeClass(ticket.status)"
+                                    [matTooltip]="('TICKETS.TOOLTIPS.STATUS' | transloco) + ': ' + ('TICKETS.STATUS.' + ticket.status_name.toUpperCase() | transloco)"
+                                    matTooltipPosition="above"
+                                >
+                                    {{ 'TICKETS.STATUS.' + ticket.status_name.toUpperCase() | transloco }}
                                 </span>
                             </td>
                             <td
-                                class="whitespace-nowrap px-6 py-4 text-gray-600 dark:text-gray-400"
+                                class="whitespace-nowrap px-6 py-4 text-gray-600 dark:text-gray-400 cursor-help"
+                                [matTooltip]="('TICKETS.TOOLTIPS.CREATED' | transloco) + ': ' + ticket.created_at"
+                                matTooltipPosition="above"
                             >
-                                {{ ticket.date }}
+                                {{ formatDate(ticket.created_at) }}
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="sticky right-0 z-10 bg-white px-6 py-4 dark:bg-gray-800">
                                 <div class="flex items-center gap-1">
                                     <button
-                                        (click)="editTicket(ticket)"
-                                        class="rounded-lg p-2 text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-600"
+                                        (click)="editTicket(ticket); $event.stopPropagation()"
+                                        class="rounded-lg p-2 text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-600 action-button"
+                                        [matTooltip]="'Edit ticket: ' + ticket.subject_issue"
+                                        matTooltipPosition="above"
                                     >
                                         <svg
                                             class="h-4 w-4"
@@ -406,7 +485,9 @@
                                     </button>
                                     <button
                                         (click)="deleteTicket(ticket.id)"
-                                        class="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500"
+                                        class="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500 action-button"
+                                        [matTooltip]="('TICKETS.TOOLTIPS.DELETE' | transloco) + ': ' + ticket.subject_issue"
+                                        matTooltipPosition="above"
                                     >
                                         <svg
                                             class="h-4 w-4"
@@ -424,12 +505,14 @@
                                     </button>
                                     <button
                                         (click)="toggleAction(ticket.id)"
-                                        class="rounded-lg p-2 transition"
+                                        class="rounded-lg p-2 transition action-button"
                                         [ngClass]="
                                             activeActionId === ticket.id
                                                 ? 'bg-indigo-600 text-white'
                                                 : 'text-gray-400 hover:bg-gray-100'
                                         "
+                                        [matTooltip]="'TICKETS.TOOLTIPS.MORE_ACTIONS' | transloco"
+                                        matTooltipPosition="above"
                                     >
                                         <svg
                                             class="h-4 w-4"
@@ -448,7 +531,7 @@
                         </tr>
                         <tr *ngIf="paginatedTickets.length === 0">
                             <td
-                                colspan="6"
+                                colspan="9"
                                 class="text-secondary px-6 py-16 text-center"
                             >
                                 <svg
@@ -464,7 +547,7 @@
                                         d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                     />
                                 </svg>
-                                <p class="font-medium">No tickets found</p>
+                                <p class="font-medium">{{ 'TICKETS.TABLE.EMPTY' | transloco }}</p>
                             </td>
                         </tr>
                     </tbody>
@@ -476,7 +559,7 @@
                 class="flex flex-wrap items-center justify-between gap-4 border-t bg-gray-50/50 px-6 py-4"
             >
                 <div class="text-secondary flex items-center gap-2 text-sm">
-                    <span>Items per page:</span>
+                    <span>{{ 'TICKETS.TABLE.ITEMS_PER_PAGE' | transloco }}</span>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-24" subscriptSizing="dynamic">
                         <mat-select [(ngModel)]="itemsPerPage" (selectionChange)="onItemsPerPageChange()">
                             <mat-option [value]="5">5</mat-option>
