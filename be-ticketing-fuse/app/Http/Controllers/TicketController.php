@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use App\Models\TicketTrack;
 use App\Models\User;
 use App\TicketStatusEnum;
+use App\UserRoleEnum;
 use Illuminate\Http\Request;
 
 use function Symfony\Component\Clock\now;
@@ -130,6 +131,23 @@ class TicketController extends Controller
     {
         $data = $request->all();
 
+        // Check and create user if not exists (for requester)
+        if ($request->requester_type === 'select_employee' && $request->requester_id) {
+            $user = User::where('hris_user_id', $request->requester_id)->first();
+            
+            if (!$user) {
+                // Create new user with role 'user' (0)
+                User::create([
+                    'hris_user_id' => $request->requester_id,
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'department_id' => $request->department_id,
+                    'role' => UserRoleEnum::USER->value,
+                    'status' => 1, // active
+                ]);
+            }
+        }
+
         // Generate ticket number
         $data['ticket_number'] = Ticket::generateTicketNumber();
 
@@ -154,10 +172,9 @@ class TicketController extends Controller
         }
 
         $ticket = Ticket::create($data);
-
         TicketTrack::create([
             'ticket_id' => $ticket->id,
-            'user_id' => $request->requester_id || $request->pic_helpdesk_id,
+            'user_id' => $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id,
             'action' => 'created',
             'description' => 'Ticket dibuat',
         ]);
@@ -192,7 +209,13 @@ class TicketController extends Controller
      */
     public function show(string $id)
     {
-        $data = Ticket::with(['requester', 'pic_technical', 'pic_helpdesk', 'team'])->find($id);
+        $data = Ticket::with([
+            'requester', 
+            'pic_technical', 
+            'pic_helpdesk', 
+            'team', 
+            'ticketTrack.user'
+        ])->find($id);
         
         if (!$data) {
             return response()->json([
@@ -242,6 +265,24 @@ class TicketController extends Controller
 
         $data = $request->all();
         $oldPicTechnicalId = $ticket->pic_technical_id;
+
+        // Check and create user if requester is being updated and not exists
+        if ($request->has('requester_id') && $request->requester_id) {
+            if ($request->requester_type === 'select_employee') {
+                $user = User::where('hris_user_id', $request->requester_id)->first();
+                
+                if (!$user) {
+                    // Create new user with role 'user' (0)
+                    User::create([
+                        'hris_user_id' => $request->requester_id,
+                        'name' => $request->name,
+                        'email' => $request->email,
+                        'role' => UserRoleEnum::USER->value,
+                        'status' => 1, // active
+                    ]);
+                }
+            }
+        }
 
         // Handle general ticket update
         if ($request->has(['name', 'email', 'phone_number', 'extension_number', 'ticket_source', 'department_id', 'help_topic', 'subject_issue', 'issue_detail', 'priority', 'assign_status'])) {
@@ -299,9 +340,10 @@ class TicketController extends Controller
             $description = 'Status ticket diubah';
         }
         
+
         TicketTrack::create([
             'ticket_id' => $ticket->id,
-            'user_id' => $request->user_id ?? $request->pic_helpdesk_id ?? $request->requester_id,
+            'user_id' => $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id,
             'action' => $action,
             'description' => $description,
         ]);

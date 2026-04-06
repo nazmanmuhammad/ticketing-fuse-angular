@@ -16,6 +16,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 type: 'basic',
                 icon: 'heroicons_outline:squares-2x2',
                 link: '/dashboard',
+                exactMatch: true,
             },
         ],
     },
@@ -33,6 +34,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 type: 'basic',
                 icon: 'heroicons_outline:clipboard-document-list',
                 link: '/task',
+                exactMatch: true,
             },
         ],
     },
@@ -42,6 +44,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.TICKETS',
         type: 'aside',
         icon: 'heroicons_outline:ticket',
+        link: '/tickets',
         badge: {
             title: '12',
             classes: 'bg-red-500 text-white',
@@ -71,6 +74,20 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 icon: 'heroicons_outline:plus-circle',
                 link: '/tickets/create',
             },
+            {
+                id: 'tickets.detail',
+                title: 'Ticket Detail',
+                type: 'basic',
+                link: '/tickets/detail',
+                hidden: () => true,
+            },
+            {
+                id: 'tickets.edit',
+                title: 'Edit Ticket',
+                type: 'basic',
+                link: '/tickets/edit',
+                hidden: () => true,
+            },
         ],
     },
     {
@@ -79,6 +96,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.ACCESS_REQUEST',
         type: 'aside',
         icon: 'heroicons_outline:lock-closed',
+        link: '/access-requests',
+        exactMatch: false,
         badge: {
             title: '8',
             classes: 'bg-red-500 text-white',
@@ -99,6 +118,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 type: 'basic',
                 icon: 'heroicons_outline:lock-closed',
                 link: '/access-requests/data',
+                exactMatch: false,
             },
             {
                 id: 'access_requests.create',
@@ -116,6 +136,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.CHANGE_REQUEST',
         type: 'aside',
         icon: 'heroicons_outline:arrow-path',
+        link: '/change-requests',
+        exactMatch: false,
         badge: {
             title: '5',
             classes: 'bg-red-500 text-white',
@@ -136,6 +158,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 type: 'basic',
                 icon: 'heroicons_outline:arrow-path',
                 link: '/change-requests/data',
+                exactMatch: false,
             },
             {
                 id: 'change_requests.create',
@@ -153,6 +176,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.JOB_REQUEST',
         type: 'aside',
         icon: 'heroicons_outline:briefcase',
+        link: '/job-requests',
+        exactMatch: false,
         badge: {
             title: '3',
             classes: 'bg-red-500 text-white',
@@ -173,6 +198,7 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 type: 'basic',
                 icon: 'heroicons_outline:briefcase',
                 link: '/job-requests/data',
+                exactMatch: false,
             },
             {
                 id: 'job_requests.create',
@@ -190,6 +216,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.MASTER_DATA',
         type: 'aside',
         icon: 'heroicons_outline:circle-stack',
+        link: '/master-data',
+        exactMatch: false,
         children: [
             {
                 id: 'master_data.user',
@@ -230,6 +258,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.SETTINGS',
         type: 'aside',
         icon: 'heroicons_outline:cog-6-tooth',
+        link: '/settings',
+        exactMatch: false,
         children: [
             {
                 id: 'settings.application',

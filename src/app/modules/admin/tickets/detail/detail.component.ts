@@ -37,6 +37,8 @@ export class DetailComponent implements OnInit {
     isLoading = false;
     internalNote = false;
     newComment = '';
+    createdByUser: string = '';
+    createdAt: string = '';
 
     // Reply state
     replyingToId: string | null = null;
@@ -46,6 +48,12 @@ export class DetailComponent implements OnInit {
     pendingFiles: { name: string; size: string }[] = [];
     comments: Comment[] = [];
     activity: { text: string; at: string }[] = [];
+
+    private readonly _hrisApiUrl: string =
+        (globalThis as any)?.__env?.HRIS_API_URL ||
+        (globalThis as any)?.process?.env?.HRIS_API_URL ||
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
 
     constructor(
         private route: ActivatedRoute,
@@ -82,14 +90,67 @@ export class DetailComponent implements OnInit {
                 if (response && response.status && response.data) {
                     this.ticket = response.data;
                     console.log('Ticket data loaded:', this.ticket);
-                    // Initialize comments and activity (can be extended later)
+                    
+                    // Initialize comments (can be extended later)
                     this.comments = [];
-                    this.activity = [
-                        { 
-                            text: `Ticket created by ${this.ticket.name}`, 
-                            at: this.formatDate(this.ticket.created_at) 
+                    
+                    // Get creator info from ticket_track with action 'created'
+                    if (this.ticket.ticket_track && Array.isArray(this.ticket.ticket_track)) {
+                        const createdTrack = this.ticket.ticket_track.find((track: any) => track.action === 'created');
+                        if (createdTrack) {
+                            this.createdByUser = createdTrack.user?.name || 'Unknown';
+                            this.createdAt = createdTrack.created_at;
+                        } else {
+                            // Fallback if no 'created' track found
+                            this.createdByUser = this.ticket.name || 'Unknown';
+                            this.createdAt = this.ticket.created_at;
                         }
-                    ];
+                    } else {
+                        // Fallback if no ticket_track data
+                        this.createdByUser = this.ticket.name || 'Unknown';
+                        this.createdAt = this.ticket.created_at;
+                    }
+                    
+                    // Map ticket_track to activity log
+                    if (this.ticket.ticket_track && Array.isArray(this.ticket.ticket_track)) {
+                        this.activity = this.ticket.ticket_track.map((track: any) => {
+                            let text = track.description;
+                            
+                            // Add user name if available
+                            if (track.user && track.user.name) {
+                                // Customize text based on action
+                                switch (track.action) {
+                                    case 'created':
+                                        text = `Ticket created by ${track.user.name}`;
+                                        break;
+                                    case 'assigned':
+                                        text = `Ticket assigned by ${track.user.name}`;
+                                        break;
+                                    case 'status_changed':
+                                        text = `Status changed by ${track.user.name}`;
+                                        break;
+                                    case 'updated':
+                                        text = `Ticket updated by ${track.user.name}`;
+                                        break;
+                                    default:
+                                        text = `${track.description} by ${track.user.name}`;
+                                }
+                            }
+                            
+                            return {
+                                text: text,
+                                at: this.formatDate(track.created_at)
+                            };
+                        });
+                    } else {
+                        // Fallback if no ticket_track data
+                        this.activity = [
+                            { 
+                                text: 'Ticket created', 
+                                at: this.formatDate(this.ticket.created_at) 
+                            }
+                        ];
+                    }
                 }
             });
     }
@@ -132,6 +193,18 @@ export class DetailComponent implements OnInit {
             .slice(0, 2)
             .join('')
             .toUpperCase();
+    }
+
+    getAvatarUrl(photo: string | null | undefined): string {
+        if (!photo) {
+            return 'assets/images/avatars/male-01.jpg';
+        }
+        
+        const photoBase = this._hrisApiUrl
+            .replace(/\/$/, '')
+            .replace(/\/api$/, '');
+        
+        return `${photoBase}/assets/img/user/${photo}`;
     }
 
     startReply(commentId: string): void {

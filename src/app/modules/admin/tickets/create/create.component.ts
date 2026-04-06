@@ -102,7 +102,8 @@ export class CreateComponent implements OnInit, OnDestroy {
 
     // ── Static dropdown options ──────────────────────────────────
     priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
-    departments = ['IT', 'HR', 'Finance', 'Operations', 'Marketing'];
+    departments: Array<{ id: string; name: string }> = [];
+    isLoadingDepartments = false;
     helpTopics = ['General Inquiry', 'Technical Support', 'Billing', 'Sales', 'Other'];
 
     constructor(
@@ -165,6 +166,8 @@ export class CreateComponent implements OnInit, OnDestroy {
         this._userService.user$.subscribe((user) => {
             this.currentUser = user;
         });
+        // Load departments from API
+        this._loadDepartments();
         // Assignment data is lazy-loaded when dropdown opens
     }
 
@@ -585,19 +588,18 @@ export class CreateComponent implements OnInit, OnDestroy {
             ticketData.pic_helpdesk_id = this.currentUser.id;
         }
 
-        // Add role for email notification logic
-        if (this.currentUser?.role) {
-            // Map role name to backend expected values
-            const roleMap: { [key: string]: string } = {
-                'Admin': 'admin',
-                'Agent': 'agent',
-                'Manager': 'manager',
-                'Staff': 'staff',
-                'User': 'user',
-                'Technical': 'technical'
-            };
-            ticketData.role = roleMap[this.currentUser.role] || 'user';
+        // Add role from user context (lowercase role_name)
+        if (this.currentUser?.role_name) {
+            ticketData.role = this.currentUser.role_name.toLowerCase();
+        } else if (this.currentUser?.role) {
+            // Fallback: if role_name not available, use role property
+            ticketData.role = this.currentUser.role.toLowerCase();
+        } else {
+            // Default to 'user' if no role found
+            ticketData.role = 'user';
         }
+
+        console.log('Ticket data to submit:', ticketData);
 
         this._ticketService
             .createTicket(ticketData)
@@ -627,6 +629,33 @@ export class CreateComponent implements OnInit, OnDestroy {
     onSaveDraft(): void { console.log('Draft saved:', this.form.value); }
     onCancel(): void { this.router.navigate(['/tickets/data']); }
     backToTickets(): void { this.router.navigate(['/tickets/data']); }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load departments from API
+    // ─────────────────────────────────────────────────────────────
+    private _loadDepartments(): void {
+        this.isLoadingDepartments = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/departments?per_page=100`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading departments:', error);
+                    this._snackbar.error('Failed to load departments');
+                    return of({ status: false, data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingDepartments = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.departments = response.data.map((dept: any) => ({
+                        id: dept.id,
+                        name: dept.name
+                    }));
+                    console.log('Departments loaded:', this.departments);
+                }
+            });
+    }
 
     ngOnDestroy(): void {
         this._stopPanelWatcher();

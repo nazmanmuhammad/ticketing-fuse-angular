@@ -66,6 +66,11 @@ class Ticket extends Model
         return TicketStatusEnum::from($this->status)->label();
     }
 
+    public function ticketTrack()
+    {
+        return $this->hasMany(TicketTrack::class);
+    }
+
     /**
      * Generate unique ticket number
      * Format: TN00001, TN00002, etc.
