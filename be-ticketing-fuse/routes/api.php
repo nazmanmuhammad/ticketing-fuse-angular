@@ -21,4 +21,5 @@ Route::get('settings/application', [SettingController::class, 'getApplicationSet
 Route::post('settings/application', [SettingController::class, 'updateApplicationSetting']);
 Route::get('settings/smtp', [SettingController::class, 'getSmtpSetting']);
 Route::post('settings/smtp', [SettingController::class, 'updateSmtpSetting']);
+Route::get('tickets/statistics', [TicketController::class, 'statistics']);
 Route::resource('tickets', TicketController::class);

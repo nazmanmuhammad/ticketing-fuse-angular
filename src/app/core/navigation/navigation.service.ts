@@ -120,7 +120,8 @@ export class NavigationService {
         
         return {
             id: 'user_requests',
-            title: 'Requests',
+            title: 'NAVIGATION.REQUESTS',
+            translate: 'NAVIGATION.REQUESTS',
             type: 'aside',
             icon: 'heroicons_outline:clipboard-document-list',
             badge: {
@@ -130,7 +131,8 @@ export class NavigationService {
             children: [
                 {
                     id: 'user_requests.tickets',
-                    title: 'Tickets',
+                    title: 'NAVIGATION.TICKETS',
+                    translate: 'NAVIGATION.TICKETS',
                     type: 'basic',
                     icon: 'heroicons_outline:ticket',
                     link: '/user/tickets',
@@ -141,7 +143,8 @@ export class NavigationService {
                 },
                 {
                     id: 'user_requests.access',
-                    title: 'Access Request',
+                    title: 'NAVIGATION.ACCESS_REQUEST',
+                    translate: 'NAVIGATION.ACCESS_REQUEST',
                     type: 'basic',
                     icon: 'heroicons_outline:key',
                     link: '/user/access-requests',
@@ -152,7 +155,8 @@ export class NavigationService {
                 },
                 {
                     id: 'user_requests.change',
-                    title: 'Change Request',
+                    title: 'NAVIGATION.CHANGE_REQUEST',
+                    translate: 'NAVIGATION.CHANGE_REQUEST',
                     type: 'basic',
                     icon: 'heroicons_outline:arrow-path-rounded-square',
                     link: '/user/change-requests',
@@ -163,7 +167,8 @@ export class NavigationService {
                 },
                 {
                     id: 'user_requests.job',
-                    title: 'Job Request',
+                    title: 'NAVIGATION.JOB_REQUEST',
+                    translate: 'NAVIGATION.JOB_REQUEST',
                     type: 'basic',
                     icon: 'heroicons_outline:user-plus',
                     link: '/user/job-requests',

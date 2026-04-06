@@ -1,27 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { TicketService } from '../ticket.service';
+import { catchError, finalize, of } from 'rxjs';
+import { SnackbarService } from 'app/core/services/snackbar.service';
 
 interface Attachment {
     id: string;
     name: string;
     size: string;
-}
-
-interface ApprovalStep {
-    level: number;
-    approver: string;
-    status: 'Approved' | 'Pending' | 'Rejected';
-    updatedAt: string;
-    note?: string;
-}
-
-interface SLAInfo {
-    status: 'On track' | 'Breached' | 'Due soon';
-    due: string;
 }
 
 interface Comment {
@@ -34,41 +25,16 @@ interface Comment {
     replies?: Comment[];
 }
 
-interface TicketDetail {
-    id: string;
-    code: string;
-    subject: string;
-    description: string;
-    fullName: string;
-    email: string;
-    phone?: string;
-    extension?: string;
-    ticketSource: string;
-    department?: string;
-    helpTopic?: string;
-    role: 'External' | 'Internal';
-    assignType: 'member' | 'team';
-    assignTo: string;
-    createdAgo: string;
-    status: 'Pending approval' | 'Open' | 'In progress' | 'Resolved';
-    priority: 'Low' | 'Medium' | 'High' | 'Critical';
-    createdAt: string;
-    attachments: Attachment[];
-    approvals: ApprovalStep[];
-    slaPlan: string;
-    comments: Comment[];
-    activity: { text: string; at: string }[];
-}
-
 @Component({
     selector: 'app-ticket-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatMenuModule],
+    imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule],
     templateUrl: './detail.component.html',
 })
-export class DetailComponent {
+export class DetailComponent implements OnInit {
     id = '';
-    detail: TicketDetail | null = null;
+    ticket: any = null;
+    isLoading = false;
     internalNote = false;
     newComment = '';
 
@@ -78,85 +44,85 @@ export class DetailComponent {
 
     // Attach state (simulated)
     pendingFiles: { name: string; size: string }[] = [];
+    comments: Comment[] = [];
+    activity: { text: string; at: string }[] = [];
 
-    constructor(private route: ActivatedRoute) {
-        const idParam =
-            this.route.snapshot.paramMap.get('id') ?? 'TKT-2026-0001';
-        this.id = idParam;
-        this.detail = this.generateDummy(idParam);
+    constructor(
+        private route: ActivatedRoute,
+        private router: Router,
+        private _ticketService: TicketService,
+        private _snackbar: SnackbarService
+    ) {}
+
+    ngOnInit(): void {
+        this.id = this.route.snapshot.paramMap.get('id') ?? '';
+        console.log('Detail Component - Ticket ID:', this.id);
+        if (this.id) {
+            this.loadTicketDetail();
+        }
     }
 
-    generateDummy(id: string): TicketDetail {
-        return {
-            id,
-            code: id,
-            subject: 'Kendala tidak bisa login ke SAP',
-            description:
-                'User melaporkan tidak dapat melakukan login ke sistem SAP sejak pagi hari. Sudah dicoba beberapa kali namun tetap muncul error "Invalid credentials". Password sudah dipastikan benar dan tidak ada perubahan sejak terakhir login berhasil.',
-            fullName: 'Agent User',
-            email: 'agent@example.com',
-            phone: '+62 812 3456 7890',
-            extension: '123',
-            ticketSource: 'Email',
-            department: 'IT Support',
-            helpTopic: 'Application',
-            role: 'External',
-            assignType: 'member',
-            assignTo: 'Agent User',
-            createdAgo: '22 minutes ago',
-            status: 'Pending approval',
-            priority: 'Critical',
-            createdAt: 'Mar 03, 2026 06:42',
-            attachments: [
-                {
-                    id: '2e183df3-3dd7-46ad-8caf-724319243a89',
-                    name: 'screenshot.png',
-                    size: '1.2 MB',
-                },
-            ],
-            approvals: [
-                {
-                    level: 1,
-                    approver: 'Super Admin',
-                    status: 'Approved',
-                    updatedAt: '21 minutes ago',
-                    note: 'Sudah diverifikasi, silakan lanjutkan ke level berikutnya.',
-                },
-                {
-                    level: 2,
-                    approver: 'Manager User',
-                    status: 'Pending',
-                    updatedAt: '—',
-                },
-            ],
-            slaPlan: 'Default',
-            comments: [
-                {
-                    id: 'c1',
-                    author: 'Agent User',
-                    text: "[Info Response] Replying to Super Admin's request: baik pak saya lengkapi data nya melalui kolom comment ya",
-                    at: '21 minutes ago',
-                    isInternal: false,
-                    attachments: [],
-                    replies: [
-                        {
-                            id: 'c1r1',
-                            author: 'Super Admin',
-                            text: 'Oke, silakan dilengkapi. Terima kasih.',
-                            at: '20 minutes ago',
-                            replies: [],
-                        },
-                    ],
-                },
-            ],
-            activity: [
-                { text: 'Ticket created by Agent User', at: '22 minutes ago' },
-                {
-                    text: 'Approval L1 approved by Super Admin',
-                    at: '21 minutes ago',
-                },
-            ],
-        };
+    loadTicketDetail(): void {
+        console.log('Loading ticket detail for ID:', this.id);
+        this.isLoading = true;
+        this._ticketService.getTicket(this.id)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading ticket:', error);
+                    this._snackbar.error('Failed to load ticket details');
+                    this.router.navigate(['/tickets/data']);
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isLoading = false;
+                })
+            )
+            .subscribe((response) => {
+                console.log('API Response:', response);
+                if (response && response.status && response.data) {
+                    this.ticket = response.data;
+                    console.log('Ticket data loaded:', this.ticket);
+                    // Initialize comments and activity (can be extended later)
+                    this.comments = [];
+                    this.activity = [
+                        { 
+                            text: `Ticket created by ${this.ticket.name}`, 
+                            at: this.formatDate(this.ticket.created_at) 
+                        }
+                    ];
+                }
+            });
+    }
+
+    formatDate(dateString: string): string {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+
+        if (minutes < 60) return `${minutes} minutes ago`;
+        if (hours < 24) return `${hours} hours ago`;
+        if (days < 7) return `${days} days ago`;
+        
+        return date.toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'short', 
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    getPriorityLabel(priority: number): string {
+        const labels = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
+        return labels[priority] || 'Medium';
+    }
+
+    getStatusLabel(status: number): string {
+        const labels = ['Pending', 'Processing', 'Resolved', 'Closed'];
+        return labels[status] || 'Pending';
     }
 
     getInitials(name: string): string {
@@ -205,8 +171,8 @@ export class DetailComponent {
     }
 
     addComment(): void {
-        if (!this.newComment.trim() || !this.detail) return;
-        this.detail.comments.unshift({
+        if (!this.newComment.trim() || !this.ticket) return;
+        this.comments.unshift({
             id: 'c_' + Date.now(),
             author: 'You',
             text: this.newComment.trim(),
@@ -221,22 +187,14 @@ export class DetailComponent {
     }
 
     getApprovalProgress(): number {
-        if (!this.detail) return 0;
-        const total = this.detail.approvals.length;
-        const done = this.detail.approvals.filter(
-            (a) => a.status === 'Approved'
-        ).length;
-        return total > 0 ? Math.round((done / total) * 100) : 0;
+        return 0; // Can be implemented later with approval system
     }
     
     approvedCount(): number {
-        if (!this.detail) return 0;
-        return this.detail.approvals.filter((a) => a.status === 'Approved')
-            .length;
+        return 0; // Can be implemented later with approval system
     }
     
     approvalsTotal(): number {
-        if (!this.detail) return 0;
-        return this.detail.approvals.length;
+        return 0; // Can be implemented later with approval system
     }
 }

@@ -4,7 +4,7 @@
         class="fuse-vertical-navigation-item-wrapper"
         [class.fuse-vertical-navigation-item-active]="active"
         [ngClass]="item.classes?.wrapper"
-        [matTooltip]="item.title"
+        [matTooltip]="(item.translate || item.title) | transloco"
         [matTooltipPosition]="'right'"
     >
         <div
@@ -37,7 +37,7 @@
             >
                 <div class="fuse-vertical-navigation-item-title">
                     <span [ngClass]="item.classes?.title">
-                        {{ item.title }}
+                        {{ (item.translate || item.title) | transloco }}
                     </span>
                 </div>
             </div>
@@ -76,7 +76,7 @@
             <div class="fuse-vertical-navigation-item-title-wrapper">
                 <div class="fuse-vertical-navigation-item-title">
                     <span [ngClass]="item.classes?.title">
-                        {{ item.title }}
+                        {{ (item.translate || item.title) | transloco }}
                     </span>
                 </div>
                 @if (item.subtitle) {

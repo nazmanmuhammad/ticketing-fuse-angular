@@ -3,12 +3,12 @@
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
     >
         <span class="font-semibold text-gray-800 dark:text-white"
-            >Access Requests</span
+            >{{ 'ACCESS_REQUESTS.TITLE' | transloco }}</span
         >
         <div class="text-secondary flex items-center gap-1">
-            <span>Dashboard</span>
+            <span>{{ 'ACCESS_REQUESTS.BREADCRUMB.DASHBOARD' | transloco }}</span>
             <span>•</span>
-            <span class="font-semibold text-primary">Access Request</span>
+            <span class="font-semibold text-primary">{{ 'ACCESS_REQUESTS.BREADCRUMB.ACCESS_REQUEST' | transloco }}</span>
         </div>
     </div>
 
@@ -18,10 +18,10 @@
         <div class="flex items-start justify-between">
             <div>
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white">
-                    Access Request
+                    {{ 'ACCESS_REQUESTS.TITLE' | transloco }}
                 </h2>
                 <p class="text-secondary mt-0.5 text-sm">
-                    Manage access requests
+                    {{ 'ACCESS_REQUESTS.SUBTITLE' | transloco }}
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -42,7 +42,7 @@
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
                         />
                     </svg>
-                    Filter
+                    {{ 'ACCESS_REQUESTS.BUTTONS.FILTER' | transloco }}
                 </button>
                 <button
                     (click)="resetFilter()"
@@ -61,7 +61,7 @@
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                     </svg>
-                    Reset
+                    {{ 'ACCESS_REQUESTS.BUTTONS.RESET' | transloco }}
                 </button>
                 <button
                     [routerLink]="['/access-requests/create']"
@@ -80,7 +80,7 @@
                             d="M12 4v16m8-8H4"
                         />
                     </svg>
-                    New Access Request
+                    {{ 'ACCESS_REQUESTS.BUTTONS.NEW_REQUEST' | transloco }}
                 </button>
                 <!-- <button
                     class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700"
@@ -125,7 +125,7 @@
         <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-5 pt-4 border-t border-gray-100 mt-4">
                 <div class="md:col-span-2 flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Search</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.SEARCH' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <span matPrefix class="flex items-center mr-2">
                             <svg
@@ -142,12 +142,12 @@
                                 />
                             </svg>
                         </span>
-                        <input matInput type="text" [(ngModel)]="searchQuery" placeholder="Search access requests..." />
+                        <input matInput type="text" [(ngModel)]="searchQuery" [placeholder]="'ACCESS_REQUESTS.FILTERS.SEARCH_PLACEHOLDER' | transloco" />
                     </mat-form-field>
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.PERIOD' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
@@ -160,21 +160,21 @@
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Start Date</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.START_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="startDate" />
                     </mat-form-field>
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">End Date</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.END_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="endDate" />
                     </mat-form-field>
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Status</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.STATUS' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedStatus">
@@ -192,13 +192,13 @@
                     (click)="resetFilter()"
                     class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
                 >
-                    Reset
+                    {{ 'ACCESS_REQUESTS.BUTTONS.RESET' | transloco }}
                 </button>
                 <button 
                     (click)="applyFilter()"
                     class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
                 >
-                    Apply Filter
+                    {{ 'ACCESS_REQUESTS.BUTTONS.APPLY_FILTER' | transloco }}
                 </button>
             </div>
         </div>
@@ -263,7 +263,7 @@
                     class="relative pb-3 text-sm font-semibold"
                     [ngClass]="activeTab === 'all' ? 'text-blue-700' : 'text-gray-500'"
                 >
-                    All Access Requests
+                    {{ 'ACCESS_REQUESTS.TABS.ALL' | transloco }}
                     <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAll }}</span>
                     <span *ngIf="activeTab === 'all'" class="absolute inset-x-0 -bottom-px h-0.5 rounded bg-blue-700"></span>
                 </button>
@@ -272,7 +272,7 @@
                     class="relative pb-3 text-sm font-semibold"
                     [ngClass]="activeTab === 'assigned' ? 'text-blue-700' : 'text-gray-500'"
                 >
-                    Assigned to me
+                    {{ 'ACCESS_REQUESTS.TABS.ASSIGNED' | transloco }}
                     <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span>
                     <span *ngIf="activeTab === 'assigned'" class="absolute inset-x-0 -bottom-px h-0.5 rounded bg-blue-700"></span>
                 </button>
@@ -280,7 +280,7 @@
 
             <div class="flex items-center justify-between border-b px-6 py-4">
                 <h3 class="font-bold text-gray-900 dark:text-white">
-                    {{ activeTab === 'all' ? 'All Access Requests' : 'Assigned to me' }}
+                    {{ (activeTab === 'all' ? 'ACCESS_REQUESTS.TABS.ALL' : 'ACCESS_REQUESTS.TABS.ASSIGNED') | transloco }}
                     <span
                         class="ml-2 rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-semibold text-indigo-600"
                     >
@@ -297,32 +297,32 @@
                             <th
                                 class="text-secondary w-20 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                ID
+                                {{ 'ACCESS_REQUESTS.TABLE.ID' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Requester
+                                {{ 'ACCESS_REQUESTS.TABLE.REQUESTER' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Resource
+                                {{ 'ACCESS_REQUESTS.TABLE.RESOURCE' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Status
+                                {{ 'ACCESS_REQUESTS.TABLE.STATUS' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Request Date
+                                {{ 'ACCESS_REQUESTS.TABLE.REQUEST_DATE' | transloco }}
                             </th>
                             <th
                                 class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                             >
-                                Action
+                                {{ 'ACCESS_REQUESTS.TABLE.ACTION' | transloco }}
                             </th>
                         </tr>
                     </thead>
@@ -353,7 +353,7 @@
                                             >{{ r.requester }}</span
                                         >
                                         <span class="text-secondary text-xs"
-                                            >Requester</span
+                                            >{{ 'ACCESS_REQUESTS.TABLE.REQUESTER' | transloco }}</span
                                         >
                                     </div>
                                 </div>
@@ -446,7 +446,7 @@
                 class="flex flex-wrap items-center justify-between gap-4 border-t bg-gray-50/50 px-6 py-4"
             >
                 <div class="text-secondary flex items-center gap-2 text-sm">
-                    <span>Items per page:</span>
+                    <span>{{ 'ACCESS_REQUESTS.TABLE.ITEMS_PER_PAGE' | transloco }}</span>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-24" subscriptSizing="dynamic">
                         <mat-select [(ngModel)]="itemsPerPage" (selectionChange)="onItemsPerPageChange()">
                             <mat-option [value]="5">5</mat-option>

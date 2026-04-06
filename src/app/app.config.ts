@@ -63,7 +63,7 @@ export const appConfig: ApplicationConfig = {
                         label: 'Indonesia',
                     },
                 ],
-                defaultLang: 'id',
+                defaultLang: 'en',
                 fallbackLang: 'en',
                 reRenderOnLangChange: true,
                 prodMode: !isDevMode(),

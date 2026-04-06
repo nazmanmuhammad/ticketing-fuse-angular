@@ -446,13 +446,18 @@ export class CreateComponent implements OnInit, OnDestroy {
 
     private _mapEmployee(item: any): User {
         const photo = item?.employee?.photo ?? item?.photo ?? '';
+        // Get email from email_kantor from HRIS API
+        // Use item?.selfupdate?.email_kantor as the primary source
+        const emailKantor = item?.selfupdate?.email_kantor ?? '';
+        const email = emailKantor && emailKantor.includes('@') ? emailKantor : '';
+        
         return {
             id: Number(item?.employee_id ?? item?.user_id ?? item?.id ?? 0),
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
             hrisUserId: Number(item?.user_id ?? item?.employee_id ?? 0),
             userId: Number(item?.user_id ?? item?.employee_id ?? 0),
             fullName: item?.employee_name ?? item?.name ?? item?.employee?.name ?? '-',
-            email: item?.selfupdate?.email_kantor ?? item?.nik ?? item?.noktp ?? '-',
+            email: email,
             phone: item?.phone ?? '-',
             role: 'User',
             status: 'Active',
@@ -578,6 +583,20 @@ export class CreateComponent implements OnInit, OnDestroy {
         // Add pic_helpdesk_id (current user if agent role)
         if (this.currentUser?.id) {
             ticketData.pic_helpdesk_id = this.currentUser.id;
+        }
+
+        // Add role for email notification logic
+        if (this.currentUser?.role) {
+            // Map role name to backend expected values
+            const roleMap: { [key: string]: string } = {
+                'Admin': 'admin',
+                'Agent': 'agent',
+                'Manager': 'manager',
+                'Staff': 'staff',
+                'User': 'user',
+                'Technical': 'technical'
+            };
+            ticketData.role = roleMap[this.currentUser.role] || 'user';
         }
 
         this._ticketService

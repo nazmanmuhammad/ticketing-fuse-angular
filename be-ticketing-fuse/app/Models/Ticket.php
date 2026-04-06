@@ -15,6 +15,7 @@ class Ticket extends Model
     protected $keyType = "uuid";
 
     protected $fillable = [
+        'ticket_number',
         'requester_type',
         'requester_id',
         'name',
@@ -63,5 +64,29 @@ class Ticket extends Model
     public function getStatusNameAttribute()
     {
         return TicketStatusEnum::from($this->status)->label();
+    }
+
+    /**
+     * Generate unique ticket number
+     * Format: TN00001, TN00002, etc.
+     */
+    public static function generateTicketNumber(): string
+    {
+        // Get the last ticket number
+        $lastTicket = self::withTrashed()
+            ->whereNotNull('ticket_number')
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$lastTicket || !$lastTicket->ticket_number) {
+            return 'TN00001';
+        }
+
+        // Extract number from last ticket (e.g., TN00001 -> 1)
+        $lastNumber = (int) substr($lastTicket->ticket_number, 2);
+        $newNumber = $lastNumber + 1;
+
+        // Format with leading zeros (5 digits)
+        return 'TN' . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
     }
 }

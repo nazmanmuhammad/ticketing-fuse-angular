@@ -272,6 +272,11 @@ export class UserDialogComponent implements OnDestroy {
 
     private _mapEmployee(item: any): User {
         const photo = item?.employee?.photo ?? item?.photo ?? '';
+        // Get email from email_kantor from HRIS API
+        // Use item?.selfupdate?.email_kantor as the primary source
+        const emailKantor = item?.selfupdate?.email_kantor ?? '';
+        const email = emailKantor && emailKantor.includes('@') ? emailKantor : '';
+        
         return {
             id: Number(item?.employee_id ?? item?.user_id ?? item?.id ?? 0),
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
@@ -282,7 +287,7 @@ export class UserDialogComponent implements OnDestroy {
                 item?.name ??
                 item?.employee?.name ??
                 '-',
-            email: item?.email ?? item?.nik ?? item?.noktp ?? '-',
+            email: email,
             role: 'User',
             status: 'Active',
             avatar: photo

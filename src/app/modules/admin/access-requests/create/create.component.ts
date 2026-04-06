@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import {
     FormBuilder,
     FormGroup,
@@ -10,25 +10,28 @@ import {
 import { Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
     selector: 'app-create-access-request',
     standalone: true,
-    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, MatFormFieldModule, MatSelectModule],
+    imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, MatFormFieldModule, MatSelectModule, TranslocoModule],
     templateUrl: './create.component.html',
 })
-export class CreateAccessRequestComponent {
+export class CreateAccessRequestComponent implements OnInit, OnDestroy {
+    private destroy$ = new Subject<void>();
     form: FormGroup;
     uploadedFiles: File[] = [];
     isDragging = false;
     assignType: 'member' | 'team' = 'member';
     selectedAssignee = '';
 
-    priorities = ['Low', 'Medium', 'High', 'Critical'];
-    departments = ['IT', 'HR', 'Finance', 'Operations', 'Marketing'];
-    requestTypes = ['New Access', 'Change Access', 'Revoke Access'];
-    accessLevels = ['Viewer', 'Standard User', 'Editor', 'Admin Access'];
-    durationTypes = ['Temporary Access', 'Permanent Access'];
+    priorities: any[] = [];
+    departments: any[] = [];
+    requestTypes: any[] = [];
+    accessLevels: any[] = [];
+    durationTypes: any[] = [];
 
     members = [
         { name: 'Alice Smith', avatar: 'A', color: 'bg-indigo-400', image: 'images/avatars/female-09.jpg' },
@@ -45,7 +48,8 @@ export class CreateAccessRequestComponent {
 
     constructor(
         private fb: FormBuilder,
-        private router: Router
+        private router: Router,
+        private translocoService: TranslocoService
     ) {
         this.form = this.fb.group({
             email: ['', [Validators.required, Validators.email]],
@@ -70,6 +74,56 @@ export class CreateAccessRequestComponent {
             requireManagerApproval: [false],
         });
         this.updateAssignOptions();
+    }
+
+    ngOnInit(): void {
+        this.translocoService.events$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((event) => {
+                if (event.type === 'translationLoadSuccess') {
+                    this.updateTranslations();
+                }
+            });
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    updateTranslations(): void {
+        this.priorities = [
+            { value: 'Low', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_LOW') },
+            { value: 'Medium', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_MEDIUM') },
+            { value: 'High', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_HIGH') },
+            { value: 'Critical', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_CRITICAL') }
+        ];
+
+        this.departments = [
+            { value: 'IT', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_IT') },
+            { value: 'HR', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_HR') },
+            { value: 'Finance', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_FINANCE') },
+            { value: 'Operations', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_OPERATIONS') },
+            { value: 'Marketing', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_MARKETING') }
+        ];
+
+        this.requestTypes = [
+            { value: 'New Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_NEW') },
+            { value: 'Change Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_CHANGE') },
+            { value: 'Revoke Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_REVOKE') }
+        ];
+
+        this.accessLevels = [
+            { value: 'Viewer', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_VIEWER') },
+            { value: 'Standard User', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_STANDARD') },
+            { value: 'Editor', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_EDITOR') },
+            { value: 'Admin Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_ADMIN') }
+        ];
+
+        this.durationTypes = [
+            { value: 'Temporary Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_TEMPORARY') },
+            { value: 'Permanent Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_PERMANENT') }
+        ];
     }
 
     assignOptions: any[] = [];

@@ -3,9 +3,9 @@
     <div
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
     >
-        <span class="font-semibold text-gray-800 dark:text-white">Access Requests</span>
+        <span class="font-semibold text-gray-800 dark:text-white">{{ 'ACCESS_REQUESTS.TITLE' | transloco }}</span>
         <div class="text-secondary flex items-center gap-1">
-            <span class="font-semibold text-primary">Dashboard</span>
+            <span class="font-semibold text-primary">{{ 'ACCESS_REQUESTS.BREADCRUMB.DASHBOARD' | transloco }}</span>
         </div>
     </div>
 
@@ -17,10 +17,10 @@
         <div class="flex items-start justify-between">
             <div>
                 <h2 class="text-lg font-bold text-gray-900 dark:text-white">
-                    Access Request Dashboard
+                    {{ 'ACCESS_REQUESTS.TITLE' | transloco }}
                 </h2>
                 <p class="text-secondary mt-0.5 text-sm">
-                    Filter your access request data
+                    {{ 'ACCESS_REQUESTS.SUBTITLE' | transloco }}
                 </p>
             </div>
             <div class="flex items-center gap-2">
@@ -41,7 +41,7 @@
                             d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"
                         />
                     </svg>
-                    Filter
+                    {{ 'ACCESS_REQUESTS.BUTTONS.FILTER' | transloco }}
                 </button>
                 <button
                     (click)="resetFilter()"
@@ -60,7 +60,7 @@
                             d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                         />
                     </svg>
-                    Reset
+                    {{ 'ACCESS_REQUESTS.BUTTONS.RESET' | transloco }}
                 </button>
                 <!-- <button
                     class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700"
@@ -107,7 +107,7 @@
         <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
             <div class="grid grid-cols-1 gap-4 md:grid-cols-4 pt-4 border-t border-gray-100 mt-4">
                 <div class="col-span-1 md:col-span-2 flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">Period</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.PERIOD' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                             <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
@@ -120,14 +120,14 @@
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">From</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.START_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="startDate" />
                     </mat-form-field>
                 </div>
 
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">To</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'ACCESS_REQUESTS.FILTERS.END_DATE' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
                         <input matInput type="date" [(ngModel)]="endDate" />
                     </mat-form-field>
@@ -139,13 +139,13 @@
                     (click)="resetFilter()"
                     class="text-sm text-gray-500 hover:text-gray-700 font-medium px-4 py-2"
                 >
-                    Reset
+                    {{ 'ACCESS_REQUESTS.BUTTONS.RESET' | transloco }}
                 </button>
                 <button 
                     (click)="applyFilter()"
                     class="ml-2 bg-indigo-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-indigo-700"
                 >
-                    Apply Filter
+                    {{ 'ACCESS_REQUESTS.BUTTONS.APPLY_FILTER' | transloco }}
                 </button>
             </div>
         </div>

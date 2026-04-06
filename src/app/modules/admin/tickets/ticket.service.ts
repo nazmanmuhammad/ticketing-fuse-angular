@@ -19,6 +19,7 @@ export interface TicketCreateRequest {
     team_id?: string; // For team assignment
     pic_technical_id?: string; // For member assignment
     pic_helpdesk_id?: string;
+    role?: string; // User role for email notification logic
 }
 
 export interface TicketResponse {
@@ -71,6 +72,38 @@ export class TicketService {
     }
 
     /**
+     * Get single ticket by ID
+     */
+    getTicket(id: string): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/tickets/${id}`;
+        return this._httpClient.get<TicketResponse>(url);
+    }
+
+    /**
+     * Get ticket statistics
+     */
+    getStatistics(params?: {
+        role?: string;
+        pic_helpdesk_id?: string;
+        pic_id?: string;
+        requester_id?: string | number;
+    }): Observable<any> {
+        const url = `${this.apiUrl}/tickets/statistics`;
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach((key) => {
+                const value = params[key as keyof typeof params];
+                if (value !== undefined && value !== null && value !== '') {
+                    httpParams = httpParams.set(key, String(value));
+                }
+            });
+        }
+
+        return this._httpClient.get<any>(url, { params: httpParams });
+    }
+
+    /**
      * Get ticket list with pagination and filters
      */
     getTickets(params?: {
@@ -98,14 +131,6 @@ export class TicketService {
         return this._httpClient.get<TicketListResponse>(url, {
             params: httpParams,
         });
-    }
-
-    /**
-     * Get ticket by ID
-     */
-    getTicket(id: string): Observable<any> {
-        const url = `${this.apiUrl}/tickets/${id}`;
-        return this._httpClient.get(url);
     }
 
     /**

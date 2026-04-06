@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\SendTicketNotification;
 use App\Models\Ticket;
 use App\Models\TicketTrack;
+use App\Models\User;
 use App\TicketStatusEnum;
 use Illuminate\Http\Request;
 
@@ -14,6 +16,51 @@ class TicketController extends Controller
     /**
      * Display a listing of the resource.
      */
+    /**
+     * Get ticket statistics
+     */
+    public function statistics(Request $request)
+    {
+        $query = Ticket::query();
+
+        // Apply role-based filtering
+        if ($request->role === 'agent') {
+            $query->where('pic_helpdesk_id', $request->pic_helpdesk_id);
+        } elseif ($request->role === 'technical') {
+            $query->where('pic_technical_id', $request->pic_id);
+        } elseif ($request->role === 'user') {
+            $query->where('requester_id', $request->requester_id);
+        }
+
+        // Get counts by status
+        $newTickets = (clone $query)->where('status', TicketStatusEnum::PENDING->value)
+            ->whereDate('created_at', today())
+            ->count();
+
+        $pendingTickets = (clone $query)->where('status', TicketStatusEnum::PENDING->value)->count();
+
+        $openTickets = (clone $query)->whereIn('status', [
+            TicketStatusEnum::PENDING->value,
+            TicketStatusEnum::PROCESS->value
+        ])->count();
+
+        $closedTickets = (clone $query)->where('status', TicketStatusEnum::CLOSED->value)
+            ->whereMonth('created_at', date('m'))
+            ->whereYear('created_at', date('Y'))
+            ->count();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Ticket statistics retrieved successfully',
+            'data' => [
+                'new_today' => $newTickets,
+                'pending' => $pendingTickets,
+                'open' => $openTickets,
+                'closed_this_month' => $closedTickets,
+            ],
+        ]);
+    }
+
     public function index(Request $request)
     {
         $perPage = (int) $request->query('per_page', 5);
@@ -24,15 +71,15 @@ class TicketController extends Controller
         $query = Ticket::query();
         $this->applyFilters($query, $request);
         $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk'])
-                ->when($request->role === 'agent', function($q) use($request) {
-                    $q->where('pic_helpdesk_id', $request->pic_helpdesk_id);
-                })
-                ->when($request->role === 'technical', function($q) use($request) {
-                    $q->where('pic_id', $request->pic_id);
-                })
-                ->when($request->role === 'user', function($q) use($request) {
-                    $q->where('requester_id', $request->requester_id);
-                })
+                // ->when($request->role === 'agent', function($q) use($request) {
+                //     $q->where('pic_helpdesk_id', $request->pic_helpdesk_id);
+                // })
+                // ->when($request->role === 'technical', function($q) use($request) {
+                //     $q->where('pic_technical_id', $request->pic_id);
+                // })
+                // ->when($request->role === 'user', function($q) use($request) {
+                //     $q->where('requester_id', $request->requester_id);
+                // })
                 ->orderByDesc('created_at')->paginate($perPage)->appends($request->query());
 
         return response()->json([
@@ -83,6 +130,9 @@ class TicketController extends Controller
     {
         $data = $request->all();
 
+        // Generate ticket number
+        $data['ticket_number'] = Ticket::generateTicketNumber();
+
         // default status
         $data['status'] = \App\TicketStatusEnum::PENDING->value;
 
@@ -111,6 +161,24 @@ class TicketController extends Controller
             'action' => 'created',
             'description' => 'Ticket dibuat',
         ]);
+
+        // Load relationships for email
+        $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
+
+        // Send notification to requester (email in ticket)
+        if ($ticket->email && filter_var($ticket->email, FILTER_VALIDATE_EMAIL)) {
+            SendTicketNotification::dispatch($ticket, 'created');
+        }
+
+        // Send notification to pic_helpdesk if exists
+        if ($ticket->pic_helpdesk && $ticket->pic_helpdesk->email && filter_var($ticket->pic_helpdesk->email, FILTER_VALIDATE_EMAIL)) {
+            SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_helpdesk->email);
+        }
+
+        // Send notification to assigned technical if pic_technical_id is set
+        if ($ticket->pic_technical && $ticket->pic_technical->email && filter_var($ticket->pic_technical->email, FILTER_VALIDATE_EMAIL)) {
+            SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_technical->email);
+        }
 
         return response()->json([
             'status'  => true,
@@ -173,6 +241,7 @@ class TicketController extends Controller
         }
 
         $data = $request->all();
+        $oldPicTechnicalId = $ticket->pic_technical_id;
 
         // Handle general ticket update
         if ($request->has(['name', 'email', 'phone_number', 'extension_number', 'ticket_source', 'department_id', 'help_topic', 'subject_issue', 'issue_detail', 'priority', 'assign_status'])) {
@@ -186,6 +255,15 @@ class TicketController extends Controller
                 'pic_technical_id' => $request->pic_technical_id,
                 'pic_technical_assign_date' => now()
             ]);
+
+            // Send notification to newly assigned technical
+            if ($request->pic_technical_id && $request->pic_technical_id != $oldPicTechnicalId) {
+                $technical = User::find($request->pic_technical_id);
+                if ($technical && $technical->email && filter_var($technical->email, FILTER_VALIDATE_EMAIL)) {
+                    $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
+                    SendTicketNotification::dispatch($ticket, 'assigned', $technical->email);
+                }
+            }
         }
 
         // Handle status updates

@@ -230,20 +230,60 @@ export class TicketComponent implements OnInit {
     ) {}
 
     ngOnInit(): void {
+        // Get current user
+        this._userService.user$.subscribe((user) => {
+            this.currentUser = user;
+            // Load tickets and statistics after getting user info
+            this.loadTickets();
+            this.loadStatistics();
+        });
+
+        // Wait for translations to load before updating
+        this._translocoService.events$.subscribe((event) => {
+            if (event.type === 'translationLoadSuccess') {
+                this.updateTranslations();
+            }
+        });
+
         // Update translations when language changes
         this._translocoService.langChanges$.subscribe(() => {
             this.updateTranslations();
         });
+    }
 
-        // Initial translation load
-        this.updateTranslations();
+    loadStatistics(): void {
+        if (!this.currentUser) return;
 
-        // Get current user
-        this._userService.user$.subscribe((user) => {
-            this.currentUser = user;
-            // Load tickets after getting user info
-            this.loadTickets();
-        });
+        const params: any = {};
+        
+        // Add role-based parameters
+        if (this.currentUser.role_name === 'Agent') {
+            params.role = 'agent';
+            params.pic_helpdesk_id = this.currentUser.id;
+        } else if (this.currentUser.role_name === 'Technical') {
+            params.role = 'technical';
+            params.pic_id = this.currentUser.id;
+        } else if (this.currentUser.role_name === 'User') {
+            params.role = 'user';
+            params.requester_id = this.currentUser.hris_user_id;
+        }
+
+        this._ticketService.getStatistics(params)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading statistics:', error);
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    // Update stats values
+                    this.stats[0].value = response.data.new_today || 0;
+                    this.stats[1].value = response.data.pending || 0;
+                    this.stats[2].value = response.data.open || 0;
+                    this.stats[3].value = response.data.closed_this_month || 0;
+                }
+            });
     }
 
     private updateTranslations(): void {
@@ -266,11 +306,12 @@ export class TicketComponent implements OnInit {
             { label: this._translocoService.translate('TICKETS.STATUS.CLOSED'), value: '3' },
         ];
 
-        // Update stats
+        // Update stats - preserve existing values
+        const currentValues = this.stats.map(s => s.value);
         this.stats = [
             {
                 title: this._translocoService.translate('TICKETS.STATS.NEW_TODAY'),
-                value: 0,
+                value: currentValues[0] || 0,
                 trend: '+5%',
                 up: true,
                 bg: 'bg-indigo-100',
@@ -279,7 +320,7 @@ export class TicketComponent implements OnInit {
             },
             {
                 title: this._translocoService.translate('TICKETS.STATS.PENDING_RESPONSE'),
-                value: 0,
+                value: currentValues[1] || 0,
                 trend: '-2%',
                 up: false,
                 bg: 'bg-orange-100',
@@ -288,7 +329,7 @@ export class TicketComponent implements OnInit {
             },
             {
                 title: this._translocoService.translate('TICKETS.STATS.OPEN_TICKETS'),
-                value: 0,
+                value: currentValues[2] || 0,
                 trend: '+1.5%',
                 up: true,
                 bg: 'bg-blue-100',
@@ -297,7 +338,7 @@ export class TicketComponent implements OnInit {
             },
             {
                 title: this._translocoService.translate('TICKETS.STATS.CLOSED_THIS_MONTH'),
-                value: 0,
+                value: currentValues[3] || 0,
                 trend: '+10%',
                 up: true,
                 bg: 'bg-green-100',

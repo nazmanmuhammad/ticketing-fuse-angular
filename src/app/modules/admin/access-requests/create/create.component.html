@@ -3,18 +3,18 @@
         class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
     >
         <span class="font-semibold text-gray-800 dark:text-white"
-            >Create Access Request</span
+            >{{ 'ACCESS_REQUESTS.BREADCRUMB.CREATE' | transloco }}</span
         >
         <div class="text-secondary flex items-center gap-1">
-            <span>Dashboard</span>
+            <span>{{ 'ACCESS_REQUESTS.BREADCRUMB.DASHBOARD' | transloco }}</span>
             <span>•</span>
             <span
                 class="cursor-pointer hover:text-primary"
                 (click)="backToAccessRequests()"
-                >Access Requests</span
+                >{{ 'ACCESS_REQUESTS.BREADCRUMB.ACCESS_REQUESTS' | transloco }}</span
             >
             <span>•</span>
-            <span class="font-semibold text-primary">Create New</span>
+            <span class="font-semibold text-primary">{{ 'ACCESS_REQUESTS.BREADCRUMB.CREATE_NEW' | transloco }}</span>
         </div>
     </div>
 
@@ -23,10 +23,10 @@
     >
         <div>
             <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                Create New Access Request
+                {{ 'ACCESS_REQUESTS.FORM.TITLE' | transloco }}
             </h2>
             <p class="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
-                Fill in the required information to submit a new access request
+                {{ 'ACCESS_REQUESTS.FORM.SUBTITLE' | transloco }}
             </p>
         </div>
         <button
@@ -47,7 +47,7 @@
                     d="M15 19l-7-7 7-7"
                 />
             </svg>
-            Back to Requests
+            {{ 'ACCESS_REQUESTS.BUTTONS.BACK_TO_REQUESTS' | transloco }}
         </button>
     </div>
 
@@ -75,10 +75,10 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                Requester Information
+                                {{ 'ACCESS_REQUESTS.FORM.REQUESTER_INFO' | transloco }}
                             </h3>
                             <p class="text-secondary text-xs">
-                                Contact details of the requester
+                                {{ 'ACCESS_REQUESTS.FORM.REQUESTER_INFO_DESC' | transloco }}
                             </p>
                         </div>
                     </div>
@@ -87,7 +87,7 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Email Address
+                                >{{ 'ACCESS_REQUESTS.FORM.EMAIL' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
@@ -107,7 +107,7 @@
                                 <input
                                     type="email"
                                     formControlName="email"
-                                    placeholder="Email Address*"
+                                    [placeholder]="'ACCESS_REQUESTS.FORM.EMAIL_PLACEHOLDER' | transloco"
                                     class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('email')?.invalid &&
@@ -122,7 +122,7 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Full Name
+                                >{{ 'ACCESS_REQUESTS.FORM.FULL_NAME' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
@@ -142,7 +142,7 @@
                                 <input
                                     type="text"
                                     formControlName="fullName"
-                                    placeholder="Full Name*"
+                                    [placeholder]="'ACCESS_REQUESTS.FORM.FULL_NAME_PLACEHOLDER' | transloco"
                                     class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('fullName')?.invalid &&
@@ -157,7 +157,7 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Phone Number</label
+                                >{{ 'ACCESS_REQUESTS.FORM.PHONE' | transloco }}</label
                             >
                             <div class="relative">
                                 <svg
@@ -176,7 +176,7 @@
                                 <input
                                     type="tel"
                                     formControlName="phone"
-                                    placeholder="Phone Number"
+                                    [placeholder]="'ACCESS_REQUESTS.FORM.PHONE_PLACEHOLDER' | transloco"
                                     class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 />
                             </div>
@@ -185,20 +185,20 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Department
+                                >{{ 'ACCESS_REQUESTS.FORM.DEPARTMENT' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
                                 <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
                                     <mat-select
                                         formControlName="department"
-                                        placeholder="Select Department"
+                                        [placeholder]="'ACCESS_REQUESTS.FORM.DEPARTMENT_PLACEHOLDER' | transloco"
                                     >
                                         <mat-option [value]="" disabled>
-                                            Select Department
+                                            {{ 'ACCESS_REQUESTS.FORM.DEPARTMENT_PLACEHOLDER' | transloco }}
                                         </mat-option>
-                                        <mat-option *ngFor="let d of departments" [value]="d">
-                                            {{ d }}
+                                        <mat-option *ngFor="let d of departments" [value]="d.value">
+                                            {{ d.label }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
@@ -229,10 +229,10 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                Access Details
+                                {{ 'ACCESS_REQUESTS.FORM.ACCESS_DETAILS' | transloco }}
                             </h3>
                             <p class="text-secondary text-xs">
-                                Specify access request information
+                                {{ 'ACCESS_REQUESTS.FORM.ACCESS_DETAILS_DESC' | transloco }}
                             </p>
                         </div>
                     </div>
@@ -241,7 +241,7 @@
                         <div class="sm:col-span-2">
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Resource Name
+                                >{{ 'ACCESS_REQUESTS.FORM.RESOURCE_NAME' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
@@ -261,7 +261,7 @@
                                 <input
                                     type="text"
                                     formControlName="resourceName"
-                                    placeholder="Resource Name*"
+                                    [placeholder]="'ACCESS_REQUESTS.FORM.RESOURCE_NAME_PLACEHOLDER' | transloco"
                                     class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                     [ngClass]="
                                         form.get('resourceName')?.invalid &&
@@ -276,20 +276,20 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Request Type
+                                >{{ 'ACCESS_REQUESTS.FORM.REQUEST_TYPE' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
                                 <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
                                     <mat-select
                                         formControlName="requestType"
-                                        placeholder="Select Request Type"
+                                        [placeholder]="'ACCESS_REQUESTS.FORM.REQUEST_TYPE_PLACEHOLDER' | transloco"
                                     >
                                         <mat-option [value]="" disabled>
-                                            Select Request Type
+                                            {{ 'ACCESS_REQUESTS.FORM.REQUEST_TYPE_PLACEHOLDER' | transloco }}
                                         </mat-option>
-                                        <mat-option *ngFor="let t of requestTypes" [value]="t">
-                                            {{ t }}
+                                        <mat-option *ngFor="let t of requestTypes" [value]="t.value">
+                                            {{ t.label }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
@@ -300,20 +300,20 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Access Level Required
+                                >{{ 'ACCESS_REQUESTS.FORM.ACCESS_LEVEL' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
                                 <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
                                     <mat-select
                                         formControlName="accessLevel"
-                                        placeholder="Select Access Level"
+                                        [placeholder]="'ACCESS_REQUESTS.FORM.ACCESS_LEVEL_PLACEHOLDER' | transloco"
                                     >
                                         <mat-option [value]="" disabled>
-                                            Select Access Level
+                                            {{ 'ACCESS_REQUESTS.FORM.ACCESS_LEVEL_PLACEHOLDER' | transloco }}
                                         </mat-option>
-                                        <mat-option *ngFor="let l of accessLevels" [value]="l">
-                                            {{ l }}
+                                        <mat-option *ngFor="let l of accessLevels" [value]="l.value">
+                                            {{ l.label }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
@@ -324,13 +324,13 @@
                         <div class="sm:col-span-2">
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Request Reason
+                                >{{ 'ACCESS_REQUESTS.FORM.REASON' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <textarea
                                 formControlName="reason"
                                 rows="4"
-                                placeholder="Request reason..."
+                                [placeholder]="'ACCESS_REQUESTS.FORM.REASON_PLACEHOLDER' | transloco"
                                 class="w-full resize-none rounded-xl border bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 [ngClass]="
                                     form.get('reason')?.invalid &&
@@ -367,10 +367,10 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                Access Duration
+                                {{ 'ACCESS_REQUESTS.FORM.DURATION' | transloco }}
                             </h3>
                             <p class="text-secondary text-xs">
-                                Define access duration details
+                                {{ 'ACCESS_REQUESTS.FORM.DURATION_DESC' | transloco }}
                             </p>
                         </div>
                     </div>
@@ -379,7 +379,7 @@
                         <div class="sm:col-span-2">
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Access Duration Type
+                                >{{ 'ACCESS_REQUESTS.FORM.DURATION_TYPE' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
@@ -395,8 +395,9 @@
                                 >
                                     <option
                                         *ngFor="let dt of durationTypes"
+                                        [value]="dt.value"
                                     >
-                                        {{ dt }}
+                                        {{ dt.label }}
                                     </option>
                                 </select>
                                
@@ -406,7 +407,7 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Start Date
+                                >{{ 'ACCESS_REQUESTS.FORM.START_DATE' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <input
@@ -425,7 +426,7 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >End Date
+                                >{{ 'ACCESS_REQUESTS.FORM.END_DATE' | transloco }}
                                 <span class="text-red-500">*</span></label
                             >
                             <input
@@ -466,10 +467,10 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-gray-900 dark:text-white">
-                                Supporting Documents
+                                {{ 'ACCESS_REQUESTS.FORM.DOCUMENTS' | transloco }}
                             </h3>
                             <p class="text-secondary text-xs">
-                                Upload approvals or related files
+                                {{ 'ACCESS_REQUESTS.FORM.DOCUMENTS_DESC' | transloco }}
                             </p>
                         </div>
                     </div>
@@ -505,10 +506,10 @@
                             />
                         </svg>
                         <p class="text-sm font-medium text-gray-900">
-                            Drop files here or click to browse
+                            {{ 'ACCESS_REQUESTS.FORM.DROP_FILES' | transloco }}
                         </p>
                         <p class="mt-1 text-xs text-gray-500">
-                            Maximum file size: 10MB
+                            {{ 'ACCESS_REQUESTS.FORM.MAX_FILE_SIZE' | transloco }}
                         </p>
                     </div>
 
@@ -579,24 +580,24 @@
                         <h3
                             class="mb-1 font-bold text-gray-900 dark:text-white"
                         >
-                            Assignment & Priority
+                            {{ 'ACCESS_REQUESTS.FORM.ASSIGNMENT' | transloco }}
                         </h3>
                         <p class="text-secondary mb-4 text-xs">
-                            Configure assignment options
+                            {{ 'ACCESS_REQUESTS.FORM.ASSIGNMENT_DESC' | transloco }}
                         </p>
 
                         <div class="mb-4">
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Priority</label
+                                >{{ 'ACCESS_REQUESTS.FORM.PRIORITY' | transloco }}</label
                             >
                             <div class="relative">
                                 <select
                                     formControlName="priority"
                                     class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
                                 >
-                                    <option *ngFor="let p of priorities">
-                                        {{ p }}
+                                    <option *ngFor="let p of priorities" [value]="p.value">
+                                        {{ p.label }}
                                     </option>
                                 </select>
                                
@@ -606,7 +607,7 @@
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
-                                >Assign To</label
+                                >{{ 'ACCESS_REQUESTS.FORM.ASSIGN_TO' | transloco }}</label
                             >
 
                             <div
@@ -636,7 +637,7 @@
                                             clip-rule="evenodd"
                                         />
                                     </svg>
-                                    Member
+                                    {{ 'ACCESS_REQUESTS.FORM.MEMBER' | transloco }}
                                 </button>
                                 <button
                                     type="button"
@@ -660,7 +661,7 @@
                                             d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
                                         />
                                     </svg>
-                                    Team
+                                    {{ 'ACCESS_REQUESTS.FORM.TEAM' | transloco }}
                                 </button>
                             </div>
 
@@ -697,10 +698,10 @@
                                     [(ngModel)]="selectedAssignee"
                                     [ngModelOptions]="{ standalone: true }"
                                     (selectionChange)="onAssigneeChange()"
-                                    [placeholder]="assignType === 'member' ? 'Select Member' : 'Select Team'"
+                                    [placeholder]="(assignType === 'member' ? 'ACCESS_REQUESTS.FORM.SELECT_MEMBER' : 'ACCESS_REQUESTS.FORM.SELECT_TEAM') | transloco"
                                 >
                                     <mat-option [value]="" disabled>
-                                        Select {{ assignType === 'member' ? 'Member' : 'Team' }}
+                                        {{ (assignType === 'member' ? 'ACCESS_REQUESTS.FORM.SELECT_MEMBER' : 'ACCESS_REQUESTS.FORM.SELECT_TEAM') | transloco }}
                                     </mat-option>
                                     <mat-option
                                         *ngFor="let opt of assignOptions"
@@ -748,11 +749,11 @@
                                         {{ selectedAssignee }}
                                     </p>
                                     <p class="text-xs text-gray-500">
-                                        Assigned
+                                        {{ 'ACCESS_REQUESTS.FORM.ASSIGNED' | transloco }}
                                         {{
-                                            assignType === 'member'
-                                                ? 'Member'
-                                                : 'Team'
+                                            (assignType === 'member'
+                                                ? 'ACCESS_REQUESTS.FORM.MEMBER'
+                                                : 'ACCESS_REQUESTS.FORM.TEAM') | transloco
                                         }}
                                     </p>
                                 </div>
@@ -785,10 +786,10 @@
                         <h3
                             class="mb-1 font-bold text-gray-900 dark:text-white"
                         >
-                            Additional Settings
+                            {{ 'ACCESS_REQUESTS.FORM.SETTINGS' | transloco }}
                         </h3>
                         <p class="text-secondary mb-4 text-xs">
-                            Optional configurations
+                            {{ 'ACCESS_REQUESTS.FORM.SETTINGS_DESC' | transloco }}
                         </p>
 
                         <label class="flex cursor-pointer items-center gap-2">
@@ -799,7 +800,7 @@
                             />
                             <span
                                 class="text-sm text-gray-600 dark:text-gray-300"
-                                >Notify requester</span
+                                >{{ 'ACCESS_REQUESTS.FORM.NOTIFY_REQUESTER' | transloco }}</span
                             >
                         </label>
 
@@ -813,7 +814,7 @@
                             />
                             <span
                                 class="text-sm text-gray-600 dark:text-gray-300"
-                                >Require manager approval</span
+                                >{{ 'ACCESS_REQUESTS.FORM.REQUIRE_APPROVAL' | transloco }}</span
                             >
                         </label>
                     </div>
@@ -842,7 +843,7 @@
                                     d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
                                 />
                             </svg>
-                            Submit Request
+                            {{ 'ACCESS_REQUESTS.BUTTONS.SUBMIT' | transloco }}
                         </button>
 
                         <button
@@ -863,7 +864,7 @@
                                     d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-14-7"
                                 />
                             </svg>
-                            Reset Form
+                            {{ 'ACCESS_REQUESTS.BUTTONS.RESET' | transloco }}
                         </button>
 
                         <button
@@ -884,7 +885,7 @@
                                     d="M6 18L18 6M6 6l12 12"
                                 />
                             </svg>
-                            Cancel
+                            {{ 'ACCESS_REQUESTS.BUTTONS.CANCEL' | transloco }}
                         </button>
                     </div>
                 </div>

@@ -6,13 +6,14 @@ import {
     trigger,
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { MatSelectModule } from '@angular/material/select';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import {
     ApexAxisChartSeries,
     ApexChart,
@@ -37,7 +38,8 @@ import {
         MatSelectModule,
         MatOptionModule,
         MatFormFieldModule,
-        MatInputModule
+        MatInputModule,
+        TranslocoModule
     ],
     templateUrl: './dashboard.component.html',
     animations: [
@@ -64,7 +66,7 @@ import {
         ]),
     ],
 })
-export class AccessRequestDashboardComponent {
+export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
     // Filter state
     filterOpen = false;
     selectedPeriod = 'this_month';
@@ -237,7 +239,136 @@ export class AccessRequestDashboardComponent {
         },
     };
 
-    constructor() {}
+    constructor(private _translocoService: TranslocoService) {}
+
+    ngOnInit(): void {
+        // Wait for translations to load
+        this._translocoService.events$.subscribe((event) => {
+            if (event.type === 'translationLoadSuccess') {
+                this.updateTranslations();
+            }
+        });
+
+        // Update translations when language changes
+        this._translocoService.langChanges$.subscribe(() => {
+            this.updateTranslations();
+        });
+    }
+
+    ngOnDestroy(): void {}
+
+    private updateTranslations(): void {
+        // Update periods
+        this.periods = [
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.TODAY'), value: 'today' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.THIS_WEEK'), value: 'this_week' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.THIS_MONTH'), value: 'this_month' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.LAST_MONTH'), value: 'last_month' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.THIS_YEAR'), value: 'this_year' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.CUSTOM'), value: 'custom' },
+        ];
+
+        // Update stats - preserve existing values
+        const currentValues = this.stats.map(s => s.value);
+        this.stats = [
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.NEW_TODAY'),
+                value: currentValues[0] || '124',
+                trend: '+5.2%',
+                up: true,
+                bg: 'bg-indigo-100',
+                icon: 'text-indigo-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.PENDING_APPROVAL'),
+                value: currentValues[1] || '45',
+                trend: '-2%',
+                up: false,
+                bg: 'bg-orange-100',
+                icon: 'text-orange-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'),
+                value: currentValues[2] || '890',
+                trend: '+12%',
+                up: true,
+                bg: 'bg-emerald-100',
+                icon: 'text-emerald-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'),
+                value: currentValues[3] || '32',
+                trend: '-5%',
+                up: false,
+                bg: 'bg-red-100',
+                icon: 'text-red-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REVOKED'),
+                value: currentValues[4] || '12',
+                trend: '+1%',
+                up: true,
+                bg: 'bg-gray-100',
+                icon: 'text-gray-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.EXPIRED'),
+                value: currentValues[5] || '8',
+                trend: '0%',
+                up: true,
+                bg: 'bg-amber-100',
+                icon: 'text-amber-500',
+            },
+        ];
+
+        // Update line chart series
+        this.lineChartSeries = [
+            { name: this._translocoService.translate('ACCESS_REQUESTS.STATS.NEW_TODAY'), data: [12, 19, 15, 25, 22, 30, 35, 32, 40] },
+            { name: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'), data: [10, 15, 12, 20, 18, 25, 28, 26, 35] },
+            { name: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'), data: [2, 4, 3, 5, 4, 5, 7, 6, 5] },
+        ];
+
+        // Update donut labels
+        this.donutLabels = [
+            this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'),
+            this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'),
+            this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'),
+        ];
+
+        // Update donut plot options for Total label
+        this.donutPlotOptions = {
+            pie: {
+                donut: {
+                    size: '75%',
+                    labels: {
+                        show: true,
+                        name: {
+                            show: true,
+                            fontSize: '12px',
+                            color: '#64748b',
+                            offsetY: -5,
+                        },
+                        value: {
+                            show: true,
+                            fontSize: '24px',
+                            fontWeight: 600,
+                            color: '#0f172a',
+                            offsetY: 5,
+                            formatter: (val) => val,
+                        },
+                        total: {
+                            show: true,
+                            label: this._translocoService.translate('DASHBOARD.CHARTS.TOTAL'),
+                            color: '#64748b',
+                            formatter: (w) => {
+                                return w.globals.seriesTotals.reduce((a: any, b: any) => a + b, 0);
+                            },
+                        },
+                    },
+                },
+            },
+        };
+    }
 
     toggleFilter() {
         this.filterOpen = !this.filterOpen;

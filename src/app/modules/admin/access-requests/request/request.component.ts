@@ -6,13 +6,14 @@ import {
     trigger,
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterModule } from '@angular/router';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
 import { take } from 'rxjs';
@@ -33,7 +34,16 @@ interface AccessRequest {
 @Component({
     selector: 'app-access-request-list',
     standalone: true,
-    imports: [CommonModule, FormsModule, RouterModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatOptionModule],
+    imports: [
+        CommonModule, 
+        FormsModule, 
+        RouterModule, 
+        MatFormFieldModule, 
+        MatInputModule, 
+        MatSelectModule, 
+        MatOptionModule,
+        TranslocoModule
+    ],
     templateUrl: './request.component.html',
     animations: [
         trigger('collapseFilter', [
@@ -59,7 +69,7 @@ interface AccessRequest {
         ]),
     ],
 })
-export class AccessRequestListComponent {
+export class AccessRequestListComponent implements OnInit, OnDestroy {
     filterOpen = false;
     searchQuery = '';
     selectedPeriod = 'this_month';
@@ -168,15 +178,81 @@ export class AccessRequestListComponent {
         },
     };
 
-    get stats() {
+    stats: any[] = [];
+
+    constructor(
+        private router: Router,
+        private _userService: UserService,
+        private _translocoService: TranslocoService
+    ) {
+        this._userService.user$.pipe(take(1)).subscribe((user: User) => {
+            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
+        });
+    }
+
+    ngOnInit(): void {
+        // Wait for translations to load
+        this._translocoService.events$.subscribe((event) => {
+            if (event.type === 'translationLoadSuccess') {
+                this.updateTranslations();
+            }
+        });
+
+        // Update translations when language changes
+        this._translocoService.langChanges$.subscribe(() => {
+            this.updateTranslations();
+        });
+    }
+
+    ngOnDestroy(): void {}
+
+    private updateTranslations(): void {
+        // Update periods
+        this.periods = [
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.TODAY'), value: 'today' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.THIS_WEEK'), value: 'this_week' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.THIS_MONTH'), value: 'this_month' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.LAST_MONTH'), value: 'last_month' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.THIS_YEAR'), value: 'this_year' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.CUSTOM'), value: 'custom' },
+        ];
+
+        // Update statuses
+        this.statuses = [
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.ALL'), value: '' },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), value: 'PENDING' as Status },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), value: 'APPROVED' as Status },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), value: 'REJECTED' as Status },
+        ];
+
+        // Update status config labels
+        this.statusConfig = {
+            PENDING: {
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'),
+                classes: 'text-orange-600 bg-orange-50 border border-orange-200',
+                actionIcon: 'review',
+            },
+            APPROVED: {
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'),
+                classes: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
+                actionIcon: 'approved',
+            },
+            REJECTED: {
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'),
+                classes: 'text-red-600 bg-red-50 border border-red-200',
+                actionIcon: 'rejected',
+            },
+        };
+
+        // Update stats
         const total = this.requests.length;
         const pending = this.requests.filter((r) => r.status === 'PENDING').length;
         const approved = this.requests.filter((r) => r.status === 'APPROVED').length;
         const rejected = this.requests.filter((r) => r.status === 'REJECTED').length;
 
-        return [
+        this.stats = [
             {
-                title: 'Total Requests',
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.TOTAL'),
                 value: total,
                 trend: '+8%',
                 up: true,
@@ -185,7 +261,7 @@ export class AccessRequestListComponent {
                 border: 'border-t-indigo-500',
             },
             {
-                title: 'Pending Approval',
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.PENDING'),
                 value: pending,
                 trend: '+3%',
                 up: true,
@@ -194,7 +270,7 @@ export class AccessRequestListComponent {
                 border: 'border-t-orange-500',
             },
             {
-                title: 'Approved Requests',
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'),
                 value: approved,
                 trend: '+12%',
                 up: true,
@@ -203,7 +279,7 @@ export class AccessRequestListComponent {
                 border: 'border-t-emerald-500',
             },
             {
-                title: 'Rejected Requests',
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'),
                 value: rejected,
                 trend: '-1%',
                 up: false,
@@ -212,15 +288,6 @@ export class AccessRequestListComponent {
                 border: 'border-t-red-500',
             },
         ];
-    }
-
-    constructor(
-        private router: Router,
-        private _userService: UserService
-    ) {
-        this._userService.user$.pipe(take(1)).subscribe((user: User) => {
-            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
-        });
     }
 
     setTab(tab: 'all' | 'assigned'): void {

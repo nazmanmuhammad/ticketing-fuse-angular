@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->string('ticket_number');
             $table->enum('requester_type', ['select_employee', 'by_input'])->nullable();
             $table->foreignUuid('requester_id')->nullable();
             $table->string('name')->nullable();
