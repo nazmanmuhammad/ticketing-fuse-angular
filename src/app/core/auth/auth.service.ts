@@ -212,7 +212,8 @@ export class AuthService {
     private _extractHrisUserId(meResponse: any): string {
         const meData = this._extractMeData(meResponse);
         return String(
-            meData?.user_id ?? meData?.employee_id ?? meData?.id ?? ''
+            meData?.user_id ??  ''
+            // meData?.user_id ?? meData?.employee_id ?? meData?.id ?? ''
         );
     }
 

@@ -454,11 +454,14 @@ export class CreateComponent implements OnInit, OnDestroy {
         const emailKantor = item?.selfupdate?.email_kantor ?? '';
         const email = emailKantor && emailKantor.includes('@') ? emailKantor : '';
         
+        // Use user_id as the primary ID for backend
+        const userId = Number(item?.user_id ?? item?.employee_id ?? item?.id ?? 0);
+        
         return {
-            id: Number(item?.employee_id ?? item?.user_id ?? item?.id ?? 0),
+            id: userId, // This will be sent as requester_id to backend
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
-            hrisUserId: Number(item?.user_id ?? item?.employee_id ?? 0),
-            userId: Number(item?.user_id ?? item?.employee_id ?? 0),
+            hrisUserId: userId,
+            userId: userId,
             fullName: item?.employee_name ?? item?.name ?? item?.employee?.name ?? '-',
             email: email,
             phone: item?.phone ?? '-',

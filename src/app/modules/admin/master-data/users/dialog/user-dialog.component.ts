@@ -120,7 +120,7 @@ export class UserDialogComponent implements OnDestroy {
             email: emp?.email,
             employeeId: emp?.employeeId,
             hrisUserId: emp?.hrisUserId,
-            userId: emp?.userId,
+            // userId: emp?.userId,
             photo: emp?.photo,
             avatar: emp?.avatar,
             role: value.role,
@@ -199,7 +199,7 @@ export class UserDialogComponent implements OnDestroy {
             ...user,
             employeeId: user.employeeId,
             hrisUserId: user.hrisUserId,
-            userId: user.userId,
+            // userId: user.userId,
             photo: user.photo,
         };
     }
@@ -280,8 +280,8 @@ export class UserDialogComponent implements OnDestroy {
         return {
             id: Number(item?.employee_id ?? item?.user_id ?? item?.id ?? 0),
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
-            hrisUserId: Number(item?.user_id ?? item?.employee_id ?? 0),
-            userId: Number(item?.user_id ?? item?.employee_id ?? 0),
+            hrisUserId: Number(item?.user_id ?? 0),
+            // userId: Number(item?.user_id ?? item?.employee_id ?? 0),
             fullName:
                 item?.employee_name ??
                 item?.name ??
@@ -302,7 +302,7 @@ export class UserDialogComponent implements OnDestroy {
             user?.id ??
                 user?.employeeId ??
                 user?.hrisUserId ??
-                user?.userId ??
+                // user?.userId ??
                 user?.email ??
                 ''
         );

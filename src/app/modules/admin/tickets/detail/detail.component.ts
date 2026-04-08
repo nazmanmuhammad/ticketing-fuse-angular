@@ -39,6 +39,7 @@ export class DetailComponent implements OnInit {
     newComment = '';
     createdByUser: string = '';
     createdAt: string = '';
+    currentUser: any = null;
 
     // Reply state
     replyingToId: string | null = null;
@@ -65,6 +66,12 @@ export class DetailComponent implements OnInit {
     ngOnInit(): void {
         this.id = this.route.snapshot.paramMap.get('id') ?? '';
         console.log('Detail Component - Ticket ID:', this.id);
+        
+        // Get current user from localStorage
+        const currentUserStr = localStorage.getItem('currentUser');
+        this.currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+        console.log('Current User:', this.currentUser);
+        
         if (this.id) {
             this.loadTicketDetail();
         }
@@ -205,6 +212,19 @@ export class DetailComponent implements OnInit {
             .replace(/\/api$/, '');
         
         return `${photoBase}/assets/img/user/${photo}`;
+    }
+
+    canStartProcess(): boolean {
+        if (!this.ticket || !this.currentUser) {
+            return false;
+        }
+        
+        // Check if current user's hris_user_id matches pic_technical's hris_user_id
+        if (this.ticket.pic_technical && this.currentUser.hris_user_id) {
+            return this.ticket.pic_technical.hris_user_id === this.currentUser.hris_user_id;
+        }
+        
+        return false;
     }
 
     startReply(commentId: string): void {

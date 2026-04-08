@@ -141,7 +141,7 @@ class TicketController extends Controller
                     'hris_user_id' => $request->requester_id,
                     'name' => $request->name,
                     'email' => $request->email,
-                    'department_id' => $request->department_id,
+                    'photo' => $request->requester_photo ?? null,
                     'role' => UserRoleEnum::USER->value,
                     'status' => 1, // active
                 ]);
@@ -172,12 +172,17 @@ class TicketController extends Controller
         }
 
         $ticket = Ticket::create($data);
-        TicketTrack::create([
+        
+        $activityLog = TicketTrack::create([
             'ticket_id' => $ticket->id,
             'user_id' => $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id,
             'action' => 'created',
             'description' => 'Ticket dibuat',
         ]);
+
+        \Log::info($ticket);
+        \Log::info($request->pic_helpdesk_id);
+
 
         // Load relationships for email
         $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
@@ -269,14 +274,16 @@ class TicketController extends Controller
         // Check and create user if requester is being updated and not exists
         if ($request->has('requester_id') && $request->requester_id) {
             if ($request->requester_type === 'select_employee') {
-                $user = User::where('hris_user_id', $request->requester_id)->first();
+                // Check if user already exists by hris_user_id
+                $existingUser = User::where('hris_user_id', $request->requester_id)->first();
                 
-                if (!$user) {
-                    // Create new user with role 'user' (0)
+                if (!$existingUser) {
+                    // Only create if user doesn't exist
                     User::create([
                         'hris_user_id' => $request->requester_id,
                         'name' => $request->name,
                         'email' => $request->email,
+                        'photo' => $request->requester_photo ?? null,
                         'role' => UserRoleEnum::USER->value,
                         'status' => 1, // active
                     ]);
@@ -340,13 +347,24 @@ class TicketController extends Controller
             $description = 'Status ticket diubah';
         }
         
+        // Get user_id for ticket track
+        $userId = null;
+        if ($request->role === 'agent' && $request->pic_helpdesk_id) {
+            $userId = $request->pic_helpdesk_id;
+        } elseif ($request->requester_id) {
+            // Find user by hris_user_id to get the UUID
+            $user = User::where('hris_user_id', $request->requester_id)->first();
+            $userId = $user ? $user->id : null;
+        }
 
-        TicketTrack::create([
-            'ticket_id' => $ticket->id,
-            'user_id' => $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id,
-            'action' => $action,
-            'description' => $description,
-        ]);
+        if ($userId) {
+            TicketTrack::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $userId,
+                'action' => $action,
+                'description' => $description,
+            ]);
+        }
 
         return response()->json([
             'status' => true,

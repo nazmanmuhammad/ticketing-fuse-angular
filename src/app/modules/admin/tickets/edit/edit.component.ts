@@ -268,7 +268,7 @@ export class EditComponent implements OnInit, OnDestroy {
         // Set selected employee if requester exists and mode is select_employee
         if (this.requesterMode === 'select_employee' && this.ticketData.requester) {
             this.selectedEmployee = {
-                id: this.ticketData.requester.id,
+                id: this.ticketData.requester.hris_user_id || this.ticketData.requester.id, // Use hris_user_id for backend
                 fullName: this.ticketData.requester.name,
                 email: this.ticketData.requester.email,
                 role: 'User' as User['role'],
@@ -560,11 +560,15 @@ export class EditComponent implements OnInit, OnDestroy {
 
     private _mapEmployee(item: any): User {
         const photo = item?.employee?.photo ?? item?.photo ?? '';
+        
+        // Use user_id as the primary ID for backend
+        const userId = Number(item?.user_id ?? item?.id ?? 0);
+        
         return {
-            id: Number(item?.employee_id ?? item?.user_id ?? item?.id ?? 0),
+            id: userId, // This will be sent as requester_id to backend
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
-            hrisUserId: Number(item?.user_id ?? item?.employee_id ?? 0),
-            userId: Number(item?.user_id ?? item?.employee_id ?? 0),
+            hrisUserId: userId,
+            userId: userId,
             fullName: item?.employee_name ?? item?.name ?? item?.employee?.name ?? '-',
             email: item?.selfupdate?.email_kantor ?? item?.nik ?? item?.noktp ?? '-',
             phone: item?.phone ?? '-',
@@ -676,6 +680,10 @@ export class EditComponent implements OnInit, OnDestroy {
         // Add requester_id if employee is selected
         if (this.selectedEmployee?.id) {
             ticketData.requester_id = this.selectedEmployee.id;
+            // Add photo if available
+            if (this.selectedEmployee.photo) {
+                (ticketData as any).requester_photo = this.selectedEmployee.photo;
+            }
         }
 
         // Add assignment based on type

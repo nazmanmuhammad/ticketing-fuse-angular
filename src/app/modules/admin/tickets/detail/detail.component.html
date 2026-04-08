@@ -187,7 +187,12 @@
                     <span class="ml-2">Actions</span>
                 </button>
                 <mat-menu #actionsMenu="matMenu">
-                    <button mat-menu-item>
+                    <button 
+                        mat-menu-item 
+                        [disabled]="!canStartProcess()"
+                        [class.opacity-50]="!canStartProcess()"
+                        [class.cursor-not-allowed]="!canStartProcess()"
+                    >
                         <mat-icon class="icon-size-5">play_circle</mat-icon>
                         <span>Start Process</span>
                     </button>
