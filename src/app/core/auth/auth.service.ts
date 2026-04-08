@@ -229,7 +229,6 @@ export class AuthService {
             id: String(
                 appUser?.id ??
                     meData?.user_id ??
-                    meData?.employee_id ??
                     meData?.id ??
                     ''
             ),

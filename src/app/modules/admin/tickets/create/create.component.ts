@@ -455,7 +455,7 @@ export class CreateComponent implements OnInit, OnDestroy {
         const email = emailKantor && emailKantor.includes('@') ? emailKantor : '';
         
         // Use user_id as the primary ID for backend
-        const userId = Number(item?.user_id ?? item?.employee_id ?? item?.id ?? 0);
+        const userId = Number(item?.user_id ?? item?.id ?? 0);
         
         return {
             id: userId, // This will be sent as requester_id to backend
@@ -573,6 +573,10 @@ export class CreateComponent implements OnInit, OnDestroy {
         // Add requester_id if employee is selected
         if (this.selectedEmployee?.id) {
             ticketData.requester_id = this.selectedEmployee.id;
+            // Add photo if available
+            if (this.selectedEmployee.photo) {
+                (ticketData as any).requester_photo = this.selectedEmployee.photo;
+            }
         }
 
         // Add assignment based on type
