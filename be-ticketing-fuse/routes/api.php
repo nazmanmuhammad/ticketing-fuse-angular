@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TeamController;
@@ -23,3 +25,10 @@ Route::get('settings/smtp', [SettingController::class, 'getSmtpSetting']);
 Route::post('settings/smtp', [SettingController::class, 'updateSmtpSetting']);
 Route::get('tickets/statistics', [TicketController::class, 'statistics']);
 Route::resource('tickets', TicketController::class);
+Route::get('attachments/{id}/view', [AttachmentController::class, 'view']);
+Route::get('attachments/{id}/download', [AttachmentController::class, 'download']);
+Route::resource('attachment', AttachmentController::class);
+Route::get('comments', [CommentController::class, 'index']);
+Route::post('comments', [CommentController::class, 'store']);
+Route::put('comments/{id}', [CommentController::class, 'update']);
+Route::delete('comments/{id}', [CommentController::class, 'destroy']);

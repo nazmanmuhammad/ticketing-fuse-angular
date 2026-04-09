@@ -608,8 +608,25 @@ export class CreateComponent implements OnInit, OnDestroy {
 
         console.log('Ticket data to submit:', ticketData);
 
+        // Create FormData for file upload
+        const formData = new FormData();
+        
+        // Append all ticket data
+        Object.keys(ticketData).forEach(key => {
+            if (ticketData[key] !== null && ticketData[key] !== undefined) {
+                formData.append(key, ticketData[key]);
+            }
+        });
+        
+        // Append files if any
+        if (this.uploadedFiles.length > 0) {
+            this.uploadedFiles.forEach((file) => {
+                formData.append('attachments[]', file, file.name);
+            });
+        }
+
         this._ticketService
-            .createTicket(ticketData)
+            .createTicketWithFiles(formData)
             .pipe(
                 catchError((error) => {
                     console.error('Error creating ticket:', error);

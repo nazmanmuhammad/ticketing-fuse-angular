@@ -702,8 +702,25 @@ export class EditComponent implements OnInit, OnDestroy {
             ticketData.pic_helpdesk_id = this.currentUser.id;
         }
 
+        // Create FormData for file upload
+        const formData = new FormData();
+        
+        // Append all ticket data
+        Object.keys(ticketData).forEach(key => {
+            if (ticketData[key] !== null && ticketData[key] !== undefined) {
+                formData.append(key, ticketData[key]);
+            }
+        });
+        
+        // Append files if any
+        if (this.uploadedFiles.length > 0) {
+            this.uploadedFiles.forEach((file) => {
+                formData.append('attachments[]', file, file.name);
+            });
+        }
+
         this._ticketService
-            .updateTicket(this.ticketId, ticketData)
+            .updateTicketWithFiles(this.ticketId, formData)
             .pipe(
                 catchError((error) => {
                     console.error('Error updating ticket:', error);

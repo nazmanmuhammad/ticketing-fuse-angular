@@ -72,6 +72,14 @@ export class TicketService {
     }
 
     /**
+     * Create a new ticket with file attachments
+     */
+    createTicketWithFiles(formData: FormData): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/tickets`;
+        return this._httpClient.post<TicketResponse>(url, formData);
+    }
+
+    /**
      * Get single ticket by ID
      */
     getTicket(id: string): Observable<TicketResponse> {
@@ -142,10 +150,44 @@ export class TicketService {
     }
 
     /**
+     * Update ticket with file attachments
+     */
+    updateTicketWithFiles(id: string, formData: FormData): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/tickets/${id}`;
+        // Laravel doesn't support PUT with multipart/form-data, so we use POST with _method
+        formData.append('_method', 'PUT');
+        return this._httpClient.post<TicketResponse>(url, formData);
+    }
+
+    /**
      * Delete ticket
      */
     deleteTicket(id: string): Observable<TicketResponse> {
         const url = `${this.apiUrl}/tickets/${id}`;
         return this._httpClient.delete<TicketResponse>(url);
+    }
+
+    /**
+     * Create a comment
+     */
+    createComment(formData: FormData): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/comments`;
+        return this._httpClient.post<TicketResponse>(url, formData);
+    }
+
+    /**
+     * Get comments for a commentable
+     */
+    getComments(commentableType: string, commentableId: string): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/comments?commentable_type=${commentableType}&commentable_id=${commentableId}`;
+        return this._httpClient.get<TicketResponse>(url);
+    }
+
+    /**
+     * Get users by role
+     */
+    getUsersByRole(role: string): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/users?role=${role}`;
+        return this._httpClient.get<TicketResponse>(url);
     }
 }

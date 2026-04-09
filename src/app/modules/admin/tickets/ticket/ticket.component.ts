@@ -256,6 +256,11 @@ export class TicketComponent implements OnInit {
 
         const params: any = {};
         
+        // Add user_id from me-validation
+        if (this.currentUser.id) {
+            params.user_id = this.currentUser.id;
+        }
+        
         // Add role-based parameters
         if (this.currentUser.role_name === 'Agent') {
             params.role = 'agent';
@@ -357,6 +362,11 @@ export class TicketComponent implements OnInit {
             page: this.currentPage,
             per_page: this.itemsPerPage,
         };
+
+        // Add user_id from me-validation
+        if (this.currentUser && this.currentUser.id) {
+            params.user_id = this.currentUser.id;
+        }
 
         // Add search query
         if (this.searchQuery.trim()) {

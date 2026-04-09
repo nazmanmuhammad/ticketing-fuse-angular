@@ -187,22 +187,46 @@
                     <span class="ml-2">Actions</span>
                 </button>
                 <mat-menu #actionsMenu="matMenu">
+                    <!-- Start Process -->
                     <button 
                         mat-menu-item 
-                        [disabled]="!canStartProcess()"
-                        [class.opacity-50]="!canStartProcess()"
-                        [class.cursor-not-allowed]="!canStartProcess()"
+                        (click)="startProcess()"
+                        [disabled]="ticket.status !== 0 || !canStartProcess()"
                     >
                         <mat-icon class="icon-size-5">play_circle</mat-icon>
                         <span>Start Process</span>
                     </button>
-                    <button mat-menu-item>
+                    
+                    <!-- Resolve Ticket -->
+                    <button 
+                        mat-menu-item
+                        (click)="resolveTicket()"
+                        [disabled]="ticket.status !== 1"
+                    >
                         <mat-icon class="icon-size-5">check_circle</mat-icon>
+                        <span>Resolve Ticket</span>
+                    </button>
+                    
+                    <!-- Close Ticket -->
+                    <button 
+                        mat-menu-item
+                        (click)="closeTicket()"
+                        [disabled]="ticket.status !== 2"
+                    >
+                        <mat-icon class="icon-size-5">lock</mat-icon>
                         <span>Close Ticket</span>
                     </button>
-                    <button mat-menu-item>
-                        <mat-icon class="icon-size-5">swap_horiz</mat-icon>
-                        <span>Reassign</span>
+                    
+                    <mat-divider></mat-divider>
+                    
+                    <!-- Reopen Ticket -->
+                    <button 
+                        mat-menu-item
+                        (click)="reopenTicket()"
+                        [disabled]="ticket.status !== 3"
+                    >
+                        <mat-icon class="icon-size-5">refresh</mat-icon>
+                        <span>Reopen Ticket</span>
                     </button>
                 </mat-menu>
             </div>
@@ -313,6 +337,78 @@
                 </div>
             </div>
 
+            <!-- Attachments Card -->
+            <div
+                class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
+                *ngIf="ticket.attachments && ticket.attachments.length > 0"
+            >
+                <div class="mb-4 flex items-center gap-3">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100">
+                        <svg class="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-900 dark:text-white">Attachments</h3>
+                        <p class="text-secondary text-xs">Files attached to this ticket</p>
+                    </div>
+                    <span class="ml-auto rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
+                        {{ ticket.attachments.length }}
+                    </span>
+                </div>
+                
+                <div class="space-y-2">
+                    <div *ngFor="let attachment of ticket.attachments"
+                        (click)="openPreview(attachment)"
+                        class="flex cursor-pointer items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-3 transition hover:border-indigo-200 hover:bg-indigo-50">
+                        <div class="flex items-center gap-3">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-lg"
+                                [ngClass]="{
+                                    'bg-indigo-100': isImageFile(attachment),
+                                    'bg-red-100': isPdfFile(attachment),
+                                    'bg-blue-100': !isImageFile(attachment) && !isPdfFile(attachment)
+                                }">
+                                <!-- Image icon -->
+                                <svg *ngIf="isImageFile(attachment)" class="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <!-- PDF icon -->
+                                <svg *ngIf="isPdfFile(attachment)" class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                                <!-- Generic file icon -->
+                                <svg *ngIf="!isImageFile(attachment) && !isPdfFile(attachment)" class="h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-700">{{ attachment.name }}</p>
+                                <p class="text-xs text-gray-400">
+                                    {{ formatFileSize(attachment.size) }} • 
+                                    Uploaded by {{ attachment.user?.name || 'Unknown' }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-600">
+                                {{ attachment.mime?.toUpperCase() }}
+                            </span>
+                            <button (click)="downloadAttachment(attachment); $event.stopPropagation()"
+                                class="rounded-lg p-2 text-gray-400 transition hover:bg-indigo-100 hover:text-indigo-500">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Comments Card -->
             <div
                 class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
@@ -349,12 +445,28 @@
                     <span
                         class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600"
                     >
-                        {{ comments.length }}
+                        {{ getTotalCommentCount() }} Comments
                     </span>
                 </div>
 
-                <!-- Comment list -->
-                <div class="space-y-4" *ngIf="comments.length > 0">
+                <!-- Comment list with fixed height and scroll -->
+                <div 
+                    #commentList
+                    class="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative" 
+                    *ngIf="comments.length > 0">
+                    <!-- Scroll to bottom button (appears when scrolled up) -->
+                    <div 
+                        *ngIf="showScrollToBottom"
+                        class="sticky top-2 z-10 flex justify-center">
+                        <button 
+                            (click)="scrollToBottom()"
+                            class="flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-lg transition hover:bg-indigo-700">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                            New comments
+                        </button>
+                    </div>
                     <div *ngFor="let c of comments">
                         <div
                             class="rounded-xl border px-4 py-4 shadow-sm"
@@ -409,6 +521,138 @@
                             >
                                 {{ c.text }}
                             </p>
+
+                            <!-- Comment Attachments -->
+                            <div *ngIf="c.attachments && c.attachments.length > 0" class="mt-3 space-y-2">
+                                <div *ngFor="let att of c.attachments"
+                                    (click)="openPreview(att)"
+                                    class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2 transition hover:border-indigo-200 hover:bg-indigo-50">
+                                    <svg class="h-4 w-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                    </svg>
+                                    <span class="flex-1 text-xs text-gray-700">{{ att.name }}</span>
+                                    <span class="text-xs text-gray-400">{{ att.size }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Reply Button -->
+                            <div class="mt-3 flex items-center gap-2">
+                                <button (click)="startReply(c.id)" type="button"
+                                    class="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                    </svg>
+                                    Reply
+                                </button>
+                                <span *ngIf="c.replies && c.replies.length > 0" class="text-xs text-gray-400">
+                                    {{ c.replies.length }} {{ c.replies.length === 1 ? 'reply' : 'replies' }}
+                                </span>
+                            </div>
+
+                            <!-- Reply Form -->
+                            <div *ngIf="replyingToId === c.id" class="mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                                <textarea
+                                    [(ngModel)]="replyText"
+                                    rows="2"
+                                    placeholder="Write a reply..."
+                                    class="w-full rounded-lg border border-gray-200 bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                                ></textarea>
+                                
+                                <!-- Reply File attachments -->
+                                <div *ngIf="replyFiles.length > 0" class="mt-2 space-y-1">
+                                    <div *ngFor="let file of replyFiles; let i = index"
+                                        class="flex items-center justify-between rounded border border-gray-200 bg-white p-1.5">
+                                        <div class="flex items-center gap-1.5">
+                                            <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            <span class="text-xs text-gray-700">{{ file.name }}</span>
+                                            <span class="text-xs text-gray-400">({{ formatFileSize(file.size) }})</span>
+                                        </div>
+                                        <button (click)="removeReplyFile(i)" type="button"
+                                            class="rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-2 flex items-center justify-between gap-2">
+                                    <div>
+                                        <input #replyFileInput type="file" multiple class="hidden" (change)="onReplyFileSelect($event)" />
+                                        <button (click)="replyFileInput.click()" type="button"
+                                            class="flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 transition hover:bg-gray-50">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            Attach
+                                        </button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button (click)="cancelReply()" type="button"
+                                            class="rounded-lg px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-100">
+                                            Cancel
+                                        </button>
+                                        <button (click)="submitReply(c)" type="button"
+                                            [disabled]="!replyText.trim() || isSubmittingReply"
+                                            class="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <svg *ngIf="isSubmittingReply" class="h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                            </svg>
+                                            <span>{{ isSubmittingReply ? 'Posting...' : 'Post Reply' }}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Replies (Facebook-style flat structure) -->
+                            <div *ngIf="c.replies && c.replies.length > 0" class="mt-3 space-y-2 border-l-2 border-gray-200 pl-4">
+                                <div *ngFor="let reply of c.replies"
+                                    class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex h-6 w-6 items-center justify-center rounded-full bg-gray-700 text-[9px] font-bold text-white">
+                                                {{ getInitials(reply.author) }}
+                                            </div>
+                                            <span class="text-xs font-semibold text-gray-900">{{ reply.author }}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-400">{{ reply.at }}</span>
+                                    </div>
+                                    <p class="mt-1.5 text-xs text-gray-700">{{ reply.text }}</p>
+                                    
+                                    <!-- Reply Attachments -->
+                                    <div *ngIf="reply.attachments && reply.attachments.length > 0" class="mt-2 space-y-1">
+                                        <div *ngFor="let att of reply.attachments"
+                                            (click)="openPreview(att)"
+                                            class="flex cursor-pointer items-center gap-2 rounded border border-gray-200 bg-white p-1.5 text-xs transition hover:border-indigo-200 hover:bg-indigo-50">
+                                            <svg class="h-3 w-3 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            <span class="flex-1 text-gray-700">{{ att.name }}</span>
+                                            <span class="text-gray-400">{{ att.size }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Reply Button (Facebook-style: all replies at same level) -->
+                                    <div class="mt-2">
+                                        <button (click)="startReply(c.id)" type="button"
+                                            class="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-100">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                            </svg>
+                                            Reply
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -426,7 +670,7 @@
                         <input
                             type="checkbox"
                             id="internalNote"
-                            [(ngModel)]="internalNote"
+                            [(ngModel)]="newCommentInternal"
                             class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                         />
                         <label
@@ -437,18 +681,55 @@
                         </label>
                     </div>
                     <textarea
-                        [(ngModel)]="newComment"
+                        [(ngModel)]="newCommentText"
                         rows="3"
                         placeholder="Write a comment..."
                         class="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm dark:bg-card focus:outline-none focus:ring-2 focus:ring-primary/20"
                     ></textarea>
-                    <div class="mt-3 flex items-center justify-end gap-2">
+                    
+                    <!-- File attachments -->
+                    <div *ngIf="newCommentFiles.length > 0" class="mt-3 space-y-2">
+                        <div *ngFor="let file of newCommentFiles; let i = index"
+                            class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-2">
+                            <div class="flex items-center gap-2">
+                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                <span class="text-sm text-gray-700">{{ file.name }}</span>
+                                <span class="text-xs text-gray-400">({{ formatFileSize(file.size) }})</span>
+                            </div>
+                            <button (click)="removeCommentFile(i)" type="button"
+                                class="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 flex items-center justify-between gap-2">
+                        <div>
+                            <input #commentFileInput type="file" multiple class="hidden" (change)="onCommentFileSelect($event)" />
+                            <button (click)="commentFileInput.click()" type="button"
+                                class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                Attach Files
+                            </button>
+                        </div>
                         <button
                             (click)="addComment()"
-                            [disabled]="!newComment.trim()"
-                            class="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
+                            [disabled]="!newCommentText.trim() || isSubmittingComment"
+                            class="flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            Post Comment
+                            <svg *ngIf="isSubmittingComment" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span>{{ isSubmittingComment ? 'Posting...' : 'Post Comment' }}</span>
                         </button>
                     </div>
                 </div>
@@ -548,9 +829,23 @@
                             </div>
                         </div>
                     </div>
-                    <div *ngIf="ticket.pic_technical">
-                        <div class="text-secondary mb-2 text-xs">Technical</div>
-                        <div class="flex items-center gap-2.5">
+                    
+                    <!-- Technical Assignment Section -->
+                    <div>
+                        <div class="mb-2 flex items-center justify-between">
+                            <div class="text-secondary text-xs">
+                                {{ ticket.pic_technical ? 'Technical' : 'Assign Technical' }}
+                            </div>
+                            <button 
+                                *ngIf="!showAssignTechnical"
+                                (click)="toggleAssignTechnical()"
+                                class="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition">
+                                {{ ticket.pic_technical ? 'Assign New PIC' : 'Assign' }}
+                            </button>
+                        </div>
+                        
+                        <!-- Current Technical (if exists) -->
+                        <div *ngIf="ticket.pic_technical && !showAssignTechnical" class="flex items-center gap-2.5">
                             <div class="relative h-10 w-10 flex-shrink-0">
                                 <img
                                     *ngIf="ticket.pic_technical.photo"
@@ -575,6 +870,167 @@
                                 <div class="text-secondary text-xs">
                                     {{ ticket.pic_technical.email }}
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- No Technical Assigned -->
+                        <div *ngIf="!ticket.pic_technical && !showAssignTechnical" 
+                            class="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-3 text-center">
+                            <svg class="mx-auto h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <p class="mt-1 text-xs text-gray-500">No technical assigned</p>
+                        </div>
+                        
+                        <!-- Assign Technical Form -->
+                        <div *ngIf="showAssignTechnical" class="space-y-3">
+                            <div>
+                                <label class="text-secondary mb-1.5 block text-xs font-medium">
+                                    Select Technical User
+                                </label>
+                                
+                                <!-- Custom Dropdown with Search -->
+                                <div class="relative technical-dropdown-container">
+                                    <!-- Toggle button -->
+                                    <button type="button" (click)="toggleTechnicalDropdown(); $event.stopPropagation()"
+                                        class="flex w-full items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-left text-sm transition hover:border-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                                        <!-- Avatar prefix -->
+                                        <ng-container *ngIf="selectedTechnical; else defaultIcon">
+                                            <ng-container *ngIf="selectedTechnical.avatar; else toggleInit">
+                                                <img [src]="selectedTechnical.avatar"
+                                                    class="h-5 w-5 flex-shrink-0 rounded-full object-cover">
+                                            </ng-container>
+                                            <ng-template #toggleInit>
+                                                <div class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                                                    [ngClass]="selectedTechnical.color">{{ selectedTechnical.initial }}</div>
+                                            </ng-template>
+                                            <span class="flex-1 truncate">{{ selectedTechnical.name }}</span>
+                                        </ng-container>
+                                        <ng-template #defaultIcon>
+                                            <svg class="h-4 w-4 flex-shrink-0 text-gray-400" fill="currentColor"
+                                                viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                            <span class="flex-1 text-gray-400">Choose technical user</span>
+                                        </ng-template>
+                                        <!-- Chevron -->
+                                        <svg class="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform"
+                                            [class.rotate-180]="technicalDropdownOpen" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </button>
+
+                                    <!-- Dropdown panel -->
+                                    <div *ngIf="technicalDropdownOpen"
+                                        class="absolute left-0 right-0 top-[calc(100%+4px)] z-[9999] rounded-xl border border-gray-200 bg-white shadow-xl"
+                                        style="position: absolute !important; z-index: 9999 !important;">
+                                        <!-- Search input -->
+                                        <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
+                                            <svg class="h-3.5 w-3.5 flex-shrink-0 text-gray-400" fill="none"
+                                                stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                            </svg>
+                                            <input type="text" [(ngModel)]="technicalSearchQuery"
+                                                (input)="onTechnicalSearchInput()"
+                                                placeholder="Search technical user..."
+                                                class="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400" />
+                                            <button *ngIf="technicalSearchQuery" type="button"
+                                                (click)="technicalSearchQuery = ''; onTechnicalSearchInput()"
+                                                class="flex-shrink-0 text-gray-300 hover:text-red-400">
+                                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                        d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                        <!-- Options list -->
+                                        <div class="max-h-48 overflow-y-auto py-1">
+                                            <!-- Loading state -->
+                                            <div *ngIf="isLoadingTechnical && technicalUsers.length === 0"
+                                                class="flex items-center justify-center gap-2 px-3 py-4">
+                                                <svg class="h-4 w-4 animate-spin text-indigo-400" fill="none"
+                                                    viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                        stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                    </path>
+                                                </svg>
+                                                <span class="text-xs text-gray-400">Loading...</span>
+                                            </div>
+                                            <!-- Empty state -->
+                                            <div *ngIf="!isLoadingTechnical && technicalUsers.length === 0"
+                                                class="px-3 py-3 text-center text-xs text-gray-400">
+                                                {{ technicalSearchQuery ? 'No users found' : 'No technical users available' }}
+                                            </div>
+                                            <button *ngFor="let user of technicalUsers" type="button"
+                                                (click)="selectTechnical(user)"
+                                                class="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-indigo-50"
+                                                [class.bg-indigo-50]="selectedTechnical?.id === user.id">
+                                                <ng-container *ngIf="user.avatar; else userInit">
+                                                    <img [src]="user.avatar"
+                                                        class="h-6 w-6 flex-shrink-0 rounded-full object-cover">
+                                                </ng-container>
+                                                <ng-template #userInit>
+                                                    <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                                        [ngClass]="user.color">{{ user.initial }}</div>
+                                                </ng-template>
+                                                <div class="flex-1 truncate">
+                                                    <div class="text-sm text-gray-700">{{ user.name }}</div>
+                                                    <div class="text-xs text-gray-400">{{ user.email }}</div>
+                                                </div>
+                                                <svg *ngIf="selectedTechnical?.id === user.id"
+                                                    class="ml-auto h-4 w-4 flex-shrink-0 text-indigo-500"
+                                                    fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd"
+                                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                        clip-rule="evenodd" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Selected chip -->
+                                <div *ngIf="selectedTechnical"
+                                    class="mt-2 flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2">
+                                    <ng-container *ngIf="selectedTechnical.avatar; else chipInit">
+                                        <img [src]="selectedTechnical.avatar" class="h-6 w-6 flex-shrink-0 rounded-full object-cover">
+                                    </ng-container>
+                                    <ng-template #chipInit>
+                                        <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                            [ngClass]="selectedTechnical.color">{{ selectedTechnical.initial }}</div>
+                                    </ng-template>
+                                    <span class="flex-1 truncate text-xs font-medium text-indigo-700">{{ selectedTechnical.name }}</span>
+                                    <button type="button" (click)="clearTechnical()"
+                                        class="text-indigo-400 transition hover:text-indigo-600">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="flex gap-2">
+                                <button 
+                                    (click)="assignTechnical()"
+                                    [disabled]="!selectedTechnical || isAssigningTechnical"
+                                    class="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span *ngIf="!isAssigningTechnical">Assign</span>
+                                    <span *ngIf="isAssigningTechnical">Assigning...</span>
+                                </button>
+                                <button 
+                                    (click)="cancelAssignTechnical()"
+                                    [disabled]="isAssigningTechnical"
+                                    class="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Cancel
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -615,5 +1071,103 @@
             </div>
         </div>
     </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div *ngIf="showPreviewModal" 
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black bg-opacity-90"
+    (click)="closePreview()">
+    <div class="relative h-full w-full max-w-7xl p-4" (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="absolute left-0 right-0 top-0 z-10 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent p-4">
+            <div class="flex items-center gap-3">
+                <h3 class="text-lg font-semibold text-white">{{ previewAttachment?.name }}</h3>
+                <span class="rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white">
+                    {{ formatFileSize(previewAttachment?.size) }}
+                </span>
+            </div>
+            <button (click)="closePreview()" 
+                class="rounded-lg bg-white/10 p-2 text-white transition hover:bg-white/20">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Content -->
+        <div class="flex h-full items-center justify-center overflow-hidden">
+            <!-- Image Preview -->
+            <div *ngIf="isImageFile(previewAttachment)" 
+                class="flex h-full w-full items-center justify-center overflow-auto p-16">
+                <img [src]="getAttachmentPreviewUrlById(previewAttachment.id)" 
+                    [alt]="previewAttachment.name"
+                    class="max-h-full max-w-full object-contain transition-transform duration-200"
+                    [style.transform]="'scale(' + previewZoom + ') rotate(' + previewRotation + 'deg)'" />
+            </div>
+
+            <!-- PDF Preview -->
+            <div *ngIf="isPdfFile(previewAttachment)" 
+                class="h-full w-full p-16">
+                <iframe [src]="getAttachmentPreviewUrlById(previewAttachment.id) | safe: 'resourceUrl'" 
+                    class="h-full w-full rounded-lg bg-white"
+                    frameborder="0"></iframe>
+            </div>
+
+            <!-- Other Files -->
+            <div *ngIf="!isImageFile(previewAttachment) && !isPdfFile(previewAttachment)"
+                class="flex flex-col items-center justify-center gap-4 text-white">
+                <svg class="h-24 w-24 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="text-lg">Preview not available for this file type</p>
+                <p class="text-sm text-white/70">Click download button to view the file</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-center gap-2 bg-gradient-to-t from-black/80 to-transparent p-4">
+            <!-- Zoom controls (only for images) -->
+            <div *ngIf="isImageFile(previewAttachment)" class="flex items-center gap-2 rounded-lg bg-white/10 p-2">
+                <button (click)="zoomOut()" 
+                    [disabled]="previewZoom <= 0.5"
+                    class="rounded p-2 text-white transition hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                    </svg>
+                </button>
+                <span class="min-w-[60px] text-center text-sm text-white">{{ (previewZoom * 100).toFixed(0) }}%</span>
+                <button (click)="zoomIn()" 
+                    [disabled]="previewZoom >= 3"
+                    class="rounded p-2 text-white transition hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                </button>
+                <button (click)="resetZoom()" 
+                    class="rounded p-2 text-white transition hover:bg-white/20">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+                <button (click)="rotateImage()" 
+                    class="rounded p-2 text-white transition hover:bg-white/20">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Download button -->
+            <button (click)="downloadAttachment(previewAttachment)" 
+                class="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white transition hover:bg-indigo-700">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                <span>Download</span>
+            </button>
+        </div>
     </div>
 </div>

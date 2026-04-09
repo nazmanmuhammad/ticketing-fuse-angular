@@ -71,6 +71,19 @@ class Ticket extends Model
         return $this->hasMany(TicketTrack::class);
     }
 
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachmentable');
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable')
+            ->whereNull('parent_id') // Only get top-level comments
+            ->with(['user', 'attachments', 'replies'])
+            ->orderBy('created_at', 'desc');
+    }
+
     /**
      * Generate unique ticket number
      * Format: TN00001, TN00002, etc.

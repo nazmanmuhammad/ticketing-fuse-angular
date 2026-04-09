@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendTicketNotification;
+use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketTrack;
 use App\Models\User;
@@ -72,15 +73,15 @@ class TicketController extends Controller
         $query = Ticket::query();
         $this->applyFilters($query, $request);
         $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk'])
-                // ->when($request->role === 'agent', function($q) use($request) {
-                //     $q->where('pic_helpdesk_id', $request->pic_helpdesk_id);
-                // })
-                // ->when($request->role === 'technical', function($q) use($request) {
-                //     $q->where('pic_technical_id', $request->pic_id);
-                // })
-                // ->when($request->role === 'user', function($q) use($request) {
-                //     $q->where('requester_id', $request->requester_id);
-                // })
+                ->when($request->role === 'agent', function($q) use($request) {
+                    $q->where('pic_helpdesk_id', $request->user_id);
+                })
+                ->when($request->role === 'technical', function($q) use($request) {
+                    $q->where('pic_technical_id', $request->user_id);
+                })
+                ->when($request->role === 'user', function($q) use($request) {
+                    $q->where('requester_id', $request->user_id);
+                })
                 ->orderByDesc('created_at')->paginate($perPage)->appends($request->query());
 
         return response()->json([
@@ -133,10 +134,14 @@ class TicketController extends Controller
 
         // Check and create user if not exists (for requester)
         if ($request->requester_type === 'select_employee' && $request->requester_id) {
-            $user = User::where('hris_user_id', $request->requester_id)->first();
+            // Check if user already exists by hris_user_id or email
+            $user = User::withTrashed()->where(function($query) use ($request) {
+                $query->where('hris_user_id', $request->requester_id)
+                      ->orWhere('email', $request->email);
+            })->first();
             
             if (!$user) {
-                // Create new user with role 'user' (0)
+                // Only create if user doesn't exist
                 User::create([
                     'hris_user_id' => $request->requester_id,
                     'name' => $request->name,
@@ -173,11 +178,16 @@ class TicketController extends Controller
 
         $ticket = Ticket::create($data);
         
+        // Get user for ticket track
+        $creatorUserId = $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id;
+        $creatorUser = User::find($creatorUserId);
+        $creatorName = $creatorUser ? $creatorUser->name : 'Unknown';
+        
         $activityLog = TicketTrack::create([
             'ticket_id' => $ticket->id,
-            'user_id' => $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id,
+            'user_id' => $creatorUserId,
             'action' => 'created',
-            'description' => 'Ticket dibuat',
+            'description' => 'Ticket dibuat oleh ' . $creatorName,
         ]);
 
         \Log::info($ticket);
@@ -202,6 +212,24 @@ class TicketController extends Controller
             SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_technical->email);
         }
 
+        // Handle file attachments
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('public/tickets/' . date('Y/m/d'));
+                
+                Attachment::create([
+                    'attachmentable_id' => $ticket->id,
+                    'attachmentable_type' => Ticket::class,
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime' => $file->extension(),
+                    'user_id' => $request->requester_id ?? $request->pic_helpdesk_id ?? null,
+                    'visible' => true,
+                ]);
+            }
+        }
+
         return response()->json([
             'status'  => true,
             'message' => 'Ticket Berhasil dibuat',
@@ -219,7 +247,12 @@ class TicketController extends Controller
             'pic_technical', 
             'pic_helpdesk', 
             'team', 
-            'ticketTrack.user'
+            'ticketTrack.user',
+            'attachments.user',
+            'comments.user',
+            'comments.attachments',
+            'comments.replies.user',
+            'comments.replies.attachments'
         ])->find($id);
         
         if (!$data) {
@@ -274,8 +307,11 @@ class TicketController extends Controller
         // Check and create user if requester is being updated and not exists
         if ($request->has('requester_id') && $request->requester_id) {
             if ($request->requester_type === 'select_employee') {
-                // Check if user already exists by hris_user_id
-                $existingUser = User::where('hris_user_id', $request->requester_id)->first();
+                // Check if user already exists by hris_user_id or email
+                $existingUser = User::withTrashed()->where(function($query) use ($request) {
+                    $query->where('hris_user_id', $request->requester_id)
+                          ->orWhere('email', $request->email);
+                })->first();
                 
                 if (!$existingUser) {
                     // Only create if user doesn't exist
@@ -304,6 +340,44 @@ class TicketController extends Controller
                 'pic_technical_assign_date' => now()
             ]);
 
+            // Create ticket track for assignment
+            if ($request->assign_technical && $request->pic_technical_id) {
+                $newTechnical = User::find($request->pic_technical_id);
+                $currentUser = $request->user_id ? User::find($request->user_id) : null;
+                
+                // Get user_id for ticket track (current user who did the assignment)
+                $userId = null;
+                if ($request->user_id) {
+                    $userId = $request->user_id;
+                } elseif ($request->role === 'agent' && $request->pic_helpdesk_id) {
+                    $userId = $request->pic_helpdesk_id;
+                } elseif ($request->requester_id) {
+                    $user = User::where('hris_user_id', $request->requester_id)->first();
+                    $userId = $user ? $user->id : null;
+                }
+                
+                // Create ticket track with different description based on whether it's first assignment or reassignment
+                $action = 'assigned';
+                if ($oldPicTechnicalId) {
+                    // Reassignment case
+                    $oldTechnical = User::find($oldPicTechnicalId);
+                    $description = 'Ticket dialihkan dari ' . ($oldTechnical ? $oldTechnical->name : 'Unknown') . ' ke ' . ($newTechnical ? $newTechnical->name : 'Unknown');
+                } else {
+                    // First time assignment
+                    $byUser = $currentUser ? ' by ' . $currentUser->name : '';
+                    $description = 'Ticket assigned to ' . ($newTechnical ? $newTechnical->name : 'Unknown') . $byUser;
+                }
+                
+                if ($userId) {
+                    TicketTrack::create([
+                        'ticket_id' => $ticket->id,
+                        'user_id' => $userId,
+                        'action' => $action,
+                        'description' => $description,
+                    ]);
+                }
+            }
+
             // Send notification to newly assigned technical
             if ($request->pic_technical_id && $request->pic_technical_id != $oldPicTechnicalId) {
                 $technical = User::find($request->pic_technical_id);
@@ -315,61 +389,158 @@ class TicketController extends Controller
         }
 
         // Handle status updates
+        if($request->reopen)
+        {
+            $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
+            
+            // Create ticket track for reopen
+            $userId = $request->user_id ?? null;
+            if ($userId) {
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => 'reopened',
+                    'description' => 'Ticket dibuka kembali',
+                ]);
+            }
+        }
+
+        if($request->start_process)
+        {
+            $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
+            
+            // Create ticket track for start process
+            $userId = $request->user_id ?? null;
+            if ($userId) {
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => 'started',
+                    'description' => 'Proses ticket dimulai',
+                ]);
+            }
+        }
+
+        if($request->resolve_ticket)
+        {
+            $ticket->update(['status' => TicketStatusEnum::RESOLVED->value]);
+            
+            // Create ticket track for resolve
+            $userId = $request->user_id ?? null;
+            if ($userId) {
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => 'resolved',
+                    'description' => 'Ticket diselesaikan',
+                ]);
+            }
+        }
+
+        if($request->close_ticket)
+        {
+            $ticket->update(['status' => TicketStatusEnum::CLOSED->value]);
+            
+            // Create ticket track for close
+            $userId = $request->user_id ?? null;
+            if ($userId) {
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => 'closed',
+                    'description' => 'Ticket ditutup',
+                ]);
+            }
+        }
+
+        // Legacy support for updateStatus
         if($request->updateStatus && $request->reopened)
         {
             $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
+            
+            $userId = $request->user_id ?? null;
+            if ($userId) {
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => 'reopened',
+                    'description' => 'Ticket dibuka kembali',
+                ]);
+            }
         }
 
-        if($request->updateStatus && $request->status === TicketStatusEnum::PROCESS->value)
+        if($request->updateStatus && $request->status === TicketStatusEnum::PROCESS->value && !$request->start_process)
         {
             $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
         }
 
-        if($request->updateStatus && $request->status === TicketStatusEnum::RESOLVED->value)
+        if($request->updateStatus && $request->status === TicketStatusEnum::RESOLVED->value && !$request->resolve_ticket)
         {
             $ticket->update(['status' => TicketStatusEnum::RESOLVED->value]);
         }
 
-        if($request->updateStatus && $request->status === TicketStatusEnum::CLOSED->value)
+        if($request->updateStatus && $request->status === TicketStatusEnum::CLOSED->value && !$request->close_ticket)
         {
             $ticket->update(['status' => TicketStatusEnum::CLOSED->value]);
         }
 
-        // Create ticket track based on update type
-        $action = 'updated';
-        $description = 'Ticket diperbarui';
-        
-        if ($request->has('pic_technical_id') || $request->assign_technical) {
-            $action = 'assigned';
-            $description = 'Ticket di-assign ke technical';
-        } elseif ($request->updateStatus) {
-            $action = 'status_changed';
-            $description = 'Status ticket diubah';
-        }
-        
-        // Get user_id for ticket track
-        $userId = null;
-        if ($request->role === 'agent' && $request->pic_helpdesk_id) {
-            $userId = $request->pic_helpdesk_id;
-        } elseif ($request->requester_id) {
-            // Find user by hris_user_id to get the UUID
-            $user = User::where('hris_user_id', $request->requester_id)->first();
-            $userId = $user ? $user->id : null;
+        // Handle file attachments
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('public/tickets/' . date('Y/m/d'));
+                
+                Attachment::create([
+                    'attachmentable_id' => $ticket->id,
+                    'attachmentable_type' => Ticket::class,
+                    'name' => $file->getClientOriginalName(),
+                    'path' => $path,
+                    'size' => $file->getSize(),
+                    'mime' => $file->extension(),
+                    'user_id' => $request->requester_id ?? $request->pic_helpdesk_id ?? null,
+                    'visible' => true,
+                ]);
+            }
         }
 
-        if ($userId) {
-            TicketTrack::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => $userId,
-                'action' => $action,
-                'description' => $description,
-            ]);
+        // Create ticket track for other updates (not assignment and not status changes)
+        // Skip if: assign_technical, start_process, resolve_ticket, close_ticket, reopen, or updateStatus
+        $skipTicketTrack = $request->assign_technical 
+            || $request->start_process 
+            || $request->resolve_ticket 
+            || $request->close_ticket 
+            || $request->reopen 
+            || $request->updateStatus;
+            
+        if (!$skipTicketTrack && $request->has(['name', 'email', 'phone_number', 'extension_number', 'ticket_source', 'department_id', 'help_topic', 'subject_issue', 'issue_detail', 'priority', 'assign_status'])) {
+            $action = 'updated';
+            $description = 'Ticket diperbarui';
+            
+            // Get user_id for ticket track
+            $userId = null;
+            if ($request->user_id) {
+                $userId = $request->user_id;
+            } elseif ($request->role === 'agent' && $request->pic_helpdesk_id) {
+                $userId = $request->pic_helpdesk_id;
+            } elseif ($request->requester_id) {
+                // Find user by hris_user_id to get the UUID
+                $user = User::where('hris_user_id', $request->requester_id)->first();
+                $userId = $user ? $user->id : null;
+            }
+
+            if ($userId) {
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => $action,
+                    'description' => $description,
+                ]);
+            }
         }
 
         return response()->json([
             'status' => true,
             'message' => 'Ticket berhasil diperbarui',
-            'data' => $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team'])
+            'data' => $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team', 'attachments.user'])
         ], 200);
     }
 
