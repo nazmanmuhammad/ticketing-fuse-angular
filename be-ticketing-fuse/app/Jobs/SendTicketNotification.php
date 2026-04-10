@@ -18,7 +18,7 @@ class SendTicketNotification implements ShouldQueue
      */
     public function __construct(
         public Ticket $ticket,
-        public string $type, // 'created' or 'assigned'
+        public string $type, // 'created', 'assigned', or 'reassigned'
         public ?string $recipientEmail = null
     ) {
         //
@@ -35,11 +35,11 @@ class SendTicketNotification implements ShouldQueue
                 Mail::to($this->ticket->email)
                     ->send(new TicketCreatedMail($this->ticket));
             }
-        } elseif ($this->type === 'assigned' && $this->recipientEmail) {
-            // Send to assigned technical
+        } elseif (($this->type === 'assigned' || $this->type === 'reassigned') && $this->recipientEmail) {
+            // Send to assigned/reassigned technical
             if (filter_var($this->recipientEmail, FILTER_VALIDATE_EMAIL)) {
                 Mail::to($this->recipientEmail)
-                    ->send(new TicketAssignedMail($this->ticket));
+                    ->send(new TicketAssignedMail($this->ticket, $this->type === 'reassigned'));
             }
         }
     }

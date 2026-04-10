@@ -45,7 +45,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
     // Attach state (simulated)
     pendingFiles: { name: string; size: string }[] = [];
     comments: Comment[] = [];
-    activity: { text: string; at: string }[] = [];
+    activity: { text: string; at: string; action: string; user: { name: string; photo: string | null; email: string } | null }[] = [];
 
     // Preview modal state
     showPreviewModal = false;
@@ -251,7 +251,13 @@ export class DetailComponent implements OnInit, AfterViewInit {
                             
                             return {
                                 text: text,
-                                at: this.formatDate(track.created_at)
+                                at: this.formatDate(track.created_at),
+                                action: track.action || 'updated',
+                                user: track.user ? {
+                                    name: track.user.name || 'Unknown',
+                                    photo: track.user.photo || null,
+                                    email: track.user.email || ''
+                                } : null
                             };
                         });
                     } else {
@@ -259,7 +265,9 @@ export class DetailComponent implements OnInit, AfterViewInit {
                         this.activity = [
                             { 
                                 text: 'Ticket created', 
-                                at: this.formatDate(this.ticket.created_at) 
+                                at: this.formatDate(this.ticket.created_at),
+                                action: 'created',
+                                user: null
                             }
                         ];
                     }
@@ -928,6 +936,55 @@ export class DetailComponent implements OnInit, AfterViewInit {
                     this.loadTicketDetail();
                 }
             });
+    }
+
+    getActionType(text: string): string {
+        const lowerText = text.toLowerCase();
+        if (lowerText.includes('dibuat') || lowerText.includes('created')) return 'created';
+        if (lowerText.includes('assign') || lowerText.includes('dialihkan')) return 'assigned';
+        if (lowerText.includes('dimulai') || lowerText.includes('started') || lowerText.includes('proses')) return 'started';
+        if (lowerText.includes('diselesaikan') || lowerText.includes('resolved')) return 'resolved';
+        if (lowerText.includes('ditutup') || lowerText.includes('closed')) return 'closed';
+        if (lowerText.includes('dibuka kembali') || lowerText.includes('reopened')) return 'reopened';
+        return 'updated';
+    }
+
+    getActionIcon(action: string): string {
+        switch (action) {
+            case 'created': return 'add_circle';
+            case 'assigned': return 'person';
+            case 'started': return 'play_circle';
+            case 'resolved': return 'check_circle';
+            case 'closed': return 'lock';
+            case 'reopened': return 'refresh';
+            default: return 'edit';
+        }
+    }
+
+    getActionColor(action: string): string {
+        switch (action) {
+            case 'created': return 'from-green-400 to-green-500';
+            case 'assigned': return 'from-blue-400 to-blue-500';
+            case 'started': return 'from-purple-400 to-purple-500';
+            case 'resolved': return 'from-teal-400 to-teal-500';
+            case 'closed': return 'from-gray-400 to-gray-500';
+            case 'reopened': return 'from-orange-400 to-orange-500';
+            default: return 'from-indigo-400 to-indigo-500';
+        }
+    }
+
+    getAvatarClasses(action: string, isLatest: boolean): string {
+        if (isLatest) {
+            return 'bg-gradient-to-br from-amber-400 to-amber-500 ring-amber-400 dark:ring-amber-500';
+        }
+        return `bg-gradient-to-br ${this.getActionColor(action)} ring-gray-300 dark:ring-gray-600`;
+    }
+
+    getIconClasses(action: string, isLatest: boolean): string {
+        if (isLatest) {
+            return 'bg-gradient-to-br from-amber-400 to-amber-500 shadow-md';
+        }
+        return `bg-gradient-to-br ${this.getActionColor(action)} shadow-sm`;
     }
 
     cancelAssignTechnical(): void {

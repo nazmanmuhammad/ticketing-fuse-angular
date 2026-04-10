@@ -68,7 +68,7 @@ class Ticket extends Model
 
     public function ticketTrack()
     {
-        return $this->hasMany(TicketTrack::class);
+        return $this->hasMany(TicketTrack::class)->orderBy('created_at', 'desc');
     }
 
     public function attachments()

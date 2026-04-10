@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Assigned</title>
+    <title>Ticket Resolved</title>
     <style>
         * {
             margin: 0;
@@ -25,7 +25,7 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         .header {
-            background: linear-gradient(135deg, #0E0F6B 0%, #1a1d8f 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             padding: 40px 30px;
             text-align: center;
             color: #ffffff;
@@ -63,25 +63,9 @@
             margin-bottom: 30px;
             line-height: 1.8;
         }
-        .highlight-box {
-            background: linear-gradient(135deg, #e6f2ff 0%, #cce5ff 100%);
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-        .highlight-box h2 {
-            color: #0E0F6B;
-            font-size: 20px;
-            margin-bottom: 8px;
-        }
-        .highlight-box p {
-            color: #1a365d;
-            font-size: 14px;
-        }
         .ticket-card {
-            background-color: #f7fafc;
-            border-left: 4px solid #0E0F6B;
+            background-color: #f0fdf4;
+            border-left: 4px solid #10b981;
             border-radius: 8px;
             padding: 24px;
             margin-bottom: 30px;
@@ -89,7 +73,7 @@
         .ticket-number {
             font-size: 24px;
             font-weight: 700;
-            color: #0E0F6B;
+            color: #059669;
             margin-bottom: 16px;
         }
         .ticket-details {
@@ -111,83 +95,74 @@
             padding: 8px 0;
             color: #2d3748;
         }
-        .priority-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .priority-low { background-color: #c6f6d5; color: #22543d; }
-        .priority-medium { background-color: #feebc8; color: #7c2d12; }
-        .priority-high { background-color: #fed7d7; color: #742a2a; }
-        .priority-critical { background-color: #feb2b2; color: #742a2a; }
-        .priority-emergency { background-color: #fc8181; color: #742a2a; }
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 12px;
             font-weight: 600;
-            background-color: #bee3f8;
-            color: #2c5282;
+            background-color: #d1fae5;
+            color: #065f46;
         }
-        .action-buttons {
-            display: flex;
-            gap: 12px;
+        .button-container {
+            text-align: center;
             margin: 30px 0;
         }
         .button {
-            flex: 1;
             display: inline-block;
-            padding: 14px 24px;
-            text-align: center;
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #ffffff;
             text-decoration: none;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 15px;
+            font-size: 16px;
             transition: transform 0.2s;
-        }
-        .button-primary {
-            background: linear-gradient(135deg, #0E0F6B 0%, #1a1d8f 100%);
-            color: #ffffff;
-        }
-        .button-secondary {
-            background-color: #ffffff;
-            color: #0E0F6B;
-            border: 2px solid #0E0F6B;
         }
         .button:hover {
             transform: translateY(-2px);
         }
         .info-box {
-            background-color: #ebf4ff;
-            border-left: 4px solid #0E0F6B;
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
             padding: 16px;
             border-radius: 6px;
             margin-bottom: 20px;
         }
         .info-box p {
-            color: #1a365d;
+            color: #78350f;
             font-size: 14px;
             margin: 0;
         }
-        .requester-info {
-            background-color: #f0f9ff;
-            border-radius: 8px;
+        .success-box {
+            background-color: #d1fae5;
+            border-left: 4px solid #10b981;
             padding: 16px;
+            border-radius: 6px;
             margin-bottom: 20px;
         }
-        .requester-info h3 {
-            color: #0E0F6B;
-            font-size: 16px;
+        .success-box p {
+            color: #065f46;
+            font-size: 14px;
+            margin: 0;
+        }
+        .action-required {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        .action-required h3 {
+            color: #92400e;
+            font-size: 18px;
             margin-bottom: 12px;
         }
-        .requester-info p {
-            color: #1e40af;
+        .action-required p {
+            color: #78350f;
             font-size: 14px;
-            margin: 4px 0;
+            margin-bottom: 16px;
         }
         .footer {
             background-color: #f7fafc;
@@ -204,10 +179,20 @@
             margin-top: 16px;
         }
         .footer-links a {
-            color: #0E0F6B;
+            color: #10b981;
             text-decoration: none;
             margin: 0 10px;
             font-size: 13px;
+        }
+        .checkmark {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -216,29 +201,26 @@
         <!-- Header -->
         <div class="header">
             <div class="header-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
             </div>
-            <h1>{{ $isReassignment ? 'Ticket Reassignment' : 'New Ticket Assignment' }}</h1>
-            <p>{{ $isReassignment ? 'A ticket has been reassigned to you' : 'You have been assigned to a support ticket' }}</p>
+            <h1>Ticket Resolved!</h1>
+            <p>Your support ticket has been successfully resolved</p>
         </div>
 
         <!-- Content -->
         <div class="content">
             <div class="greeting">
-                Hello,
+                Hello {{ $ticket->name }},
             </div>
 
-            <div class="highlight-box">
-                <h2>{{ $isReassignment ? 'Ticket Reassigned to You!' : 'You\'ve Been Assigned!' }}</h2>
-                <p>{{ $isReassignment ? 'This ticket has been transferred to you for handling' : 'A new ticket requires your attention and expertise' }}</p>
+            <div class="success-box">
+                <p><strong>✓ Good news!</strong> Your support ticket has been resolved by our technical team.</p>
             </div>
 
             <div class="message">
-                {{ $isReassignment 
-                    ? 'A support ticket has been reassigned to you. Please review the details and continue handling this case.' 
-                    : 'You have been assigned to handle the following support ticket. Please review the details and take appropriate action as soon as possible.' }}
+                We're pleased to inform you that your ticket has been successfully resolved. Our technical team has completed the work and the issue should now be fixed.
             </div>
 
             <!-- Ticket Card -->
@@ -251,61 +233,48 @@
                         <div class="detail-value">{{ $ticket->subject_issue }}</div>
                     </div>
                     <div class="detail-row">
-                        <div class="detail-label">Priority:</div>
-                        <div class="detail-value">
-                            <span class="priority-badge priority-{{ ['low', 'medium', 'high', 'critical', 'emergency'][$ticket->priority] ?? 'medium' }}">
-                                {{ ['Low', 'Medium', 'High', 'Critical', 'Emergency'][$ticket->priority] ?? 'Medium' }}
-                            </span>
-                        </div>
-                    </div>
-                    <div class="detail-row">
                         <div class="detail-label">Status:</div>
                         <div class="detail-value">
-                            <span class="status-badge">{{ $ticket->status_name }}</span>
+                            <span class="status-badge">Resolved</span>
                         </div>
                     </div>
                     <div class="detail-row">
                         <div class="detail-label">Created:</div>
                         <div class="detail-value">{{ $ticket->created_at->format('F d, Y H:i') }}</div>
                     </div>
-                    @if($ticket->issue_detail)
                     <div class="detail-row">
-                        <div class="detail-label">Description:</div>
-                        <div class="detail-value">{{ Str::limit($ticket->issue_detail, 150) }}</div>
+                        <div class="detail-label">Resolved:</div>
+                        <div class="detail-value">{{ now()->format('F d, Y H:i') }}</div>
+                    </div>
+                    @if($ticket->pic_technical)
+                    <div class="detail-row">
+                        <div class="detail-label">Resolved By:</div>
+                        <div class="detail-value">{{ $ticket->pic_technical->name }}</div>
                     </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Requester Info -->
-            <div class="requester-info">
-                <h3>👤 Requester Information</h3>
-                <p><strong>Name:</strong> {{ $ticket->name }}</p>
-                @if($ticket->email)
-                <p><strong>Email:</strong> {{ $ticket->email }}</p>
-                @endif
-                @if($ticket->phone_number)
-                <p><strong>Phone:</strong> {{ $ticket->phone_number }}</p>
-                @endif
+            <!-- Action Required Box -->
+            <div class="action-required">
+                <h3>⚠️ Action Required</h3>
+                <p>Please review the resolution and close the ticket if you're satisfied with the solution. If the issue persists or you need further assistance, you can reopen the ticket.</p>
             </div>
 
             <!-- Info Box -->
             <div class="info-box">
-                <p><strong>Action Required:</strong> Please review this ticket and provide an initial response. Keep the requester updated on the progress.</p>
+                <p><strong>What's next?</strong> Please verify that the issue has been resolved. If everything is working correctly, you can close the ticket. If you still experience issues, feel free to reopen it or add a comment.</p>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <a href="{{ config('app.frontend_url') }}/tickets/{{ $ticket->id }}" class="button button-primary">
-                    View & Respond
-                </a>
-                <a href="{{ config('app.frontend_url') }}/tickets" class="button button-secondary">
-                    All Tickets
+            <!-- Button -->
+            <div class="button-container">
+                <a href="{{ config('app.frontend_url') }}/tickets/{{ $ticket->id }}" class="button">
+                    View Ticket & Close
                 </a>
             </div>
 
             <div class="message">
-                If you need any assistance or have questions about this assignment, please contact your team lead or supervisor.
+                Thank you for using our support system. If you have any questions or concerns, please don't hesitate to contact us.
             </div>
         </div>
 

@@ -11,7 +11,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class TicketAssignedMail extends Mailable
+class TicketResolvedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -19,8 +19,7 @@ class TicketAssignedMail extends Mailable
      * Create a new message instance.
      */
     public function __construct(
-        public Ticket $ticket,
-        public bool $isReassignment = false
+        public Ticket $ticket
     ) {
         //
     }
@@ -30,12 +29,8 @@ class TicketAssignedMail extends Mailable
      */
     public function envelope(): Envelope
     {
-        $subject = $this->isReassignment 
-            ? 'Ticket #' . $this->ticket->ticket_number . ' Has Been Reassigned to You'
-            : 'You Have Been Assigned to Ticket #' . $this->ticket->ticket_number;
-            
         return new Envelope(
-            subject: $subject,
+            subject: 'Ticket #' . $this->ticket->ticket_number . ' Has Been Resolved',
         );
     }
 
@@ -45,7 +40,7 @@ class TicketAssignedMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.ticket-assigned',
+            view: 'emails.ticket-resolved',
         );
     }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\SendTicketNotification;
+use App\Jobs\SendTicketResolvedNotification;
 use App\Models\Attachment;
 use App\Models\Ticket;
 use App\Models\TicketTrack;
@@ -358,8 +359,10 @@ class TicketController extends Controller
                 
                 // Create ticket track with different description based on whether it's first assignment or reassignment
                 $action = 'assigned';
+                $isReassignment = false;
                 if ($oldPicTechnicalId) {
                     // Reassignment case
+                    $isReassignment = true;
                     $oldTechnical = User::find($oldPicTechnicalId);
                     $description = 'Ticket dialihkan dari ' . ($oldTechnical ? $oldTechnical->name : 'Unknown') . ' ke ' . ($newTechnical ? $newTechnical->name : 'Unknown');
                 } else {
@@ -376,14 +379,18 @@ class TicketController extends Controller
                         'description' => $description,
                     ]);
                 }
-            }
-
-            // Send notification to newly assigned technical
-            if ($request->pic_technical_id && $request->pic_technical_id != $oldPicTechnicalId) {
-                $technical = User::find($request->pic_technical_id);
-                if ($technical && $technical->email && filter_var($technical->email, FILTER_VALIDATE_EMAIL)) {
+                
+                // Send email notification to new technical
+                if ($newTechnical && $newTechnical->email && filter_var($newTechnical->email, FILTER_VALIDATE_EMAIL)) {
                     $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
-                    SendTicketNotification::dispatch($ticket, 'assigned', $technical->email);
+                    
+                    if ($isReassignment) {
+                        // Send reassignment notification
+                        SendTicketNotification::dispatch($ticket, 'reassigned', $newTechnical->email);
+                    } else {
+                        // Send first assignment notification
+                        SendTicketNotification::dispatch($ticket, 'assigned', $newTechnical->email);
+                    }
                 }
             }
         }
@@ -434,6 +441,12 @@ class TicketController extends Controller
                     'action' => 'resolved',
                     'description' => 'Ticket diselesaikan',
                 ]);
+            }
+            
+            // Send email notification to requester
+            if ($ticket->email && filter_var($ticket->email, FILTER_VALIDATE_EMAIL)) {
+                $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
+                SendTicketResolvedNotification::dispatch($ticket);
             }
         }
 
