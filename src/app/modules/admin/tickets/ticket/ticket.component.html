@@ -338,17 +338,17 @@
         >
             <!-- Tabs -->
             <div class="flex items-center gap-6 px-6 pt-4 border-b border-gray-100">
-                <button (click)="setTab('all')" class="relative pb-3 text-sm font-semibold"
-                        [ngClass]="activeTab==='all' ? 'text-blue-700' : 'text-gray-500'">
-                    {{ 'TICKETS.TABS.ALL_TICKETS' | transloco }}
-                    <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAll }}</span>
-                    <span *ngIf="activeTab==='all'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
-                </button>
                 <button (click)="setTab('assigned')" class="relative pb-3 text-sm font-semibold"
                         [ngClass]="activeTab==='assigned' ? 'text-blue-700' : 'text-gray-500'">
                     {{ 'TICKETS.TABS.ASSIGNED_TO_ME' | transloco }}
-                    <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span>
+                    <!-- <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span> -->
                     <span *ngIf="activeTab==='assigned'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
+                </button>
+                <button (click)="setTab('all')" class="relative pb-3 text-sm font-semibold"
+                        [ngClass]="activeTab==='all' ? 'text-blue-700' : 'text-gray-500'">
+                    {{ 'TICKETS.TABS.ALL_TICKETS' | transloco }}
+                    <!-- <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAll }}</span> -->
+                    <span *ngIf="activeTab==='all'" class="absolute inset-x-0 -bottom-px h-0.5 bg-blue-700 rounded"></span>
                 </button>
             </div>
 
@@ -532,11 +532,14 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span
-                                    class="rounded-full px-3 py-1 text-xs font-bold tracking-wide cursor-help"
+                                    class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold tracking-wide cursor-help"
                                     [ngClass]="getStatusBadgeClass(ticket.status)"
                                     [matTooltip]="('TICKETS.TOOLTIPS.STATUS' | transloco) + ': ' + ('TICKETS.STATUS.' + ticket.status_name.toUpperCase() | transloco)"
                                     matTooltipPosition="above"
                                 >
+                                    <svg *ngIf="ticket.status === 4" class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
                                     {{ 'TICKETS.STATUS.' + ticket.status_name.toUpperCase() | transloco }}
                                 </span>
                             </td>
@@ -550,6 +553,7 @@
                             <td class="sticky right-0 z-10 bg-white px-6 py-4 dark:bg-gray-800">
                                 <div class="flex items-center gap-1">
                                     <button
+                                        *ngIf="canEditOrCancel(ticket)"
                                         (click)="editTicket(ticket); $event.stopPropagation()"
                                         class="rounded-lg p-2 text-gray-400 transition hover:bg-indigo-50 hover:text-indigo-600 action-button"
                                         [matTooltip]="'Edit ticket: ' + ticket.subject_issue"
@@ -570,6 +574,28 @@
                                         </svg>
                                     </button>
                                     <button
+                                        *ngIf="canCancel(ticket)"
+                                        (click)="cancelTicket(ticket.id); $event.stopPropagation()"
+                                        class="rounded-lg p-2 text-gray-400 transition hover:bg-orange-50 hover:text-orange-600 action-button"
+                                        [matTooltip]="'Cancel ticket: ' + ticket.subject_issue"
+                                        matTooltipPosition="above"
+                                    >
+                                        <svg
+                                            class="h-4 w-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12"
+                                            />
+                                        </svg>
+                                    </button>
+                                    <!-- <button
+                                        *ngIf="isMyTicket(ticket)"
                                         (click)="deleteTicket(ticket.id)"
                                         class="rounded-lg p-2 text-gray-400 transition hover:bg-red-50 hover:text-red-500 action-button"
                                         [matTooltip]="('TICKETS.TOOLTIPS.DELETE' | transloco) + ': ' + ticket.subject_issue"
@@ -588,8 +614,8 @@
                                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                                             />
                                         </svg>
-                                    </button>
-                                    <button
+                                    </button> -->
+                                    <!-- <button
                                         (click)="toggleAction(ticket.id)"
                                         class="rounded-lg p-2 transition action-button"
                                         [ngClass]="
@@ -611,7 +637,7 @@
                                                 clip-rule="evenodd"
                                             />
                                         </svg>
-                                    </button>
+                                    </button> -->
                                 </div>
                             </td>
                         </tr>

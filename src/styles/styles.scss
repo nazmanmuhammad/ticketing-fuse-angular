@@ -181,3 +181,8 @@
 .scrollbar-thin {
     scroll-behavior: smooth;
 }
+
+/* Hide navigation items with hidden-nav-item class */
+.hidden-nav-item {
+    display: none !important;
+}

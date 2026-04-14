@@ -8,6 +8,7 @@ enum TicketStatusEnum: int
     case PROCESS = 1;
     case RESOLVED = 2;
     case CLOSED = 3;
+    case CANCELLED = 4;
 
     public function label(): string
     {
@@ -16,6 +17,7 @@ enum TicketStatusEnum: int
             self::PROCESS => 'Processing',
             self::RESOLVED => 'Resolved',
             self::CLOSED => 'Closed',
+            self::CANCELLED => 'Cancelled',
         };
     }
 
@@ -26,6 +28,7 @@ enum TicketStatusEnum: int
             self::PROCESS => 'blue',
             self::RESOLVED => 'green',
             self::CLOSED => 'red',
+            self::CANCELLED => 'red',
         };
     }
 
@@ -36,6 +39,7 @@ enum TicketStatusEnum: int
             self::PROCESS => 'bg-blue-100 text-blue-800',
             self::RESOLVED => 'bg-green-100 text-green-800',
             self::CLOSED => 'bg-red-100 text-red-800',
+            self::CANCELLED => 'bg-red-100 text-red-800',
         };
     }
 }

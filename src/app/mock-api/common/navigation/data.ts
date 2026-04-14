@@ -8,6 +8,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.DASHBOARD',
         type: 'aside',
         icon: 'heroicons_outline:squares-2x2',
+        link: '/dashboard',
+        exactMatch: true,
         children: [
             {
                 id: 'dashboard.index',
@@ -26,6 +28,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.TASK',
         type: 'aside',
         icon: 'heroicons_outline:clipboard-document-list',
+        link: '/task',
+        exactMatch: true,
         children: [
             {
                 id: 'task.index',
@@ -44,9 +48,8 @@ export const defaultNavigation: FuseNavigationItem[] = [
         translate: 'NAVIGATION.TICKETS',
         type: 'aside',
         icon: 'heroicons_outline:ticket',
-        link: '/tickets',
         badge: {
-            title: '12',
+            title: '0',
             classes: 'bg-red-500 text-white',
         },
         children: [
@@ -79,14 +82,18 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 title: 'Ticket Detail',
                 type: 'basic',
                 link: '/tickets/detail',
-                hidden: () => true,
+                classes: {
+                    wrapper: 'hidden-nav-item',
+                },
             },
             {
                 id: 'tickets.edit',
                 title: 'Edit Ticket',
                 type: 'basic',
                 link: '/tickets/edit',
-                hidden: () => true,
+                classes: {
+                    wrapper: 'hidden-nav-item',
+                },
             },
         ],
     },

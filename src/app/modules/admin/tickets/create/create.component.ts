@@ -77,6 +77,15 @@ export class CreateComponent implements OnInit, OnDestroy {
     assignDropdownOpen = false;
     private assignSearch$ = new Subject<string>();
 
+    // ── Approvers dropdown ───────────────────────────────────────
+    approverSearchQuery = '';
+    approverDropdownOpen = false;
+    selectedApprovers: any[] = [];
+    approverOptions: Array<{ id: any; name: string; initial: string; color: string; avatar: string | null }> = [];
+    isLoadingApprovers = false;
+    private approverSearch$ = new Subject<string>();
+    private approverDataLoaded = false;
+
     // ── Avatar color palette ─────────────────────────────────────
     private readonly avatarColors = [
         'bg-indigo-400', 'bg-orange-400', 'bg-teal-400', 'bg-purple-400',
@@ -138,6 +147,8 @@ export class CreateComponent implements OnInit, OnDestroy {
             response: [''],
             markInternal: [false],
             internalNote: [''],
+            closeOnResponse: [false],
+            approvalRequired: [false],
             priority: ['Low'],
             assignType: ['member'],
             assignTo: [''],
@@ -158,6 +169,13 @@ export class CreateComponent implements OnInit, OnDestroy {
             .pipe(debounceTime(400), distinctUntilChanged())
             .subscribe((query) => {
                 this._loadAssignmentData(query);
+            });
+        
+        // Debounced search for approver dropdown
+        this.approverSearch$
+            .pipe(debounceTime(400), distinctUntilChanged())
+            .subscribe((query) => {
+                this._loadApprovers(query);
             });
     }
 
@@ -285,12 +303,22 @@ export class CreateComponent implements OnInit, OnDestroy {
 
     @HostListener('document:click', ['$event'])
     onDocumentClick(event: MouseEvent): void {
-        if (!this.assignDropdownOpen) return;
         const target = event.target as HTMLElement;
-        // Check if click is inside the assign dropdown area
-        const dropdownContainer = this._elRef.nativeElement.querySelector('.assign-dropdown-container');
-        if (dropdownContainer && !dropdownContainer.contains(target)) {
-            this.assignDropdownOpen = false;
+        
+        // Check assign dropdown
+        if (this.assignDropdownOpen) {
+            const dropdownContainer = this._elRef.nativeElement.querySelector('.assign-dropdown-container');
+            if (dropdownContainer && !dropdownContainer.contains(target)) {
+                this.assignDropdownOpen = false;
+            }
+        }
+        
+        // Check approver dropdown
+        if (this.approverDropdownOpen) {
+            const approverContainer = this._elRef.nativeElement.querySelector('.approver-dropdown-container');
+            if (approverContainer && !approverContainer.contains(target)) {
+                this.approverDropdownOpen = false;
+            }
         }
     }
 
@@ -314,6 +342,89 @@ export class CreateComponent implements OnInit, OnDestroy {
     clearAssignee(): void {
         this.selectedAssignee = null;
         this.form.patchValue({ assignTo: '' });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Approvers dropdown
+    // ─────────────────────────────────────────────────────────────
+    private _loadApprovers(search: string = ''): void {
+        this.isLoadingApprovers = true;
+        const base = this.backendApiUrl.replace(/\/$/, '');
+        const searchTrim = search.trim();
+
+        let params = new HttpParams().set('per_page', '50');
+        if (searchTrim) params = params.set('search', searchTrim);
+
+        this._httpClient.get<any>(`${base}/users`, { params })
+            .pipe(
+                catchError(() => of(null)),
+                finalize(() => { this.isLoadingApprovers = false; })
+            )
+            .subscribe((res) => {
+                const rows = Array.isArray(res?.data) ? res.data : [];
+                const photoBase = this.hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '');
+                const users = rows
+                    .filter((row: any) => {
+                        const role = Number(row?.role ?? 0);
+                        // Filter for Admin, Agent, or Technical
+                        return role === 1 || role === 2 || role === 3;
+                    })
+                    .map((row: any) => this._mapApiUser(row, photoBase));
+                
+                this.approverOptions = users.map((u, i) => ({
+                    id: u.id,
+                    name: u.fullName,
+                    initial: this.getInitialOf(u.fullName),
+                    color: this.avatarColors[i % this.avatarColors.length],
+                    avatar: u.avatar && !u.avatar.includes('male-01') ? u.avatar : null,
+                }));
+                
+                if (!searchTrim) this.approverDataLoaded = true;
+            });
+    }
+
+    toggleApproverDropdown(): void {
+        this.approverDropdownOpen = !this.approverDropdownOpen;
+        if (this.approverDropdownOpen) {
+            this.approverSearchQuery = '';
+            if (!this.approverDataLoaded) {
+                this._loadApprovers();
+            }
+        }
+    }
+
+    onApproverSearchInput(): void {
+        this.approverSearch$.next(this.approverSearchQuery);
+    }
+
+    selectApprover(opt: any): void {
+        // Check if already selected
+        const exists = this.selectedApprovers.find(a => a.id === opt.id);
+        if (!exists) {
+            this.selectedApprovers.push({
+                ...opt,
+                level: 1 // Default level
+            });
+        }
+        this.approverSearchQuery = '';
+    }
+
+    removeApprover(index: number): void {
+        this.selectedApprovers.splice(index, 1);
+    }
+
+    clearAllApprovers(): void {
+        this.selectedApprovers = [];
+    }
+
+    isApproverSelected(optId: any): boolean {
+        return this.selectedApprovers.some(a => a.id === optId);
+    }
+
+    updateApproverLevel(index: number, level: number): void {
+        if (this.selectedApprovers[index]) {
+            this.selectedApprovers[index].level = level;
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -570,6 +681,38 @@ export class CreateComponent implements OnInit, OnDestroy {
             assign_status: this.assignType,
         };
 
+        // Add Response & Notes fields
+        if (formValue.response) {
+            (ticketData as any).response = formValue.response;
+        }
+        if (formValue.internalNote) {
+            (ticketData as any).internal_note = formValue.internalNote;
+        }
+        if (formValue.markInternal !== null && formValue.markInternal !== undefined) {
+            (ticketData as any).mark_internal = formValue.markInternal ? '1' : '0';
+        }
+        
+        // Add Close on Response field
+        if (formValue.closeOnResponse !== null && formValue.closeOnResponse !== undefined) {
+            (ticketData as any).close_on_response = formValue.closeOnResponse ? '1' : '0';
+        }
+        
+        // Add Approval Required field
+        if (formValue.approvalRequired !== null && formValue.approvalRequired !== undefined) {
+            (ticketData as any).approval_required = formValue.approvalRequired ? '1' : '0';
+        }
+        
+        // Add Approvers if approval is required
+        if (formValue.approvalRequired && this.selectedApprovers.length > 0) {
+            // Send approvers with level information as JSON string
+            (ticketData as any).approver_ids = JSON.stringify(
+                this.selectedApprovers.map(a => ({
+                    user_id: a.id,
+                    level: a.level || 1
+                }))
+            );
+        }
+
         // Add requester_id if employee is selected
         if (this.selectedEmployee?.id) {
             ticketData.requester_id = this.selectedEmployee.id;
@@ -613,8 +756,11 @@ export class CreateComponent implements OnInit, OnDestroy {
         
         // Append all ticket data
         Object.keys(ticketData).forEach(key => {
-            if (ticketData[key] !== null && ticketData[key] !== undefined) {
-                formData.append(key, ticketData[key]);
+            const value = ticketData[key];
+            if (value !== null && value !== undefined) {
+                // All values are already strings or primitives
+                // JSON arrays are already stringified
+                formData.append(key, value);
             }
         });
         
@@ -624,6 +770,12 @@ export class CreateComponent implements OnInit, OnDestroy {
                 formData.append('attachments[]', file, file.name);
             });
         }
+
+        // Debug: Log FormData contents
+        console.log('FormData contents:');
+        formData.forEach((value, key) => {
+            console.log(`${key}:`, value);
+        });
 
         this._ticketService
             .createTicketWithFiles(formData)
@@ -651,6 +803,38 @@ export class CreateComponent implements OnInit, OnDestroy {
     }
 
     onSaveDraft(): void { console.log('Draft saved:', this.form.value); }
+    
+    onReset(): void {
+        this.form.reset({
+            email: '',
+            fullName: '',
+            phone: '',
+            extension: '',
+            ticketSource: '',
+            department: '',
+            helpTopic: '',
+            subject: '',
+            issueDetail: '',
+            response: '',
+            markInternal: false,
+            internalNote: '',
+            closeOnResponse: false,
+            approvalRequired: false,
+            priority: 'Low',
+            assignType: 'member',
+            assignTo: '',
+            notifyOnResponse: false,
+        });
+        this.selectedEmployee = null;
+        this.selectedAssignee = null;
+        this.selectedApprovers = [];
+        this.uploadedFiles = [];
+        this.employeeInput.setValue('', { emitEvent: false });
+        this.assignSearchQuery = '';
+        this.approverSearchQuery = '';
+        this._snackbar.success(this._translocoService.translate('TICKETS.MESSAGES.FORM_RESET'));
+    }
+    
     onCancel(): void { this.router.navigate(['/tickets/data']); }
     backToTickets(): void { this.router.navigate(['/tickets/data']); }
 

@@ -3,6 +3,21 @@
     "Project": "Proyek",
     "Analytics": "Analitik",
     
+    "MONTHS": {
+        "JANUARY": "Januari",
+        "FEBRUARY": "Februari",
+        "MARCH": "Maret",
+        "APRIL": "April",
+        "MAY": "Mei",
+        "JUNE": "Juni",
+        "JULY": "Juli",
+        "AUGUST": "Agustus",
+        "SEPTEMBER": "September",
+        "OCTOBER": "Oktober",
+        "NOVEMBER": "November",
+        "DECEMBER": "Desember"
+    },
+    
     "NAVIGATION": {
         "DASHBOARD": "Dasbor",
         "TASK": "Tugas",
@@ -87,6 +102,7 @@
             "UPDATE_TICKET": "Perbarui Tiket",
             "SAVE_FORM": "Simpan Form",
             "CANCEL": "Batal",
+            "CANCEL_TICKET": "Batalkan Tiket",
             "SUBMITTING": "Mengirim...",
             "UPDATING": "Memperbarui..."
         },
@@ -100,6 +116,10 @@
             "SEARCH": "Cari",
             "SEARCH_PLACEHOLDER": "Cari tiket...",
             "PERIOD": "Periode",
+            "MONTH": "Bulan",
+            "MONTH_DESC": "Filter statistik, prioritas & aktivitas terbaru",
+            "YEAR": "Tahun",
+            "YEAR_DESC": "Filter semua data termasuk tren",
             "START_DATE": "Tanggal Mulai",
             "END_DATE": "Tanggal Akhir",
             "STATUS": "Status",
@@ -203,9 +223,10 @@
         "STATUS": {
             "ALL": "Semua Status",
             "PENDING": "Menunggu",
-            "PROCESS": "Proses",
+            "PROCESSING": "Proses",
             "RESOLVED": "Terselesaikan",
-            "CLOSED": "Ditutup"
+            "CLOSED": "Ditutup",
+            "CANCELLED": "Dibatalkan"
         },
         "SOURCES": {
             "EMAIL": "Email",
@@ -239,12 +260,19 @@
             "CREATED_SUCCESS": "Tiket berhasil dibuat!",
             "UPDATED_SUCCESS": "Tiket berhasil diperbarui!",
             "DELETED_SUCCESS": "Tiket berhasil dihapus",
+            "CANCELLED_SUCCESS": "Tiket berhasil dibatalkan",
             "CREATE_FAILED": "Gagal membuat tiket. Silakan coba lagi.",
             "UPDATE_FAILED": "Gagal memperbarui tiket. Silakan coba lagi.",
             "DELETE_FAILED": "Gagal menghapus tiket",
+            "CANCEL_FAILED": "Gagal membatalkan tiket",
             "LOAD_FAILED": "Gagal memuat tiket",
             "NOT_FOUND": "Tiket tidak ditemukan",
-            "INVALID_ID": "ID tiket tidak valid"
+            "INVALID_ID": "ID tiket tidak valid",
+            "FORM_RESET": "Form berhasil direset",
+            "NO_TICKETS_FOUND": "Tidak Ada Tiket",
+            "NO_TICKETS_DESC": "Tidak ada tiket yang dapat ditampilkan saat ini",
+            "CANCEL_CONFIRM_TITLE": "Batalkan Tiket",
+            "CANCEL_CONFIRM_MESSAGE": "Apakah Anda yakin ingin membatalkan tiket ini? Tindakan ini tidak dapat dibatalkan."
         },
         "CONFIRM": {
             "DELETE_TITLE": "Hapus Tiket",

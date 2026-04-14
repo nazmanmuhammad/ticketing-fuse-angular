@@ -105,35 +105,33 @@
 
         <!-- COLLAPSIBLE FILTER FIELDS -->
         <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-4 pt-4 border-t border-gray-100 mt-4">
-                <!-- Period -->
-                <div class="col-span-1 md:col-span-2 flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.PERIOD' | transloco }}</label>
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 pt-4 border-t border-gray-100 mt-4">
+                <!-- Month -->
+                <div class="flex flex-col">
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.MONTH' | transloco }}</label>
                     <div class="relative">
                         <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                            <mat-select [(ngModel)]="selectedPeriod" (selectionChange)="onPeriodChange()">
-                                <mat-option *ngFor="let p of periods" [value]="p.value">
-                                    {{ p.label }}
+                            <mat-select [(ngModel)]="selectedMonth">
+                                <mat-option *ngFor="let m of months" [value]="m.value">
+                                    {{ m.label }}
                                 </mat-option>
                             </mat-select>
                         </mat-form-field>
                     </div>
+                    <p class="text-xs text-gray-500 ml-1 -mt-2">{{ 'TICKETS.FILTERS.MONTH_DESC' | transloco }}</p>
                 </div>
 
-                <!-- Start Date -->
+                <!-- Year -->
                 <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.START_DATE' | transloco }}</label>
+                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.YEAR' | transloco }}</label>
                     <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                        <input matInput type="date" [(ngModel)]="startDate" />
+                        <mat-select [(ngModel)]="selectedYear">
+                            <mat-option *ngFor="let y of years" [value]="y">
+                                {{ y }}
+                            </mat-option>
+                        </mat-select>
                     </mat-form-field>
-                </div>
-
-                <!-- End Date -->
-                <div class="flex flex-col">
-                    <label class="text-secondary mb-1 ml-1 text-xs">{{ 'TICKETS.FILTERS.END_DATE' | transloco }}</label>
-                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
-                        <input matInput type="date" [(ngModel)]="endDate" />
-                    </mat-form-field>
+                    <p class="text-xs text-gray-500 ml-1 -mt-2">{{ 'TICKETS.FILTERS.YEAR_DESC' | transloco }}</p>
                 </div>
             </div>
 
@@ -157,11 +155,36 @@
     <div class="space-y-6 px-8 pb-8">
         <!-- STAT CARDS -->
         <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <!-- Loading Skeleton -->
+            <ng-container *ngIf="isLoadingStats">
+                <div *ngFor="let i of [1,2,3,4,5,6]" 
+                    class="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm dark:bg-card animate-pulse">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="h-9 w-9 bg-gray-200 rounded-xl"></div>
+                            <div class="h-6 w-12 bg-gray-200 rounded-full"></div>
+                        </div>
+                        <div class="h-8 w-16 bg-gray-200 rounded"></div>
+                        <div class="h-4 w-20 bg-gray-200 rounded"></div>
+                        <div class="h-1.5 w-full bg-gray-200 rounded-full"></div>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- Actual Stats -->
             <div
-                *ngFor="let stat of stats"
+                *ngFor="let stat of stats; let i = index"
+                [class.hidden]="isLoadingStats"
                 class="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm transition-all dark:bg-card hover:shadow-md"
             >
+                <!-- Header with percentage badge -->
                 <div class="mb-3 flex items-center justify-between">
+                    <span
+                        class="rounded-full px-2.5 py-1 text-xs font-bold"
+                        [ngClass]="stat.up ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'"
+                    >
+                        {{ stat.trend }}
+                    </span>
                     <div
                         class="flex h-9 w-9 items-center justify-center rounded-xl"
                         [ngClass]="stat.bg"
@@ -177,24 +200,24 @@
                             />
                         </svg>
                     </div>
-                    <span
-                        class="rounded-full px-2 py-0.5 text-xs font-semibold"
-                        [ngClass]="
-                            stat.up
-                                ? 'bg-emerald-50 text-emerald-600'
-                                : 'bg-red-50 text-red-600'
-                        "
-                    >
-                        {{ stat.trend }}
-                    </span>
                 </div>
+                <!-- Value -->
                 <div
-                    class="text-2xl font-extrabold text-gray-900 dark:text-white"
+                    class="text-2xl font-extrabold text-gray-900 dark:text-white mb-2"
                 >
                     {{ stat.value }}
                 </div>
-                <div class="text-secondary mt-1 text-xs font-medium">
+                <!-- Title -->
+                <div class="text-secondary text-xs font-medium mb-2">
                     {{ stat.title }}
+                </div>
+                <!-- Progress bar -->
+                <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                    <div 
+                        class="h-1.5 rounded-full transition-all duration-500"
+                        [ngClass]="stat.icon.replace('text-', 'bg-')"
+                        [style.width.%]="getTrendPercentage(stat.trend)">
+                    </div>
                 </div>
             </div>
         </div>
@@ -230,7 +253,25 @@
                         </svg>
                     </button>
                 </div>
+                
+                <!-- Loading Skeleton -->
+                <div *ngIf="isLoadingCharts" class="animate-pulse">
+                    <div class="flex items-end justify-between h-[230px] px-4">
+                        <div *ngFor="let i of getSkeletonMonths()" class="flex-1 mx-0.5">
+                            <div class="bg-gray-200 rounded-t" [style.height.px]="50 + (i * 10)"></div>
+                        </div>
+                    </div>
+                    <div class="flex justify-center gap-4 mt-4">
+                        <div *ngFor="let i of [1,2,3,4,5,6]" class="flex items-center gap-1">
+                            <div class="h-2 w-2 bg-gray-200 rounded-full"></div>
+                            <div class="h-3 w-16 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Actual Chart -->
                 <apx-chart
+                    *ngIf="!isLoadingCharts"
                     [series]="lineChartSeries"
                     [chart]="lineChartOptions"
                     [xaxis]="lineChartXAxis"
@@ -255,35 +296,63 @@
                         <p class="text-secondary text-sm">{{ 'DASHBOARD.CHARTS.PRIORITY_DISTRIBUTION_SUBTITLE' | transloco }}</p>
                     </div>
                 </div>
-                <apx-chart
-                    [series]="donutSeries"
-                    [chart]="donutOptions"
-                    [labels]="donutLabels"
-                    [colors]="donutColors"
-                    [dataLabels]="donutDataLabels"
-                    [legend]="donutLegend"
-                    [plotOptions]="donutPlotOptions"
-                >
-                </apx-chart>
-                <div class="mt-6 space-y-3">
-                    <div
-                        class="flex items-center justify-between text-sm"
-                        *ngFor="let label of donutLabels; let i = index"
-                    >
-                        <div class="flex items-center gap-2">
-                            <span
-                                class="h-2.5 w-2.5 rounded-full"
-                                [style.background-color]="donutColors[i]"
-                            ></span>
-                            <span class="text-gray-600 dark:text-gray-300">{{
-                                label
-                            }}</span>
+                
+                <!-- Loading Skeleton -->
+                <div *ngIf="isLoadingCharts" class="animate-pulse">
+                    <div class="flex items-center justify-center h-[260px]">
+                        <div class="relative">
+                            <div class="h-48 w-48 rounded-full border-[40px] border-gray-200"></div>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="h-4 w-16 bg-gray-200 rounded mx-auto mb-2"></div>
+                                    <div class="h-6 w-20 bg-gray-200 rounded mx-auto"></div>
+                                </div>
+                            </div>
                         </div>
-                        <span class="font-semibold text-gray-900 dark:text-white"
-                            >{{ donutPercentAt(i) }}%</span
-                        >
+                    </div>
+                    <div class="mt-6 space-y-3">
+                        <div *ngFor="let i of [1,2,3,4]" class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <div class="h-2.5 w-2.5 bg-gray-200 rounded-full"></div>
+                                <div class="h-3 w-20 bg-gray-200 rounded"></div>
+                            </div>
+                            <div class="h-3 w-12 bg-gray-200 rounded"></div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Actual Chart -->
+                <ng-container *ngIf="!isLoadingCharts">
+                    <apx-chart
+                        [series]="donutSeries"
+                        [chart]="donutOptions"
+                        [labels]="donutLabels"
+                        [colors]="donutColors"
+                        [dataLabels]="donutDataLabels"
+                        [legend]="donutLegend"
+                        [plotOptions]="donutPlotOptions"
+                    >
+                    </apx-chart>
+                    <div class="mt-6 space-y-3">
+                        <div
+                            class="flex items-center justify-between text-sm"
+                            *ngFor="let label of donutLabels; let i = index"
+                        >
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="h-2.5 w-2.5 rounded-full"
+                                    [style.background-color]="donutColors[i]"
+                                ></span>
+                                <span class="text-gray-600 dark:text-gray-300">{{
+                                    label
+                                }}</span>
+                            </div>
+                            <span class="font-semibold text-gray-900 dark:text-white"
+                                >{{ donutPercentAt(i) }}%</span
+                            >
+                        </div>
+                    </div>
+                </ng-container>
             </div>
         </div>
 
@@ -308,7 +377,72 @@
                 </button>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+                <!-- Empty State -->
+                <div *ngIf="!isLoadingTickets && activities.length === 0" class="flex flex-col items-center justify-center py-16 px-6">
+                    <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gray-100">
+                        <svg class="h-10 w-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                    </div>
+                    <h3 class="mb-1 text-base font-semibold text-gray-900 dark:text-white">
+                        {{ 'TICKETS.MESSAGES.NO_TICKETS_FOUND' | transloco }}
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ 'TICKETS.MESSAGES.NO_TICKETS_DESC' | transloco }}
+                    </p>
+                </div>
+
+                <!-- Loading Skeleton Table -->
+                <table *ngIf="isLoadingTickets" class="w-full text-sm">
+                    <thead>
+                        <tr class="text-secondary border-b bg-gray-50/50 text-xs uppercase">
+                            <th class="px-6 py-3 text-left font-semibold">
+                                {{ 'DASHBOARD.ACTIVITY.TICKET_ID' | transloco }}
+                            </th>
+                            <th class="px-6 py-3 text-left font-semibold">
+                                {{ 'DASHBOARD.ACTIVITY.STATUS' | transloco }}
+                            </th>
+                            <th class="px-6 py-3 text-left font-semibold">
+                                {{ 'DASHBOARD.ACTIVITY.PRIORITY' | transloco }}
+                            </th>
+                            <th class="px-6 py-3 text-left font-semibold">
+                                {{ 'DASHBOARD.ACTIVITY.ASSIGNEE' | transloco }}
+                            </th>
+                            <th class="px-6 py-3 text-left font-semibold">
+                                {{ 'DASHBOARD.ACTIVITY.TIME' | transloco }}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        <tr *ngFor="let i of [1,2,3,4,5,6,7,8]" class="animate-pulse">
+                            <td class="px-6 py-3">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-2 w-2 flex-shrink-0 rounded-full bg-gray-200"></div>
+                                    <div>
+                                        <div class="h-4 w-24 bg-gray-200 rounded mb-1"></div>
+                                        <div class="h-3 w-40 bg-gray-200 rounded"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="h-6 w-20 bg-gray-200 rounded-full"></div>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="h-6 w-20 bg-gray-200 rounded-full"></div>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="h-4 w-24 bg-gray-200 rounded"></div>
+                            </td>
+                            <td class="px-6 py-3">
+                                <div class="h-4 w-20 bg-gray-200 rounded"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- Table with Data -->
+                <table *ngIf="!isLoadingTickets && activities.length > 0" class="w-full text-sm">
                     <thead>
                         <tr
                             class="text-secondary border-b bg-gray-50/50 text-xs uppercase"

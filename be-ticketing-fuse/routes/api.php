@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
@@ -23,6 +24,7 @@ Route::get('settings/application', [SettingController::class, 'getApplicationSet
 Route::post('settings/application', [SettingController::class, 'updateApplicationSetting']);
 Route::get('settings/smtp', [SettingController::class, 'getSmtpSetting']);
 Route::post('settings/smtp', [SettingController::class, 'updateSmtpSetting']);
+Route::get('tickets/counts', [TicketController::class, 'counts']);
 Route::get('tickets/statistics', [TicketController::class, 'statistics']);
 Route::resource('tickets', TicketController::class);
 Route::get('attachments/{id}/view', [AttachmentController::class, 'view']);
@@ -32,3 +34,11 @@ Route::get('comments', [CommentController::class, 'index']);
 Route::post('comments', [CommentController::class, 'store']);
 Route::put('comments/{id}', [CommentController::class, 'update']);
 Route::delete('comments/{id}', [CommentController::class, 'destroy']);
+
+// Approval routes
+Route::get('approvals/{id}', [ApprovalController::class, 'show']);
+Route::get('approvals/my-approvals', [ApprovalController::class, 'myApprovals']);
+Route::put('approval-items/{id}', [ApprovalController::class, 'updateItem']);
+Route::post('approval-items/{itemId}/approve', [ApprovalController::class, 'approve']);
+Route::post('approval-items/{itemId}/reject', [ApprovalController::class, 'reject']);
+Route::post('approvals/{id}/cancel', [ApprovalController::class, 'cancel']);

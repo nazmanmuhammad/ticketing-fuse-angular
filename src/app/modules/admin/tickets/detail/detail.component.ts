@@ -5,14 +5,21 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { TicketService } from '../ticket.service';
-import { catchError, finalize, of, Subject } from 'rxjs';
+import { catchError, finalize, of, Subject, switchMap } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { SnackbarService } from 'app/core/services/snackbar.service';
+import { ConfirmationDialogService } from 'app/core/services/confirmation-dialog.service';
 import { SafePipe } from 'app/shared/pipes/safe.pipe';
 import { UserService } from 'app/core/user/user.service';
+import { TranslocoService } from '@jsverse/transloco';
+import { EditApprovalDialogComponent } from './edit-approval-dialog/edit-approval-dialog.component';
+import { ApprovalNotesDialogComponent } from './approval-notes-dialog/approval-notes-dialog.component';
+import { ApprovalNotesViewDialogComponent } from './approval-notes-view-dialog/approval-notes-view-dialog.component';
 
 interface Comment {
     id: string;
@@ -27,7 +34,7 @@ interface Comment {
 @Component({
     selector: 'app-ticket-detail',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule, SafePipe],
+    imports: [CommonModule, RouterModule, FormsModule, MatButtonModule, MatIconModule, MatMenuModule, MatDividerModule, MatTooltipModule, SafePipe],
     templateUrl: './detail.component.html',
 })
 export class DetailComponent implements OnInit, AfterViewInit {
@@ -102,7 +109,10 @@ export class DetailComponent implements OnInit, AfterViewInit {
         private _snackbar: SnackbarService,
         private _userService: UserService,
         private _httpClient: HttpClient,
-        private _elRef: ElementRef
+        private _elRef: ElementRef,
+        private _confirmDialog: ConfirmationDialogService,
+        private _translocoService: TranslocoService,
+        private _dialog: MatDialog
     ) {
         this.backendApiUrl =
             (globalThis as any)?.__env?.API_URL ||
@@ -754,16 +764,29 @@ export class DetailComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const payload = {
-            close_ticket: true,
-            user_id: this.currentUser.id
-        };
-
-        this._ticketService.updateTicket(this.ticket.id, payload)
+        this._confirmDialog
+            .confirm({
+                title: 'Close Ticket',
+                message: 'Are you sure you want to close this ticket? This action will mark the ticket as completed.',
+                confirmText: 'Yes, Close',
+                cancelText: 'Cancel',
+                type: 'warning'
+            })
             .pipe(
-                catchError((error) => {
-                    console.error('Error closing ticket:', error);
-                    this._snackbar.error('Failed to close ticket');
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        const payload = {
+                            close_ticket: true,
+                            user_id: this.currentUser.id
+                        };
+                        return this._ticketService.updateTicket(this.ticket.id, payload).pipe(
+                            catchError((error) => {
+                                console.error('Error closing ticket:', error);
+                                this._snackbar.error('Failed to close ticket');
+                                return of(null);
+                            })
+                        );
+                    }
                     return of(null);
                 })
             )
@@ -781,22 +804,90 @@ export class DetailComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const payload = {
-            reopen: true,
-            user_id: this.currentUser.id
-        };
+        // Can reopen if status is Closed (3) or Cancelled (4)
+        if (this.ticket.status !== 3 && this.ticket.status !== 4) {
+            this._snackbar.error('Ticket can only be reopened when status is Closed or Cancelled');
+            return;
+        }
 
-        this._ticketService.updateTicket(this.ticket.id, payload)
+        this._confirmDialog
+            .confirm({
+                title: 'Reopen Ticket',
+                message: 'Are you sure you want to reopen this ticket? The ticket status will be changed to Process.',
+                confirmText: 'Yes, Reopen',
+                cancelText: 'Cancel',
+                type: 'info'
+            })
             .pipe(
-                catchError((error) => {
-                    console.error('Error reopening ticket:', error);
-                    this._snackbar.error('Failed to reopen ticket');
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        const payload = {
+                            reopen: true,
+                            user_id: this.currentUser.id
+                        };
+                        return this._ticketService.updateTicket(this.ticket.id, payload).pipe(
+                            catchError((error) => {
+                                console.error('Error reopening ticket:', error);
+                                this._snackbar.error('Failed to reopen ticket');
+                                return of(null);
+                            })
+                        );
+                    }
                     return of(null);
                 })
             )
             .subscribe((response) => {
                 if (response && response.status) {
                     this._snackbar.success('Ticket reopened successfully');
+                    this.loadTicketDetail();
+                }
+            });
+    }
+
+    cancelTicket(): void {
+        if (!this.ticket || !this.currentUser) {
+            this._snackbar.error('Unable to cancel ticket');
+            return;
+        }
+
+        // Only allow cancel if status is NOT Closed (3) or Cancelled (4)
+        if (this.ticket.status === 3 || this.ticket.status === 4) {
+            this._snackbar.error('Ticket can only be cancelled when status is not Closed or Cancelled');
+            return;
+        }
+
+        this._confirmDialog
+            .confirm({
+                title: this._translocoService.translate('TICKETS.MESSAGES.CANCEL_CONFIRM_TITLE'),
+                message: this._translocoService.translate('TICKETS.MESSAGES.CANCEL_CONFIRM_MESSAGE'),
+                confirmText: this._translocoService.translate('TICKETS.BUTTONS.CANCEL_TICKET'),
+                cancelText: this._translocoService.translate('TICKETS.BUTTONS.CANCEL'),
+                type: 'warning'
+            })
+            .pipe(
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        const payload = {
+                            cancel_ticket: true,
+                            user_id: this.currentUser.id
+                        };
+                        return this._ticketService.updateTicket(this.ticket.id, payload).pipe(
+                            catchError((error) => {
+                                console.error('Error cancelling ticket:', error);
+                                this._snackbar.error(
+                                    error?.error?.message ||
+                                        this._translocoService.translate('TICKETS.MESSAGES.CANCEL_FAILED')
+                                );
+                                return of(null);
+                            })
+                        );
+                    }
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success(this._translocoService.translate('TICKETS.MESSAGES.CANCELLED_SUCCESS'));
                     this.loadTicketDetail();
                 }
             });
@@ -812,6 +903,22 @@ export class DetailComponent implements OnInit, AfterViewInit {
                 this.loadTechnicalUsers();
             }
         }
+    }
+
+    canAssignTechnical(): boolean {
+        if (!this.currentUser || !this.ticket) {
+            return false;
+        }
+
+        // If ticket already has pic_technical_id
+        if (this.ticket.pic_technical_id) {
+            // Only the current pic_technical can reassign
+            return this.ticket.pic_technical_id === this.currentUser.id;
+        }
+
+        // If no pic_technical_id, only Agent role can assign
+        // Role: 1 = Agent, 2 = Technical, 3 = Admin
+        return this.currentUser.role === 1;
     }
 
     toggleTechnicalDropdown(): void {
@@ -992,5 +1099,168 @@ export class DetailComponent implements OnInit, AfterViewInit {
         this.selectedTechnical = null;
         this.technicalSearchQuery = '';
         this.technicalDropdownOpen = false;
+    }
+
+    // Check if current user is an approver for this approval item
+    isCurrentUserApprover(approvalItem: any): boolean {
+        if (!this.currentUser || !approvalItem) {
+            return false;
+        }
+        return approvalItem.user_id === this.currentUser.id;
+    }
+
+    // Show approval notes in a dialog
+    showApprovalNotes(approvalItem: any): void {
+        this._dialog.open(ApprovalNotesViewDialogComponent, {
+            width: '550px',
+            data: {
+                approverName: approvalItem.user?.name || 'Unknown',
+                status: approvalItem.status,
+                notes: approvalItem.notes,
+                approvedAt: this.formatDate(approvalItem.approved_at || approvalItem.created_at)
+            }
+        });
+    }
+
+    // Approve ticket
+    approveTicket(approvalItemId: string): void {
+        const dialogRef = this._dialog.open(ApprovalNotesDialogComponent, {
+            width: '550px',
+            data: {
+                title: 'Approve Ticket',
+                message: 'Are you sure you want to approve this ticket?',
+                type: 'approve'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((notes) => {
+            if (notes !== null) {
+                this._handleApprovalAction(approvalItemId, 'approved', notes);
+            }
+        });
+    }
+
+    // Decline ticket
+    declineTicket(approvalItemId: string): void {
+        const dialogRef = this._dialog.open(ApprovalNotesDialogComponent, {
+            width: '550px',
+            data: {
+                title: 'Decline Ticket',
+                message: 'Are you sure you want to decline this ticket?',
+                type: 'decline'
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((notes) => {
+            if (notes !== null) {
+                this._handleApprovalAction(approvalItemId, 'rejected', notes);
+            }
+        });
+    }
+
+    // Handle approval action (approve/decline)
+    private _handleApprovalAction(approvalItemId: string, status: string, notes?: string): void {
+        const payload: any = {
+            status: status,
+            user_id: this.currentUser?.id
+        };
+
+        if (notes) {
+            payload.notes = notes;
+        }
+
+        this._httpClient
+            .put(`${this.backendApiUrl}/approval-items/${approvalItemId}`, payload)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error updating approval:', error);
+                    this._snackbar.error(
+                        error?.error?.message || `Failed to ${status === 'approved' ? 'approve' : 'decline'} ticket`
+                    );
+                    return of(null);
+                })
+            )
+            .subscribe((response: any) => {
+                if (response && response.status) {
+                    this._snackbar.success(
+                        response.message || `Ticket ${status === 'approved' ? 'approved' : 'declined'} successfully`
+                    );
+                    this.loadTicketDetail();
+                }
+            });
+    }
+
+    // Check if current user can edit approval
+    canEditApproval(): boolean {
+        if (!this.currentUser || !this.ticket) {
+            return false;
+        }
+        return this.ticket.pic_technical_id === this.currentUser.id;
+    }
+
+    // Open edit approval dialog
+    editApproval(): void {
+        if (!this.ticket.approval || !this.ticket.approval.items) {
+            this._snackbar.error('No approval found for this ticket');
+            return;
+        }
+
+        const dialogRef = this._dialog.open(EditApprovalDialogComponent, {
+            width: '600px',
+            data: {
+                approvalItems: this.ticket.approval.items,
+                backendApiUrl: this.backendApiUrl,
+                hrisApiUrl: this.hrisApiUrl
+            }
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result && result.length > 0) {
+                // User clicked Save with approvers
+                this.saveApprovers(result);
+            }
+        });
+    }
+
+    // Save approvers (called from dialog result)
+    private saveApprovers(approvers: any[]): void {
+        if (approvers.length === 0) {
+            this._snackbar.error('Please add at least one approver');
+            return;
+        }
+
+        const payload = {
+            approval_required: '1',
+            approver_ids: JSON.stringify(
+                approvers.map(a => ({
+                    user_id: a.id,
+                    level: a.level
+                }))
+            ),
+            user_id: this.currentUser?.id
+        };
+
+        this._ticketService
+            .updateTicket(this.ticket.id, payload)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error updating approvers:', error);
+                    this._snackbar.error(
+                        error?.error?.message || 'Failed to update approvers'
+                    );
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success('Approvers updated successfully');
+                    this.loadTicketDetail();
+                }
+            });
+    }
+
+    getAvatarColor(name: string): string {
+        const index = name?.charCodeAt(0) % this.avatarColors.length || 0;
+        return this.avatarColors[index];
     }
 }

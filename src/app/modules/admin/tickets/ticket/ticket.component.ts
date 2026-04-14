@@ -157,7 +157,7 @@ export class TicketComponent implements OnInit {
     itemsPerPage = 10;
     currentPage = 1;
     activeActionId: string | null = null;
-    activeTab: 'all' | 'assigned' = 'all';
+    activeTab: 'all' | 'assigned' = 'assigned';
     currentUser: any = null;
     isLoading = false;
     tickets: Ticket[] = [];
@@ -179,6 +179,7 @@ export class TicketComponent implements OnInit {
         { label: 'Process', value: '1' },
         { label: 'Resolved', value: '2' },
         { label: 'Closed', value: '3' },
+        { label: 'Cancelled', value: '4' },
     ];
 
     stats = [
@@ -309,6 +310,7 @@ export class TicketComponent implements OnInit {
             { label: this._translocoService.translate('TICKETS.STATUS.PROCESS'), value: '1' },
             { label: this._translocoService.translate('TICKETS.STATUS.RESOLVED'), value: '2' },
             { label: this._translocoService.translate('TICKETS.STATUS.CLOSED'), value: '3' },
+            { label: this._translocoService.translate('TICKETS.STATUS.CANCELLED'), value: '4' },
         ];
 
         // Update stats - preserve existing values
@@ -385,7 +387,7 @@ export class TicketComponent implements OnInit {
             if (roleName === 'agent') {
                 params.role = 'agent';
                 if (this.activeTab === 'assigned') {
-                    params.pic_helpdesk_id = this.currentUser.id;
+                    params.pic_id = this.currentUser.id;
                 }
             } else if (roleName === 'technical') {
                 params.role = 'technical';
@@ -395,7 +397,7 @@ export class TicketComponent implements OnInit {
             } else if (roleName === 'user') {
                 params.role = 'user';
                 if (this.activeTab === 'assigned') {
-                    params.requester_id = this.currentUser.id;
+                    params.pic_id = this.currentUser.id;
                 }
             }
         }
@@ -555,6 +557,46 @@ toggleFilter(): void {
             });
     }
 
+    cancelTicket(id: string): void {
+        this._confirmDialog
+            .confirm({
+                title: this._translocoService.translate('TICKETS.MESSAGES.CANCEL_CONFIRM_TITLE'),
+                message: this._translocoService.translate('TICKETS.MESSAGES.CANCEL_CONFIRM_MESSAGE'),
+                confirmText: this._translocoService.translate('TICKETS.BUTTONS.CANCEL_TICKET'),
+                cancelText: this._translocoService.translate('TICKETS.BUTTONS.CANCEL'),
+                type: 'warning'
+            })
+            .pipe(
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        // Call update API with cancel_ticket flag
+                        const payload = {
+                            cancel_ticket: true,
+                            user_id: this.currentUser?.id
+                        };
+                        return this._ticketService.updateTicket(id, payload).pipe(
+                            catchError((error) => {
+                                console.error('Error cancelling ticket:', error);
+                                this._snackbar.error(
+                                    error?.error?.message ||
+                                        this._translocoService.translate('TICKETS.MESSAGES.CANCEL_FAILED')
+                                );
+                                return of(null);
+                            })
+                        );
+                    }
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success(this._translocoService.translate('TICKETS.MESSAGES.CANCELLED_SUCCESS'));
+                    this.loadTickets();
+                    this.loadStatistics();
+                }
+            });
+    }
+
     get countAll(): number {
         return this.totalItems;
     }
@@ -569,7 +611,8 @@ toggleFilter(): void {
             0: 'text-gray-600 bg-gray-50 border border-gray-200', // Pending
             1: 'text-blue-600 bg-blue-50 border border-blue-200', // Process
             2: 'text-green-600 bg-green-50 border border-green-200', // Resolved
-            3: 'text-gray-500 bg-gray-100 border border-gray-200', // Closed
+            3: 'text-green-500 bg-green-100 border border-green-200', // Closed
+            4: 'text-red-600 bg-red-50 border border-red-200', // Cancelled
         };
         return statusMap[status] || statusMap[0];
     }
@@ -698,5 +741,50 @@ toggleFilter(): void {
     getDescriptionTooltip(description: string): string {
         const length = description.length;
         return `${description}\n\n(${length} characters)`;
+    }
+
+    // Check if user can edit or cancel ticket
+    canEditOrCancel(ticket: Ticket): boolean {
+        if (!this.currentUser || !ticket) {
+            return false;
+        }
+
+        // Only show buttons if status is Pending (0)
+        if (ticket.status !== 0) {
+            return false;
+        }
+
+        // Check if user role is Agent
+        const isAgent = this.currentUser.role_name?.toLowerCase() === 'agent';
+
+        // Check if ticket has pic_helpdesk_id
+        const hasPicHelpdesk = !!ticket.pic_helpdesk_id;
+
+        // Show buttons if user is Agent OR ticket has pic_helpdesk_id
+        return isAgent || hasPicHelpdesk;
+    }
+
+    // Check if user can cancel ticket
+    canCancel(ticket: Ticket): boolean {
+        if (!this.currentUser || !ticket) {
+            return false;
+        }
+
+        // Cannot cancel if ticket is already closed (status = 3) or cancelled (status = 4)
+        if (ticket.status === 3 || ticket.status === 4) {
+            return false;
+        }
+
+        // Can cancel if status is Pending (0), Process (1), or Resolved (2)
+        // Only cannot cancel if Closed (3) or already Cancelled (4)
+
+        // Check if user role is Agent
+        const isAgent = this.currentUser.role_name?.toLowerCase() === 'agent';
+
+        // Check if ticket has pic_helpdesk_id
+        const hasPicHelpdesk = !!ticket.pic_helpdesk_id;
+
+        // Show cancel button if user is Agent OR ticket has pic_helpdesk_id
+        return isAgent || hasPicHelpdesk;
     }
 }

@@ -2,6 +2,11 @@ import { Routes } from '@angular/router';
 
 const routes: Routes = [
     {
+        path: '',
+        redirectTo: 'data',
+        pathMatch: 'full',
+    },
+    {
         path: 'dashboard', // ← SPECIFIC path, bukan root
         loadComponent: () =>
             import('./dashboard/dashboard.component').then(

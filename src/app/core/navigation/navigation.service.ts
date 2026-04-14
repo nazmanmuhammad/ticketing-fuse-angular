@@ -4,19 +4,21 @@ import { FuseNavigationItem } from '@fuse/components/navigation';
 import { Navigation } from 'app/core/navigation/navigation.types';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
+import { TicketService } from 'app/modules/admin/tickets/ticket.service';
 import { Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class NavigationService {
     private _httpClient = inject(HttpClient);
     private _userService = inject(UserService);
+    private _ticketService = inject(TicketService);
     private _navigation: ReplaySubject<Navigation> =
         new ReplaySubject<Navigation>(1);
     private _requestCounts = {
-        tickets: 12,
-        access: 8,
-        change: 5,
-        job: 3,
+        tickets: 0,
+        access: 0,
+        change: 0,
+        job: 0,
     };
 
     // -----------------------------------------------------------------------------------------------------
@@ -45,16 +47,147 @@ export class NavigationService {
                     .get<Navigation>('api/common/navigation')
                     .pipe(
                         tap((navigation) => {
+                            // Deep clone to avoid reference issues
+                            const clonedNavigation = JSON.parse(JSON.stringify(navigation));
                             const filteredNavigation =
                                 this._filterNavigationByRole(
-                                    navigation,
+                                    clonedNavigation,
                                     user?.role_name
                                 );
                             this._navigation.next(filteredNavigation);
+                            
+                            // Load ticket counts after navigation is set
+                            this.loadTicketCounts(user);
                         })
                     )
             )
         );
+    }
+    
+    /**
+     * Load ticket counts from API
+     */
+    loadTicketCounts(user: User): void {
+        if (!user) {
+            console.log('[NavigationService] No user provided');
+            return;
+        }
+        
+        const params: any = {
+            role: user.role_name?.toLowerCase()
+        };
+        
+        // Add role-specific params
+        if (params.role === 'agent') {
+            params.user_id = user.id;
+        } else if (params.role === 'technical') {
+            params.user_id = user.id;
+        } else if (params.role === 'user') {
+            params.requester_id = user.hris_user_id;
+        }
+        
+        console.log('[NavigationService] Loading ticket counts with params:', params);
+        
+        this._ticketService.getCounts(params).subscribe({
+            next: (response: any) => {
+                console.log('[NavigationService] Ticket counts response:', response);
+                
+                if (response.status && typeof response.data === 'number') {
+                    // Update tickets count with pending count
+                    this._requestCounts.tickets = response.data;
+                    console.log('[NavigationService] Updated ticket count to:', response.data);
+                    
+                    // Get current navigation and update badge
+                    this._navigation.pipe(take(1)).subscribe((currentNav) => {
+                        if (currentNav) {
+                            console.log('[NavigationService] Current navigation before update:', currentNav);
+                            
+                            // Create a deep clone to trigger change detection
+                            const updatedNav = {
+                                default: this._updateTicketBadgeInArray([...currentNav.default], response.data),
+                                compact: this._updateTicketBadgeInArray([...currentNav.compact], response.data),
+                                futuristic: this._updateTicketBadgeInArray([...currentNav.futuristic], response.data),
+                                horizontal: this._updateTicketBadgeInArray([...currentNav.horizontal], response.data),
+                            };
+                            
+                            console.log('[NavigationService] Updated navigation:', updatedNav);
+                            
+                            // Emit updated navigation
+                            this._navigation.next(updatedNav);
+                        }
+                    });
+                } else {
+                    console.warn('[NavigationService] Invalid response format:', response);
+                }
+            },
+            error: (error) => {
+                console.error('[NavigationService] Error loading ticket counts:', error);
+            }
+        });
+    }
+    
+    /**
+     * Update ticket badge in navigation items array (returns new array)
+     */
+    private _updateTicketBadgeInArray(items: FuseNavigationItem[], count: number): FuseNavigationItem[] {
+        if (!items) return items;
+        
+        return items.map(item => {
+            const updatedItem = { ...item };
+            
+            if (updatedItem.id === 'tickets' && updatedItem.badge) {
+                updatedItem.badge = {
+                    ...updatedItem.badge,
+                    title: count.toString()
+                };
+                console.log('[NavigationService] Updated tickets badge to:', count);
+            }
+            
+            // Also check for user_requests.tickets for user role
+            if (updatedItem.id === 'user_requests' && updatedItem.children) {
+                updatedItem.children = updatedItem.children.map(child => {
+                    const updatedChild = { ...child };
+                    if (updatedChild.id === 'user_requests.tickets' && updatedChild.badge) {
+                        updatedChild.badge = {
+                            ...updatedChild.badge,
+                            title: count.toString()
+                        };
+                        console.log('[NavigationService] Updated user_requests.tickets badge to:', count);
+                    }
+                    return updatedChild;
+                });
+                
+                // Update parent badge total
+                if (updatedItem.badge) {
+                    const totalCount = this._requestCounts.tickets + 
+                                     this._requestCounts.access + 
+                                     this._requestCounts.change + 
+                                     this._requestCounts.job;
+                    updatedItem.badge = {
+                        ...updatedItem.badge,
+                        title: totalCount.toString()
+                    };
+                }
+            }
+            
+            // Recursively update children
+            if (updatedItem.children) {
+                updatedItem.children = this._updateTicketBadgeInArray(updatedItem.children, count);
+            }
+            
+            return updatedItem;
+        });
+    }
+    
+    /**
+     * Refresh ticket counts
+     */
+    refreshTicketCounts(): void {
+        this._userService.user$.pipe(take(1)).subscribe((user) => {
+            if (user) {
+                this.loadTicketCounts(user);
+            }
+        });
     }
 
     private _filterNavigationByRole(

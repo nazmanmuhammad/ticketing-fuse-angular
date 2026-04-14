@@ -190,4 +190,27 @@ export class TicketService {
         const url = `${this.apiUrl}/users?role=${role}`;
         return this._httpClient.get<TicketResponse>(url);
     }
+    
+    /**
+     * Get ticket counts for mini sidebar badges
+     */
+    getCounts(params?: {
+        role?: string;
+        user_id?: string;
+        requester_id?: string | number;
+    }): Observable<any> {
+        const url = `${this.apiUrl}/tickets/counts`;
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach((key) => {
+                const value = params[key];
+                if (value !== undefined && value !== null) {
+                    httpParams = httpParams.set(key, value.toString());
+                }
+            });
+        }
+
+        return this._httpClient.get<any>(url, { params: httpParams });
+    }
 }

@@ -33,10 +33,22 @@ class Ticket extends Model
         'pic_technical_id',
         'pic_helpdesk_id',
         'status',
+        'start_date',
+        'end_date',
+        'response',
+        'internal_note',
+        'mark_internal',
+        'approval_required',
+        'close_on_response',
     ];
 
     protected $casts = [
-        'status' => 'integer'
+        'status' => 'integer',
+        'mark_internal' => 'boolean',
+        'approval_required' => 'boolean',
+        'close_on_response' => 'boolean',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     protected $appends = ['status_name'];
@@ -82,6 +94,11 @@ class Ticket extends Model
             ->whereNull('parent_id') // Only get top-level comments
             ->with(['user', 'attachments', 'replies'])
             ->orderBy('created_at', 'desc');
+    }
+
+    public function approval()
+    {
+        return $this->morphOne(Approval::class, 'approvable');
     }
 
     /**

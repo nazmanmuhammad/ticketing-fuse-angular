@@ -223,13 +223,150 @@
                     <button 
                         mat-menu-item
                         (click)="reopenTicket()"
-                        [disabled]="ticket.status !== 3"
+                        [disabled]="ticket.status !== 3 && ticket.status !== 4"
                     >
                         <mat-icon class="icon-size-5">refresh</mat-icon>
                         <span>Reopen Ticket</span>
                     </button>
+
+                    <!-- Cancel Ticket -->
+                    <button 
+                        mat-menu-item
+                        (click)="cancelTicket()"
+                        [disabled]="ticket.status === 3 || ticket.status === 4"
+                        class="text-orange-600"
+                    >
+                        <mat-icon class="icon-size-5">cancel</mat-icon>
+                        <span>Cancel Ticket</span>
+                    </button>
+
+                    <mat-divider></mat-divider>
+
+                    <!-- Edit Approval -->
+                    <button 
+                        mat-menu-item
+                        (click)="editApproval()"
+                        [disabled]="!canEditApproval()"
+                        class="text-purple-600"
+                    >
+                        <mat-icon class="icon-size-5">edit</mat-icon>
+                        <span>Edit Approval</span>
+                    </button>
                 </mat-menu>
             </div>
+
+            <!-- Approval Section -->
+            <div
+                class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
+                *ngIf="ticket.approval && ticket.approval.items && ticket.approval.items.length > 0"
+            >
+                <div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+                    <h3 class="text-base font-bold uppercase tracking-wide text-gray-700">APPROVALS</h3>
+                    <span class="text-sm text-blue-600">{{ ticket.created_at | date:'dd-MM-yyyy HH:mm' }}</span>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div *ngFor="let item of ticket.approval.items" class="flex items-start gap-3">
+                        <!-- Avatar -->
+                        <div class="relative h-12 w-12 flex-shrink-0">
+                            <img
+                                *ngIf="item.user?.photo"
+                                [src]="getAvatarUrl(item.user.photo)"
+                                [alt]="item.user?.name"
+                                class="h-full w-full rounded-full object-cover"
+                            />
+                            <div
+                                *ngIf="!item.user?.photo"
+                                class="flex h-full w-full items-center justify-center rounded-full text-sm font-bold text-white"
+                                [ngClass]="getAvatarColor(item.user?.name || '')"
+                            >
+                                {{ item.user?.name?.charAt(0) || '?' }}
+                            </div>
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-semibold text-gray-900 text-sm">{{ item.user?.name || 'Unknown' }}</h4>
+                            <p class="text-xs text-gray-500">{{ item.user?.department_id || 'N/A' }}</p>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                {{ (item.approved_at || item.created_at) | date:'EEE, dd-MMM-yy HH:mm' }}
+                            </p>
+                            
+                            <!-- Status Badge & Notes Icon -->
+                            <div class="mt-2 flex items-center gap-2">
+                                <!-- Status Badge with Circle Icon and Text -->
+                                <span 
+                                    class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase"
+                                    [ngClass]="{
+                                        'bg-yellow-100 text-yellow-700': item.status === 'pending',
+                                        'bg-green-100 text-green-700': item.status === 'approved',
+                                        'bg-red-100 text-red-700': item.status === 'rejected'
+                                    }"
+                                >
+                                    <!-- Circle Icon for pending -->
+                                    <span 
+                                        *ngIf="item.status === 'pending'"
+                                        class="flex h-4 w-4 items-center justify-center rounded-full bg-yellow-500"
+                                    >
+                                        <svg class="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </span>
+                                    <!-- Circle Icon for approved -->
+                                    <span 
+                                        *ngIf="item.status === 'approved'"
+                                        class="flex h-4 w-4 items-center justify-center rounded-full bg-green-500"
+                                    >
+                                        <svg class="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </span>
+                                    <!-- Circle Icon for rejected -->
+                                    <span 
+                                        *ngIf="item.status === 'rejected'"
+                                        class="flex h-4 w-4 items-center justify-center rounded-full bg-red-500"
+                                    >
+                                        <svg class="h-2.5 w-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </span>
+                                    {{ item.status }}
+                                </span>
+                                
+                                <!-- Notes Icon -->
+                                <button 
+                                    *ngIf="item.notes"
+                                    (click)="showApprovalNotes(item)"
+                                    class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition hover:bg-gray-300"
+                                    matTooltip="View notes"
+                                >
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            
+                            <!-- Approve/Decline Buttons -->
+                            <div *ngIf="item.status === 'pending' && isCurrentUserApprover(item)" class="mt-2 flex gap-2">
+                                <button
+                                    (click)="approveTicket(item.id)"
+                                    class="flex-1 rounded bg-green-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-green-600"
+                                >
+                                    Approve
+                                </button>
+                                <button
+                                    (click)="declineTicket(item.id)"
+                                    class="flex-1 rounded bg-red-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-600"
+                                >
+                                    Decline
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
 
             <!-- Ticket Info Card -->
             <div
@@ -249,15 +386,17 @@
                     </div>
                     <div class="text-right">
                         <div
-                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1"
+                            class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1"
                             [ngClass]="{
                                 'bg-yellow-50 text-yellow-700 ring-yellow-200': ticket.status === 0,
                                 'bg-blue-50 text-blue-700 ring-blue-200': ticket.status === 1,
                                 'bg-green-50 text-green-700 ring-green-200': ticket.status === 2,
-                                'bg-gray-50 text-gray-700 ring-gray-200': ticket.status === 3
+                                'bg-gray-50 text-gray-700 ring-gray-200': ticket.status === 3,
+                                'bg-red-50 text-red-700 ring-red-200': ticket.status === 4
                             }"
                         >
                             <span
+                                *ngIf="ticket.status !== 4"
                                 class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full"
                                 [ngClass]="{
                                     'bg-yellow-400': ticket.status === 0,
@@ -266,6 +405,9 @@
                                     'bg-gray-400': ticket.status === 3
                                 }"
                             ></span>
+                            <svg *ngIf="ticket.status === 4" class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                             {{ ticket.status_name }}
                         </div>
                     </div>
@@ -756,10 +898,12 @@
                                 'bg-yellow-50 text-yellow-700 ring-yellow-200': ticket.status === 0,
                                 'bg-blue-50 text-blue-700 ring-blue-200': ticket.status === 1,
                                 'bg-green-50 text-green-700 ring-green-200': ticket.status === 2,
-                                'bg-gray-50 text-gray-700 ring-gray-200': ticket.status === 3
+                                'bg-gray-50 text-gray-700 ring-gray-200': ticket.status === 3,
+                                'bg-red-50 text-red-700 ring-red-200': ticket.status === 4
                             }"
                         >
                             <span
+                                *ngIf="ticket.status !== 4"
                                 class="inline-block h-1.5 w-1.5 rounded-full"
                                 [ngClass]="{
                                     'bg-yellow-400': ticket.status === 0,
@@ -768,6 +912,9 @@
                                     'bg-gray-400': ticket.status === 3
                                 }"
                             ></span>
+                            <svg *ngIf="ticket.status === 4" class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
                             {{ ticket.status_name }}
                         </span>
                     </div>
@@ -837,7 +984,7 @@
                                 {{ ticket.pic_technical ? 'Technical' : 'Assign Technical' }}
                             </div>
                             <button 
-                                *ngIf="!showAssignTechnical && ticket.status !== 3"
+                                *ngIf="!showAssignTechnical && ticket.status !== 3 && canAssignTechnical()"
                                 (click)="toggleAssignTechnical()"
                                 class="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition">
                                 {{ ticket.pic_technical ? 'Assign New PIC' : 'Assign' }}

@@ -31,6 +31,18 @@ return new class extends Migration
             $table->foreignUuid('pic_technical_id')->nullable();
             $table->string('pic_helpdesk_id')->nullable();
             $table->integer('status')->default(0);
+            $table->datetime('start_date')->nullable();
+            $table->datetime('end_date')->nullable();
+            
+            // Response & Notes fields
+            $table->text('response')->nullable();
+            $table->text('internal_note')->nullable();
+            $table->boolean('mark_internal')->default(false);
+            
+            // Approval & Close fields
+            $table->boolean('approval_required')->default(false);
+            $table->boolean('close_on_response')->default(false);
+            
             $table->timestamps();
             $table->softDeletes();
         });

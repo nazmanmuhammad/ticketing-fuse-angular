@@ -3,6 +3,21 @@
     "Project": "Project",
     "Analytics": "Analytics",
     
+    "MONTHS": {
+        "JANUARY": "January",
+        "FEBRUARY": "February",
+        "MARCH": "March",
+        "APRIL": "April",
+        "MAY": "May",
+        "JUNE": "June",
+        "JULY": "July",
+        "AUGUST": "August",
+        "SEPTEMBER": "September",
+        "OCTOBER": "October",
+        "NOVEMBER": "November",
+        "DECEMBER": "December"
+    },
+    
     "NAVIGATION": {
         "DASHBOARD": "Dashboard",
         "TASK": "Task",
@@ -87,6 +102,7 @@
             "UPDATE_TICKET": "Update Ticket",
             "SAVE_FORM": "Save Form",
             "CANCEL": "Cancel",
+            "CANCEL_TICKET": "Cancel Ticket",
             "SUBMITTING": "Submitting...",
             "UPDATING": "Updating..."
         },
@@ -100,6 +116,10 @@
             "SEARCH": "Search",
             "SEARCH_PLACEHOLDER": "Search tickets...",
             "PERIOD": "Period",
+            "MONTH": "Month",
+            "MONTH_DESC": "Filter stats, priority & recent activities",
+            "YEAR": "Year",
+            "YEAR_DESC": "Filter all data including trends",
             "START_DATE": "Start Date",
             "END_DATE": "End Date",
             "STATUS": "Status",
@@ -203,9 +223,10 @@
         "STATUS": {
             "ALL": "All Status",
             "PENDING": "Pending",
-            "PROCESS": "Process",
+            "PROCESSING": "Process",
             "RESOLVED": "Resolved",
-            "CLOSED": "Closed"
+            "CLOSED": "Closed",
+            "CANCELLED": "Cancelled"
         },
         "SOURCES": {
             "EMAIL": "Email",
@@ -239,12 +260,19 @@
             "CREATED_SUCCESS": "Ticket created successfully!",
             "UPDATED_SUCCESS": "Ticket updated successfully!",
             "DELETED_SUCCESS": "Ticket deleted successfully",
+            "CANCELLED_SUCCESS": "Ticket cancelled successfully",
             "CREATE_FAILED": "Failed to create ticket. Please try again.",
             "UPDATE_FAILED": "Failed to update ticket. Please try again.",
             "DELETE_FAILED": "Failed to delete ticket",
+            "CANCEL_FAILED": "Failed to cancel ticket",
             "LOAD_FAILED": "Failed to load tickets",
             "NOT_FOUND": "Ticket not found",
-            "INVALID_ID": "Invalid ticket ID"
+            "INVALID_ID": "Invalid ticket ID",
+            "FORM_RESET": "Form has been reset successfully",
+            "NO_TICKETS_FOUND": "No Tickets Found",
+            "NO_TICKETS_DESC": "There are no tickets to display at the moment",
+            "CANCEL_CONFIRM_TITLE": "Cancel Ticket",
+            "CANCEL_CONFIRM_MESSAGE": "Are you sure you want to cancel this ticket? This action cannot be undone."
         },
         "CONFIRM": {
             "DELETE_TITLE": "Delete Ticket",

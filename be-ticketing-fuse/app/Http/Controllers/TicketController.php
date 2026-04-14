@@ -11,8 +11,7 @@ use App\Models\User;
 use App\TicketStatusEnum;
 use App\UserRoleEnum;
 use Illuminate\Http\Request;
-
-use function Symfony\Component\Clock\now;
+use Carbon\Carbon;
 
 class TicketController extends Controller
 {
@@ -35,7 +34,22 @@ class TicketController extends Controller
             $query->where('requester_id', $request->requester_id);
         }
 
-        // Get counts by status
+        // Get filter parameters (default to current month/year)
+        $currentMonth = $request->month ?? date('m');
+        $currentYear = $request->year ?? date('Y');
+        $lastMonth = $currentMonth == 1 ? 12 : $currentMonth - 1;
+        $lastMonthYear = $currentMonth == 1 ? $currentYear - 1 : $currentYear;
+
+        // Helper function to calculate percentage change
+        $calculateChange = function($current, $previous) {
+            if ($previous == 0) {
+                return $current > 0 ? '+100' : '0';
+            }
+            $change = (($current - $previous) / $previous) * 100;
+            return ($change >= 0 ? '+' : '') . number_format($change, 1);
+        };
+
+        // Get counts by status - Current Month
         $newTickets = (clone $query)->where('status', TicketStatusEnum::PENDING->value)
             ->whereDate('created_at', today())
             ->count();
@@ -48,9 +62,122 @@ class TicketController extends Controller
         ])->count();
 
         $closedTickets = (clone $query)->where('status', TicketStatusEnum::CLOSED->value)
-            ->whereMonth('created_at', date('m'))
-            ->whereYear('created_at', date('Y'))
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
             ->count();
+        
+        $resolvedTickets = (clone $query)->where('status', TicketStatusEnum::RESOLVED->value)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+        
+        // Get counts for LAST MONTH for comparison
+        $closedTicketsLastMonth = (clone $query)->where('status', TicketStatusEnum::CLOSED->value)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+        
+        $resolvedTicketsLastMonth = (clone $query)->where('status', TicketStatusEnum::RESOLVED->value)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+        
+        // Count tickets by priority - filtered by month/year
+        $priorityStats = [
+            'emergency' => (clone $query)->where('priority', 4)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'high' => (clone $query)->where('priority', 3)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'medium' => (clone $query)->where('priority', 2)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'low' => (clone $query)->where('priority', 1)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+        ];
+        
+        // Count reopened tickets - Current Month
+        $reopenedCount = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                $q->select('id')->from((clone $query)->getQuery());
+            })
+            ->where('action', 'reopened')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->distinct('ticket_id')
+            ->count('ticket_id');
+        
+        // Count reopened tickets - Last Month
+        $reopenedCountLastMonth = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                $q->select('id')->from((clone $query)->getQuery());
+            })
+            ->where('action', 'reopened')
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->distinct('ticket_id')
+            ->count('ticket_id');
+        
+        // Count transferred tickets - Current Month
+        $transferredCount = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                $q->select('id')->from((clone $query)->getQuery());
+            })
+            ->where('action', 'reassigned')
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->distinct('ticket_id')
+            ->count('ticket_id');
+        
+        // Count transferred tickets - Last Month
+        $transferredCountLastMonth = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                $q->select('id')->from((clone $query)->getQuery());
+            })
+            ->where('action', 'reassigned')
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->distinct('ticket_id')
+            ->count('ticket_id');
+        
+        // Count overdue tickets - Current Month
+        $overdueCount = (clone $query)->whereIn('status', [
+                TicketStatusEnum::RESOLVED->value,
+                TicketStatusEnum::CLOSED->value
+            ])
+            ->whereNotNull('end_date')
+            ->whereRaw('updated_at > end_date')
+            ->whereMonth('updated_at', $currentMonth)
+            ->whereYear('updated_at', $currentYear)
+            ->count();
+        
+        // Count overdue tickets - Last Month
+        $overdueCountLastMonth = (clone $query)->whereIn('status', [
+                TicketStatusEnum::RESOLVED->value,
+                TicketStatusEnum::CLOSED->value
+            ])
+            ->whereNotNull('end_date')
+            ->whereRaw('updated_at > end_date')
+            ->whereMonth('updated_at', $lastMonth)
+            ->whereYear('updated_at', $lastMonthYear)
+            ->count();
+        
+        // Count created tickets this month
+        $createdThisMonth = (clone $query)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+        
+        // Count created tickets last month
+        $createdLastMonth = (clone $query)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+        
+        // Get trends data for the selected year (12 months)
+        $trendsData = $this->getTicketTrends($query, $currentYear);
 
         return response()->json([
             'status' => true,
@@ -60,8 +187,122 @@ class TicketController extends Controller
                 'pending' => $pendingTickets,
                 'open' => $openTickets,
                 'closed_this_month' => $closedTickets,
+                'resolved' => $resolvedTickets,
+                'reopened' => $reopenedCount,
+                'transferred' => $transferredCount,
+                'overdue' => $overdueCount,
+                'created_this_month' => $createdThisMonth,
+                'priority' => $priorityStats,
+                // Comparison data
+                'comparison' => [
+                    'created' => $calculateChange($createdThisMonth, $createdLastMonth),
+                    'closed' => $calculateChange($closedTickets, $closedTicketsLastMonth),
+                    'reopened' => $calculateChange($reopenedCount, $reopenedCountLastMonth),
+                    'transferred' => $calculateChange($transferredCount, $transferredCountLastMonth),
+                    'overdue' => $calculateChange($overdueCount, $overdueCountLastMonth),
+                ],
+                // Trends data
+                'trends' => $trendsData,
             ],
         ]);
+    }
+    
+    /**
+     * Get ticket trends for the selected year (12 months or up to current month)
+     */
+    private function getTicketTrends($query, $year)
+    {
+        $months = [];
+        $created = [];
+        $assigned = [];
+        $closed = [];
+        $overdue = [];
+        $reopened = [];
+        $transferred = [];
+        
+        // Determine the end month
+        $currentYear = (int) date('Y');
+        $currentMonth = (int) date('m');
+        
+        // If selected year is current year, only show up to current month
+        // Otherwise show all 12 months
+        $endMonth = ($year == $currentYear) ? $currentMonth : 12;
+        
+        // Get data for months 1 to endMonth
+        for ($monthNum = 1; $monthNum <= $endMonth; $monthNum++) {
+            $date = Carbon::create($year, $monthNum, 1);
+            $month = $date->format('M');
+            
+            $months[] = $month;
+            
+            // Created tickets - based on ticket creation date
+            $created[] = (clone $query)
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)
+                ->count();
+            
+            // Assigned tickets - based on ticket_tracks with 'assigned' action
+            $assigned[] = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                    $q->select('id')->from((clone $query)->getQuery());
+                })
+                ->where('action', 'assigned')
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)
+                ->distinct('ticket_id')
+                ->count('ticket_id');
+            
+            // Closed tickets - based on when status changed to closed
+            $closed[] = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                    $q->select('id')->from((clone $query)->getQuery());
+                })
+                ->where('action', 'closed')
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)
+                ->distinct('ticket_id')
+                ->count('ticket_id');
+            
+            // Overdue tickets - tickets that were completed after end_date
+            $overdue[] = (clone $query)
+                ->whereIn('status', [
+                    TicketStatusEnum::RESOLVED->value,
+                    TicketStatusEnum::CLOSED->value
+                ])
+                ->whereNotNull('end_date')
+                ->whereRaw('updated_at > end_date')
+                ->whereMonth('updated_at', $monthNum)
+                ->whereYear('updated_at', $year)
+                ->count();
+            
+            // Reopened tickets - based on ticket_tracks with 'reopened' action
+            $reopened[] = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                    $q->select('id')->from((clone $query)->getQuery());
+                })
+                ->where('action', 'reopened')
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)
+                ->distinct('ticket_id')
+                ->count('ticket_id');
+            
+            // Transferred tickets - based on ticket_tracks with 'reassigned' action
+            $transferred[] = TicketTrack::whereIn('ticket_id', function($q) use ($query) {
+                    $q->select('id')->from((clone $query)->getQuery());
+                })
+                ->where('action', 'reassigned')
+                ->whereMonth('created_at', $monthNum)
+                ->whereYear('created_at', $year)
+                ->distinct('ticket_id')
+                ->count('ticket_id');
+        }
+        
+        return [
+            'months' => $months,
+            'created' => $created,
+            'assigned' => $assigned,
+            'closed' => $closed,
+            'overdue' => $overdue,
+            'reopened' => $reopened,
+            'transferred' => $transferred,
+        ];
     }
 
     public function index(Request $request)
@@ -73,7 +314,17 @@ class TicketController extends Controller
 
         $query = Ticket::query();
         $this->applyFilters($query, $request);
-        $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk'])
+        
+        // Apply month/year filter if provided
+        if ($request->has('month') && $request->has('year')) {
+            $query->whereMonth('created_at', $request->month)
+                  ->whereYear('created_at', $request->year);
+        }
+        
+        $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk']);
+
+        if ($request->pic_id) {
+            $data = $data
                 ->when($request->role === 'agent', function($q) use($request) {
                     $q->where('pic_helpdesk_id', $request->user_id);
                 })
@@ -82,8 +333,10 @@ class TicketController extends Controller
                 })
                 ->when($request->role === 'user', function($q) use($request) {
                     $q->where('requester_id', $request->user_id);
-                })
-                ->orderByDesc('created_at')->paginate($perPage)->appends($request->query());
+                });
+        }
+
+        $data = $data->orderByDesc('created_at')->paginate($perPage)->appends($request->query());
 
         return response()->json([
             'status'  => true,
@@ -158,7 +411,10 @@ class TicketController extends Controller
         $data['ticket_number'] = Ticket::generateTicketNumber();
 
         // default status
-        $data['status'] = \App\TicketStatusEnum::PENDING->value;
+        if(!$request->close_on_response)
+        {
+            $data['status'] = \App\TicketStatusEnum::PENDING->value;
+        }
 
         // USER buat ticket
         if ($request->role === 'user') {
@@ -175,6 +431,11 @@ class TicketController extends Controller
                     'message' => 'Requester wajib diisi'
                 ], 422);
             }
+        }
+
+        if($request->close_on_response)
+        {
+            $data['status'] = \App\TicketStatusEnum::CLOSED->value;
         }
 
         $ticket = Ticket::create($data);
@@ -231,6 +492,91 @@ class TicketController extends Controller
             }
         }
 
+        // Handle approvers if approval is required
+        \Log::info('Approval Debug', [
+            'approval_required' => $request->approval_required,
+            'approver_ids' => $request->approver_ids,
+            'has_approver_ids' => $request->has('approver_ids'),
+            'all_request' => $request->all()
+        ]);
+
+        if ($request->approval_required == '1' && $request->has('approver_ids') && $request->approver_ids) {
+            $approverIds = is_string($request->approver_ids) 
+                ? json_decode($request->approver_ids, true) 
+                : $request->approver_ids;
+            
+            \Log::info('Approver IDs decoded', ['approverIds' => $approverIds]);
+            
+            if (is_array($approverIds) && count($approverIds) > 0) {
+                // Get the actual user UUID for requested_by
+                $requestedByUserId = null;
+                if ($request->role === 'agent') {
+                    $requestedByUserId = $request->pic_helpdesk_id;
+                } elseif ($request->role === 'user' && $request->requester_id) {
+                    // Find user by hris_user_id to get UUID
+                    $requesterUser = User::where('hris_user_id', $request->requester_id)->first();
+                    $requestedByUserId = $requesterUser ? $requesterUser->id : null;
+                } elseif ($request->user_id) {
+                    // Fallback to user_id if provided
+                    $requestedByUserId = $request->user_id;
+                }
+                
+                \Log::info('Requested By User ID', [
+                    'requestedByUserId' => $requestedByUserId,
+                    'role' => $request->role,
+                    'pic_helpdesk_id' => $request->pic_helpdesk_id,
+                    'requester_id' => $request->requester_id,
+                    'user_id' => $request->user_id
+                ]);
+                
+                // Only create approval if we have a valid requested_by user
+                if ($requestedByUserId) {
+                    \Log::info('Creating approval for ticket', ['ticket_id' => $ticket->id]);
+                    
+                    // Create approval (parent)
+                    $approval = \App\Models\Approval::create([
+                        'approvable_id' => $ticket->id,
+                        'approvable_type' => \App\Models\Ticket::class,
+                        'status' => 'pending',
+                        'requested_by' => $requestedByUserId,
+                    ]);
+
+                    \Log::info('Approval created', ['approval_id' => $approval->id]);
+
+                    // Create approval items (children)
+                    $approvalItems = [];
+                    foreach ($approverIds as $approver) {
+                        // Support both old format (just ID) and new format (object with user_id and level)
+                        if (is_array($approver)) {
+                            $userId = $approver['user_id'] ?? null;
+                            $level = $approver['level'] ?? 1;
+                        } else {
+                            $userId = $approver;
+                            $level = 1;
+                        }
+                        
+                        if ($userId) {
+                            $approvalItems[] = [
+                                'approval_id' => $approval->id,
+                                'user_id' => $userId,
+                                'level' => $level,
+                                'status' => 'pending',
+                            ];
+                        }
+                    }
+                    
+                    \Log::info('Approval items to create', ['items' => $approvalItems]);
+                    
+                    if (count($approvalItems) > 0) {
+                        $approval->items()->createMany($approvalItems);
+                        \Log::info('Approval items created successfully');
+                    }
+                } else {
+                    \Log::warning('Cannot create approval: requestedByUserId is null');
+                }
+            }
+        }
+
         return response()->json([
             'status'  => true,
             'message' => 'Ticket Berhasil dibuat',
@@ -253,7 +599,9 @@ class TicketController extends Controller
             'comments.user',
             'comments.attachments',
             'comments.replies.user',
-            'comments.replies.attachments'
+            'comments.replies.attachments',
+            'approval.items.user',
+            'approval.requester'
         ])->find($id);
         
         if (!$data) {
@@ -338,7 +686,7 @@ class TicketController extends Controller
         {
             $ticket->update([
                 'pic_technical_id' => $request->pic_technical_id,
-                'pic_technical_assign_date' => now()
+                'pic_technical_assign_date' => Carbon::now()
             ]);
 
             // Create ticket track for assignment
@@ -466,6 +814,25 @@ class TicketController extends Controller
             }
         }
 
+        if($request->cancel_ticket)
+        {
+            $ticket->update(['status' => TicketStatusEnum::CANCELLED->value]);
+            
+            // Create ticket track for cancel
+            $userId = $request->user_id ?? null;
+            if ($userId) {
+                $user = User::find($userId);
+                $userName = $user ? $user->name : 'Unknown';
+                
+                TicketTrack::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => 'cancelled',
+                    'description' => 'Ticket dibatalkan oleh ' . $userName,
+                ]);
+            }
+        }
+
         // Legacy support for updateStatus
         if($request->updateStatus && $request->reopened)
         {
@@ -550,10 +917,99 @@ class TicketController extends Controller
             }
         }
 
+        // Handle approval updates
+        if ($request->has('approval_required')) {
+            if ($request->approval_required && $request->approver_ids) {
+                $approverIds = is_string($request->approver_ids) 
+                    ? json_decode($request->approver_ids, true) 
+                    : $request->approver_ids;
+                
+                if (is_array($approverIds) && count($approverIds) > 0) {
+                    // Check if approval already exists
+                    $existingApproval = $ticket->approval;
+                    
+                    if ($existingApproval) {
+                        // Delete old approval items
+                        $existingApproval->items()->delete();
+                        
+                        // Update approval status
+                        $existingApproval->update(['status' => 'pending']);
+                        
+                        // Create new approval items
+                        $approvalItems = [];
+                        foreach ($approverIds as $approver) {
+                            // Support both old format (just ID) and new format (object with user_id and level)
+                            if (is_array($approver)) {
+                                $userId = $approver['user_id'] ?? null;
+                                $level = $approver['level'] ?? 1;
+                            } else {
+                                $userId = $approver;
+                                $level = 1;
+                            }
+                            
+                            if ($userId) {
+                                $approvalItems[] = [
+                                    'approval_id' => $existingApproval->id,
+                                    'user_id' => $userId,
+                                    'level' => $level,
+                                    'status' => 'pending',
+                                ];
+                            }
+                        }
+                        
+                        if (count($approvalItems) > 0) {
+                            $existingApproval->items()->createMany($approvalItems);
+                        }
+                    } else {
+                        // Create new approval
+                        $approval = \App\Models\Approval::create([
+                            'approvable_id' => $ticket->id,
+                            'approvable_type' => \App\Models\Ticket::class,
+                            'status' => 'pending',
+                            'requested_by' => $request->user_id ?? null,
+                        ]);
+
+                        // Create approval items
+                        $approvalItems = [];
+                        foreach ($approverIds as $approver) {
+                            // Support both old format (just ID) and new format (object with user_id and level)
+                            if (is_array($approver)) {
+                                $userId = $approver['user_id'] ?? null;
+                                $level = $approver['level'] ?? 1;
+                            } else {
+                                $userId = $approver;
+                                $level = 1;
+                            }
+                            
+                            if ($userId) {
+                                $approvalItems[] = [
+                                    'approval_id' => $approval->id,
+                                    'user_id' => $userId,
+                                    'level' => $level,
+                                    'status' => 'pending',
+                                ];
+                            }
+                        }
+                        
+                        if (count($approvalItems) > 0) {
+                            $approval->items()->createMany($approvalItems);
+                        }
+                    }
+                }
+            } elseif (!$request->approval_required) {
+                // Remove approval if approval_required is false
+                $existingApproval = $ticket->approval;
+                if ($existingApproval) {
+                    $existingApproval->items()->delete();
+                    $existingApproval->delete();
+                }
+            }
+        }
+
         return response()->json([
             'status' => true,
             'message' => 'Ticket berhasil diperbarui',
-            'data' => $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team', 'attachments.user'])
+            'data' => $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team', 'attachments.user', 'approval.items.user'])
         ], 200);
     }
 
@@ -587,5 +1043,31 @@ class TicketController extends Controller
             'message' => 'Ticket berhasil dihapus',
             'data' => $data
         ], 200);
+    }
+    
+    /**
+     * Get ticket counts for mini sidebar badges
+     */
+    public function counts(Request $request)
+    {
+        $query = Ticket::query();
+
+        // Apply role-based filtering
+        if ($request->role === 'agent') {
+            $query->where('pic_helpdesk_id', $request->user_id);
+        } elseif ($request->role === 'technical') {
+            $query->where('pic_technical_id', $request->user_id);
+        } elseif ($request->role === 'user') {
+            $query->where('requester_id', $request->requester_id);
+        }
+
+        // Count only pending tickets for mini sidebar badge
+        $pendingCount = $query->where('status', TicketStatusEnum::PENDING->value)->count();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Ticket count retrieved successfully',
+            'data' => $pendingCount,
+        ]);
     }
 }
