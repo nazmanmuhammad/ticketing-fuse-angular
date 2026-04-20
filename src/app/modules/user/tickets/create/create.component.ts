@@ -35,7 +35,6 @@ export class UserTicketCreateComponent {
     isSubmitting = false;
     currentUser: any = null;
 
-    priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
     departments = ['IT', 'HR', 'Finance', 'Operations', 'Marketing'];
     helpTopics = [
         'General Inquiry',
@@ -62,7 +61,6 @@ export class UserTicketCreateComponent {
             helpTopic: [''],
             subject: ['', Validators.required],
             issueDetail: ['', Validators.required],
-            priority: ['Low'],
         });
 
         // Get current user info
@@ -122,6 +120,20 @@ export class UserTicketCreateComponent {
             return;
         }
 
+        this.submitTicket(false); // false = not draft
+    }
+
+    onSaveDraft(): void {
+        // For draft, only require basic fields
+        if (!this.form.get('fullName')?.value || !this.form.get('email')?.value) {
+            this._snackbar.error('Full name and email are required');
+            return;
+        }
+
+        this.submitTicket(true); // true = save as draft
+    }
+
+    private submitTicket(isDraft: boolean): void {
         if (this.isSubmitting) {
             return;
         }
@@ -130,7 +142,8 @@ export class UserTicketCreateComponent {
 
         // Prepare data for API
         const formValue = this.form.value;
-        const ticketData: TicketCreateRequest = {
+        const ticketData: any = {
+            requester_type: 'select_employee', // Default for user tickets
             name: formValue.fullName,
             email: formValue.email,
             phone_number: formValue.phone || '',
@@ -138,15 +151,21 @@ export class UserTicketCreateComponent {
             ticket_source: formValue.ticketSource,
             department_id: formValue.department || '',
             help_topic: formValue.helpTopic || '',
-            subject_issue: formValue.subject,
-            issue_detail: formValue.issueDetail,
-            priority: PRIORITY_MAP[formValue.priority] ?? 0, // Convert string to number
-            assign_status: 'member', // Default for user
+            subject_issue: formValue.subject || '',
+            issue_detail: formValue.issueDetail || '',
+            priority: null, // Set to null - will be assigned by team later
+            assign_status: 'member',
+            status: isDraft ? -1 : 0, // -1 for draft, 0 for pending
         };
 
         // Add requester_id from current user
         if (this.currentUser?.id) {
             ticketData.requester_id = this.currentUser.id;
+        }
+
+        // Add user_id for tracking
+        if (this.currentUser?.id) {
+            ticketData.user_id = this.currentUser.id;
         }
 
         console.log('Submitting ticket data:', ticketData);
@@ -158,7 +177,7 @@ export class UserTicketCreateComponent {
                     console.error('Error creating ticket:', error);
                     this._snackbar.error(
                         error?.error?.message ||
-                            'Failed to create ticket. Please try again.'
+                            `Failed to ${isDraft ? 'save draft' : 'create ticket'}. Please try again.`
                     );
                     return of(null);
                 }),
@@ -169,15 +188,11 @@ export class UserTicketCreateComponent {
             .subscribe((response) => {
                 if (response && response.status) {
                     this._snackbar.success(
-                        response.message || 'Ticket created successfully!'
+                        response.message || (isDraft ? 'Draft saved successfully!' : 'Ticket created successfully!')
                     );
                     this.router.navigate(['/user/tickets']);
                 }
             });
-    }
-
-    onSaveDraft(): void {
-        console.log('Draft saved:', this.form.value);
     }
 
     onCancel(): void {

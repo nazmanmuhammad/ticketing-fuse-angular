@@ -34,6 +34,11 @@ class TicketController extends Controller
             $query->where('requester_id', $request->requester_id);
         }
 
+        // Exclude draft tickets for agent and technical
+        if ($request->role === 'agent' || $request->role === 'technical') {
+            $query->where('status', '!=', TicketStatusEnum::DRAFT->value);
+        }
+
         // Get filter parameters (default to current month/year)
         $currentMonth = $request->month ?? date('m');
         $currentYear = $request->year ?? date('Y');
@@ -321,18 +326,28 @@ class TicketController extends Controller
                   ->whereYear('created_at', $request->year);
         }
         
+        // Filter draft tickets - only show to requester
+        // Agent and Technical should not see draft tickets
+        if ($request->role === 'agent' || $request->role === 'technical') {
+            // Exclude draft tickets for agent and technical
+            $query->where('status', '!=', \App\TicketStatusEnum::DRAFT->value);
+        } elseif ($request->role === 'user') {
+            // User can see their own draft tickets
+            // This is already handled by requester_id filter below
+        }
+        
         $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk']);
 
         if ($request->pic_id) {
             $data = $data
                 ->when($request->role === 'agent', function($q) use($request) {
-                    $q->where('pic_helpdesk_id', $request->user_id);
+                    $q->where('pic_helpdesk_id', $request->pic_id);
                 })
                 ->when($request->role === 'technical', function($q) use($request) {
-                    $q->where('pic_technical_id', $request->user_id);
+                    $q->where('pic_technical_id', $request->pic_id);
                 })
                 ->when($request->role === 'user', function($q) use($request) {
-                    $q->where('requester_id', $request->user_id);
+                    $q->where('requester_id', $request->pic_id);
                 });
         }
 
@@ -410,9 +425,12 @@ class TicketController extends Controller
         // Generate ticket number
         $data['ticket_number'] = Ticket::generateTicketNumber();
 
-        // default status
-        if(!$request->close_on_response)
-        {
+        // Handle status based on request
+        if ($request->has('status')) {
+            // If status is explicitly provided (e.g., -1 for draft)
+            $data['status'] = (int) $request->status;
+        } elseif (!$request->close_on_response) {
+            // Default status is PENDING
             $data['status'] = \App\TicketStatusEnum::PENDING->value;
         }
 
@@ -449,7 +467,7 @@ class TicketController extends Controller
             'ticket_id' => $ticket->id,
             'user_id' => $creatorUserId,
             'action' => 'created',
-            'description' => 'Ticket dibuat oleh ' . $creatorName,
+            'description' => 'Ticket created by ' . $creatorName,
         ]);
 
         \Log::info($ticket);
@@ -459,19 +477,22 @@ class TicketController extends Controller
         // Load relationships for email
         $ticket->load(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
 
-        // Send notification to requester (email in ticket)
-        if ($ticket->email && filter_var($ticket->email, FILTER_VALIDATE_EMAIL)) {
-            SendTicketNotification::dispatch($ticket, 'created');
-        }
+        // Only send notifications if ticket is not a draft
+        if ($ticket->status !== \App\TicketStatusEnum::DRAFT->value) {
+            // Send notification to requester (email in ticket)
+            if ($ticket->email && filter_var($ticket->email, FILTER_VALIDATE_EMAIL)) {
+                SendTicketNotification::dispatch($ticket, 'created');
+            }
 
-        // Send notification to pic_helpdesk if exists
-        if ($ticket->pic_helpdesk && $ticket->pic_helpdesk->email && filter_var($ticket->pic_helpdesk->email, FILTER_VALIDATE_EMAIL)) {
-            SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_helpdesk->email);
-        }
+            // Send notification to pic_helpdesk if exists
+            if ($ticket->pic_helpdesk && $ticket->pic_helpdesk->email && filter_var($ticket->pic_helpdesk->email, FILTER_VALIDATE_EMAIL)) {
+                SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_helpdesk->email);
+            }
 
-        // Send notification to assigned technical if pic_technical_id is set
-        if ($ticket->pic_technical && $ticket->pic_technical->email && filter_var($ticket->pic_technical->email, FILTER_VALIDATE_EMAIL)) {
-            SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_technical->email);
+            // Send notification to assigned technical if pic_technical_id is set
+            if ($ticket->pic_technical && $ticket->pic_technical->email && filter_var($ticket->pic_technical->email, FILTER_VALIDATE_EMAIL)) {
+                SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_technical->email);
+            }
         }
 
         // Handle file attachments
@@ -587,7 +608,7 @@ class TicketController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id, Request $request)
     {
         $data = Ticket::with([
             'requester', 
@@ -612,12 +633,28 @@ class TicketController extends Controller
             ], 404);
         }
 
+        // Check if ticket is draft and user is not the requester
+        if ($data->status === \App\TicketStatusEnum::DRAFT->value) {
+            // Only requester can view draft tickets
+            $userId = $request->user_id ?? $request->requester_id;
+            
+            if ($data->requester_id !== $userId) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You do not have permission to view this draft ticket',
+                    'data' => null
+                ], 403);
+            }
+        }
+
         // Add status name
         $data->status_name = match($data->status) {
+            -1 => 'Draft',
             0 => 'Pending',
             1 => 'Process', 
             2 => 'Resolved',
             3 => 'Closed',
+            4 => 'Cancelled',
             default => 'Unknown'
         };
 
@@ -712,7 +749,7 @@ class TicketController extends Controller
                     // Reassignment case
                     $isReassignment = true;
                     $oldTechnical = User::find($oldPicTechnicalId);
-                    $description = 'Ticket dialihkan dari ' . ($oldTechnical ? $oldTechnical->name : 'Unknown') . ' ke ' . ($newTechnical ? $newTechnical->name : 'Unknown');
+                    $description = 'Ticket reassigned from ' . ($oldTechnical ? $oldTechnical->name : 'Unknown') . ' to ' . ($newTechnical ? $newTechnical->name : 'Unknown');
                 } else {
                     // First time assignment
                     $byUser = $currentUser ? ' by ' . $currentUser->name : '';
@@ -755,7 +792,7 @@ class TicketController extends Controller
                     'ticket_id' => $ticket->id,
                     'user_id' => $userId,
                     'action' => 'reopened',
-                    'description' => 'Ticket dibuka kembali',
+                    'description' => 'Ticket reopened',
                 ]);
             }
         }
@@ -771,7 +808,7 @@ class TicketController extends Controller
                     'ticket_id' => $ticket->id,
                     'user_id' => $userId,
                     'action' => 'started',
-                    'description' => 'Proses ticket dimulai',
+                    'description' => 'Ticket process started',
                 ]);
             }
         }
@@ -787,7 +824,7 @@ class TicketController extends Controller
                     'ticket_id' => $ticket->id,
                     'user_id' => $userId,
                     'action' => 'resolved',
-                    'description' => 'Ticket diselesaikan',
+                    'description' => 'Ticket resolved',
                 ]);
             }
             
@@ -809,7 +846,7 @@ class TicketController extends Controller
                     'ticket_id' => $ticket->id,
                     'user_id' => $userId,
                     'action' => 'closed',
-                    'description' => 'Ticket ditutup',
+                    'description' => 'Ticket closed',
                 ]);
             }
         }
@@ -828,7 +865,7 @@ class TicketController extends Controller
                     'ticket_id' => $ticket->id,
                     'user_id' => $userId,
                     'action' => 'cancelled',
-                    'description' => 'Ticket dibatalkan oleh ' . $userName,
+                    'description' => 'Ticket cancelled by ' . $userName,
                 ]);
             }
         }
@@ -844,7 +881,7 @@ class TicketController extends Controller
                     'ticket_id' => $ticket->id,
                     'user_id' => $userId,
                     'action' => 'reopened',
-                    'description' => 'Ticket dibuka kembali',
+                    'description' => 'Ticket reopened',
                 ]);
             }
         }
@@ -876,9 +913,31 @@ class TicketController extends Controller
                     'path' => $path,
                     'size' => $file->getSize(),
                     'mime' => $file->extension(),
-                    'user_id' => $request->requester_id ?? $request->pic_helpdesk_id ?? null,
+                    'user_id' => $request->user_id ?? $request->requester_id ?? $request->pic_helpdesk_id ?? null,
                     'visible' => true,
                 ]);
+            }
+        }
+
+        // Handle deleted attachments
+        if ($request->has('deleted_attachments')) {
+            $deletedIds = $request->deleted_attachments;
+            if (is_array($deletedIds)) {
+                foreach ($deletedIds as $attachmentId) {
+                    $attachment = Attachment::where('id', $attachmentId)
+                        ->where('attachmentable_id', $ticket->id)
+                        ->where('attachmentable_type', Ticket::class)
+                        ->first();
+                    
+                    if ($attachment) {
+                        // Delete file from storage
+                        if (\Storage::exists($attachment->path)) {
+                            \Storage::delete($attachment->path);
+                        }
+                        // Delete record from database
+                        $attachment->delete();
+                    }
+                }
             }
         }
 
@@ -893,7 +952,7 @@ class TicketController extends Controller
             
         if (!$skipTicketTrack && $request->has(['name', 'email', 'phone_number', 'extension_number', 'ticket_source', 'department_id', 'help_topic', 'subject_issue', 'issue_detail', 'priority', 'assign_status'])) {
             $action = 'updated';
-            $description = 'Ticket diperbarui';
+            $description = 'Ticket updated';
             
             // Get user_id for ticket track
             $userId = null;

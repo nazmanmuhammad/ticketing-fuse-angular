@@ -222,6 +222,7 @@
         },
         "STATUS": {
             "ALL": "Semua Status",
+            "DRAFT": "Draft",
             "PENDING": "Menunggu",
             "PROCESSING": "Proses",
             "RESOLVED": "Terselesaikan",

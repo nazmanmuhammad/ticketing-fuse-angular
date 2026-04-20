@@ -20,6 +20,7 @@ export interface TicketCreateRequest {
     pic_technical_id?: string; // For member assignment
     pic_helpdesk_id?: string;
     role?: string; // User role for email notification logic
+    status?: number; // -1 for draft, 0 for pending, etc.
 }
 
 export interface TicketResponse {
@@ -82,9 +83,15 @@ export class TicketService {
     /**
      * Get single ticket by ID
      */
-    getTicket(id: string): Observable<TicketResponse> {
+    getTicket(id: string, userId?: string): Observable<TicketResponse> {
         const url = `${this.apiUrl}/tickets/${id}`;
-        return this._httpClient.get<TicketResponse>(url);
+        let params = new HttpParams();
+        
+        if (userId) {
+            params = params.set('user_id', userId);
+        }
+        
+        return this._httpClient.get<TicketResponse>(url, { params });
     }
 
     /**

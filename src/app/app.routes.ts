@@ -174,6 +174,13 @@ export const appRoutes: Route[] = [
                     ).then((m) => m.UserTicketCreateComponent),
             },
             {
+                path: 'user/tickets/edit/:id',
+                loadComponent: () =>
+                    import(
+                        'app/modules/user/tickets/edit/edit.component'
+                    ).then((m) => m.UserTicketEditComponent),
+            },
+            {
                 path: 'user/access-requests',
                 loadComponent: () =>
                     import(

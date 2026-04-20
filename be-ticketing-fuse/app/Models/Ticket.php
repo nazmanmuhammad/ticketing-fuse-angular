@@ -55,7 +55,7 @@ class Ticket extends Model
 
     public function requester()
     {
-        return $this->belongsTo(User::class, 'requester_id', 'hris_user_id');
+        return $this->belongsTo(User::class, 'requester_id');
     }
 
     public function pic_technical()

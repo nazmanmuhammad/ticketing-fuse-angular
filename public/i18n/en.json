@@ -222,6 +222,7 @@
         },
         "STATUS": {
             "ALL": "All Status",
+            "DRAFT": "Draft",
             "PENDING": "Pending",
             "PROCESSING": "Process",
             "RESOLVED": "Resolved",

@@ -4,6 +4,7 @@ namespace App;
 
 enum TicketStatusEnum: int
 {
+    case DRAFT = -1;
     case PENDING = 0;
     case PROCESS = 1;
     case RESOLVED = 2;
@@ -13,6 +14,7 @@ enum TicketStatusEnum: int
     public function label(): string
     {
         return match($this) {
+            self::DRAFT => 'Draft',
             self::PENDING => 'Pending',
             self::PROCESS => 'Processing',
             self::RESOLVED => 'Resolved',
@@ -24,6 +26,7 @@ enum TicketStatusEnum: int
     public function color(): string
     {
         return match($this) {
+            self::DRAFT => 'gray',
             self::PENDING => 'gray',
             self::PROCESS => 'blue',
             self::RESOLVED => 'green',
@@ -35,6 +38,7 @@ enum TicketStatusEnum: int
     public function badge(): string
     {
         return match($this) {
+            self::DRAFT => 'bg-gray-50 text-gray-600',
             self::PENDING => 'bg-gray-100 text-gray-800',
             self::PROCESS => 'bg-blue-100 text-blue-800',
             self::RESOLVED => 'bg-green-100 text-green-800',

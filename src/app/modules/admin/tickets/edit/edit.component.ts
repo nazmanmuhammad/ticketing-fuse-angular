@@ -185,13 +185,23 @@ export class EditComponent implements OnInit, OnDestroy {
     private loadTicketData(): void {
         this.isLoading = true;
         
-        this._ticketService.getTicket(this.ticketId)
+        // Get current user ID
+        const userId = this.currentUser?.id;
+        
+        this._ticketService.getTicket(this.ticketId, userId)
             .pipe(
                 catchError((error) => {
                     console.error('Error loading ticket:', error);
-                    this._snackbar.error(
-                        error?.error?.message || this._translocoService.translate('TICKETS.MESSAGES.LOAD_FAILED')
-                    );
+                    
+                    // Handle 403 Forbidden (draft ticket access denied)
+                    if (error.status === 403) {
+                        this._snackbar.error('You do not have permission to edit this draft ticket');
+                    } else {
+                        this._snackbar.error(
+                            error?.error?.message || this._translocoService.translate('TICKETS.MESSAGES.LOAD_FAILED')
+                        );
+                    }
+                    
                     return of(null);
                 }),
                 finalize(() => {
@@ -482,10 +492,13 @@ export class EditComponent implements OnInit, OnDestroy {
         this.selectedEmployee = user;
         this.employeeInput.setValue(this.employeeDisplay(user), { emitEvent: false });
         this.employeeChanged = true;
+        
+        // Auto-fill form fields from selected employee
+        const phoneNumber = (user as any).phone || '';
         this.form.patchValue({
             email: user.email,
             fullName: user.fullName,
-            phone: '62' + ((user as any).phone || ''),
+            phone: phoneNumber.startsWith('62') ? phoneNumber : '62' + phoneNumber,
         });
     }
 
@@ -564,6 +577,9 @@ export class EditComponent implements OnInit, OnDestroy {
         // Use user_id as the primary ID for backend
         const userId = Number(item?.user_id ?? item?.id ?? 0);
         
+        // Get phone number from selfupdate or employee data
+        const phone = item?.selfupdate?.phone_number ?? item?.employee?.phone ?? item?.phone ?? '';
+        
         return {
             id: userId, // This will be sent as requester_id to backend
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
@@ -571,7 +587,7 @@ export class EditComponent implements OnInit, OnDestroy {
             userId: userId,
             fullName: item?.employee_name ?? item?.name ?? item?.employee?.name ?? '-',
             email: item?.selfupdate?.email_kantor ?? item?.nik ?? item?.noktp ?? '-',
-            phone: item?.phone ?? '-',
+            phone: phone,
             role: 'User',
             status: 'Active',
             avatar: photo

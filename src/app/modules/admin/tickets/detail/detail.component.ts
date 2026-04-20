@@ -24,6 +24,7 @@ import { ApprovalNotesViewDialogComponent } from './approval-notes-view-dialog/a
 interface Comment {
     id: string;
     author: string;
+    user?: any; // Full user object with photo
     text: string;
     at: string;
     isInternal?: boolean;
@@ -184,11 +185,22 @@ export class DetailComponent implements OnInit, AfterViewInit {
     loadTicketDetail(): void {
         console.log('Loading ticket detail for ID:', this.id);
         this.isLoading = true;
-        this._ticketService.getTicket(this.id)
+        
+        // Get current user ID
+        const userId = this.currentUser?.id;
+        
+        this._ticketService.getTicket(this.id, userId)
             .pipe(
                 catchError((error) => {
                     console.error('Error loading ticket:', error);
-                    this._snackbar.error('Failed to load ticket details');
+                    
+                    // Handle 403 Forbidden (draft ticket access denied)
+                    if (error.status === 403) {
+                        this._snackbar.error('You do not have permission to view this draft ticket');
+                    } else {
+                        this._snackbar.error('Failed to load ticket details');
+                    }
+                    
                     this.router.navigate(['/tickets/data']);
                     return of(null);
                 }),
@@ -201,12 +213,15 @@ export class DetailComponent implements OnInit, AfterViewInit {
                 if (response && response.status && response.data) {
                     this.ticket = response.data;
                     console.log('Ticket data loaded:', this.ticket);
+                    console.log('Subject Issue:', this.ticket.subject_issue);
+                    console.log('Issue Detail:', this.ticket.issue_detail);
                     
                     // Load comments from ticket data (Facebook-style flat structure)
                     if (this.ticket.comments && Array.isArray(this.ticket.comments)) {
                         this.comments = this.ticket.comments.map((c: any) => ({
                             id: c.id,
                             author: c.user?.name || 'Unknown',
+                            user: c.user, // Include full user object for photo
                             text: c.comment,
                             at: this.formatDate(c.created_at),
                             isInternal: c.is_internal,
@@ -221,6 +236,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
                             replies: c.replies?.map((r: any) => ({
                                 id: r.id,
                                 author: r.user?.name || 'Unknown',
+                                user: r.user, // Include full user object for photo
                                 text: r.comment,
                                 at: this.formatDate(r.created_at),
                                 attachments: r.attachments?.map((a: any) => ({
@@ -539,6 +555,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
                     const newReply: Comment = {
                         id: response.data.id,
                         author: response.data.user?.name || 'You',
+                        user: response.data.user, // Include full user object
                         text: response.data.comment,
                         at: 'Just now',
                         isInternal: false,
@@ -636,6 +653,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
                     const newComment: Comment = {
                         id: response.data.id,
                         author: response.data.user?.name || 'You',
+                        user: response.data.user, // Include full user object
                         text: response.data.comment,
                         at: 'Just now',
                         isInternal: response.data.is_internal,
@@ -921,6 +939,42 @@ export class DetailComponent implements OnInit, AfterViewInit {
         return this.currentUser.role === 1;
     }
 
+    // Check if user can see Actions button
+    canSeeActions(): boolean {
+        if (!this.currentUser || !this.ticket) {
+            return false;
+        }
+
+        // Show if user is pic_technical
+        if (this.ticket.pic_technical_id === this.currentUser.id) {
+            return true;
+        }
+
+        // Show if user is requester
+        if (this.ticket.requester?.id === this.currentUser.id) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Check if user is pic_technical
+    isPicTechnical(): boolean {
+        if (!this.currentUser || !this.ticket) {
+            return false;
+        }
+        return this.ticket.pic_technical_id === this.currentUser.id;
+    }
+
+    // Check if user is requester
+    isRequester(): boolean {
+        if (!this.currentUser || !this.ticket) {
+            return false;
+        }
+        // Check against requester.id (not pic_requester_id)
+        return this.ticket.requester?.id === this.currentUser.id;
+    }
+
     toggleTechnicalDropdown(): void {
         this.technicalDropdownOpen = !this.technicalDropdownOpen;
         if (this.technicalDropdownOpen) {
@@ -1074,7 +1128,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
             case 'assigned': return 'from-blue-400 to-blue-500';
             case 'started': return 'from-purple-400 to-purple-500';
             case 'resolved': return 'from-teal-400 to-teal-500';
-            case 'closed': return 'from-gray-400 to-gray-500';
+            case 'closed': return 'from-green-400 to-green-500';
             case 'reopened': return 'from-orange-400 to-orange-500';
             default: return 'from-indigo-400 to-indigo-500';
         }

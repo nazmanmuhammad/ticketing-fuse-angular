@@ -51,7 +51,8 @@
                             <input
                                 type="text"
                                 formControlName="fullName"
-                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                readonly
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm bg-gray-50 cursor-not-allowed dark:border-gray-600 dark:bg-gray-700"
                                 placeholder="Enter your full name"
                             />
                             <div
@@ -75,7 +76,8 @@
                             <input
                                 type="email"
                                 formControlName="email"
-                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 dark:border-gray-600 dark:bg-gray-800"
+                                readonly
+                                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm bg-gray-50 cursor-not-allowed dark:border-gray-600 dark:bg-gray-700"
                                 placeholder="your.email@example.com"
                             />
                             <div
@@ -166,29 +168,6 @@
                                         [value]="topic"
                                     >
                                         {{ topic }}
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-
-                        <div class="md:col-span-2">
-                            <label
-                                class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
-                            >
-                                Priority
-                                <span class="text-red-500">*</span>
-                            </label>
-                            <mat-form-field
-                                appearance="outline"
-                                class="fuse-mat-small w-full"
-                                subscriptSizing="dynamic"
-                            >
-                                <mat-select formControlName="priority">
-                                    <mat-option
-                                        *ngFor="let p of priorities"
-                                        [value]="p"
-                                    >
-                                        {{ p }}
                                     </mat-option>
                                 </mat-select>
                             </mat-form-field>

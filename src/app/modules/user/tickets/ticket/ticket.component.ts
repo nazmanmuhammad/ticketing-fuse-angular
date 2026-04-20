@@ -6,7 +6,7 @@ import {
     trigger,
 } from '@angular/animations';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -15,14 +15,25 @@ import { MatSelectModule } from '@angular/material/select';
 import { RouterModule } from '@angular/router';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
-import { take } from 'rxjs';
+import { TicketService } from 'app/modules/admin/tickets/ticket.service';
+import { take, finalize } from 'rxjs';
 
 interface Ticket {
-    id: number;
-    title: string;
-    assignee: string;
-    status: 'OPEN' | 'INPROGRESS' | 'CLOSED';
-    date: string;
+    id: string;
+    ticket_number: string;
+    name: string;
+    email: string;
+    phone_number: string;
+    subject_issue: string;
+    issue_detail: string;
+    priority: number | null;
+    status: number;
+    status_name: string;
+    pic_helpdesk?: any;
+    pic_technical?: any;
+    requester?: any;
+    created_at: string;
+    updated_at: string;
 }
 
 @Component({
@@ -65,86 +76,113 @@ interface Ticket {
         ]),
     ],
 })
-export class UserTicketComponent {
+export class UserTicketComponent implements OnInit {
     filterOpen = false;
     searchQuery = '';
     selectedStatus = '';
-    itemsPerPage = 5;
+    itemsPerPage = 10;
     currentPage = 1;
-    currentUser = 'Alice';
+    currentUser: any = null;
+    currentUserId: string = '';
+    isLoading = false;
+    totalItems = 0;
+    totalPages = 0;
 
     statuses = [
         { label: 'All Status', value: '' },
-        { label: 'Open', value: 'OPEN' },
-        { label: 'In Progress', value: 'INPROGRESS' },
-        { label: 'Closed', value: 'CLOSED' },
+        { label: 'Draft', value: '-1' },
+        { label: 'Pending', value: '0' },
+        { label: 'Process', value: '1' },
+        { label: 'Resolved', value: '2' },
+        { label: 'Closed', value: '3' },
+        { label: 'Cancelled', value: '4' },
     ];
 
-    tickets: Ticket[] = [
-        {
-            id: 1,
-            title: 'Sed ut perspiciatis unde omnis iste',
-            assignee: 'Alice',
-            status: 'INPROGRESS',
-            date: '01 May 2024',
-        },
-        {
-            id: 2,
-            title: 'Xtreme theme dropdown issue',
-            assignee: 'Jonathan',
-            status: 'OPEN',
-            date: '03 May 2024',
-        },
-        {
-            id: 3,
-            title: 'Header issue in material admin',
-            assignee: 'Smith',
-            status: 'CLOSED',
-            date: '02 May 2024',
-        },
-        {
-            id: 4,
-            title: 'Sidebar issue in Nice admin',
-            assignee: 'Vincent',
-            status: 'INPROGRESS',
-            date: '06 May 2024',
-        },
-    ];
+    tickets: Ticket[] = [];
 
-    constructor(private _userService: UserService) {
+    constructor(
+        private _userService: UserService,
+        private _ticketService: TicketService
+    ) {}
+
+    ngOnInit(): void {
+        // Get current user
         this._userService.user$.pipe(take(1)).subscribe((user: User) => {
-            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
+            this.currentUser = user;
+            this.currentUserId = user?.id || '';
+            this.loadTickets();
         });
     }
 
-    private isAssignedToMe(t: Ticket): boolean {
-        return (
-            !!t.assignee &&
-            t.assignee.toLowerCase() === this.currentUser.toLowerCase()
-        );
+    loadTickets(): void {
+        if (this.isLoading) return;
+
+        this.isLoading = true;
+
+        const params: any = {
+            page: this.currentPage,
+            per_page: this.itemsPerPage,
+        };
+
+        // Add user_id from me-validation
+        if (this.currentUserId) {
+            params.pic_id = this.currentUserId;
+        }
+
+        // Add search query
+        if (this.searchQuery.trim()) {
+            params.search = this.searchQuery.trim();
+        }
+
+        // Add status filter
+        if (this.selectedStatus) {
+            params.status = this.selectedStatus;
+        }
+
+        // Add role parameter for user tickets
+        params.role = 'user';
+        params.requester_id = this.currentUserId;
+
+        console.log('Loading tickets with params:', params);
+
+        this._ticketService.getTickets(params)
+            .pipe(finalize(() => this.isLoading = false))
+            .subscribe({
+                next: (response) => {
+                    if (response && response.status) {
+                        this.tickets = response.data || [];
+                        this.totalItems = response.meta?.total || 0;
+                        this.totalPages = response.meta?.last_page || 0;
+                        
+                        console.log('Tickets loaded:', this.tickets.length);
+                        
+                        // Debug: Log first ticket to check data structure
+                        if (this.tickets.length > 0) {
+                            console.log('First ticket data:', this.tickets[0]);
+                            console.log('Subject Issue:', this.tickets[0].subject_issue);
+                            console.log('Issue Detail:', this.tickets[0].issue_detail);
+                        }
+                    }
+                },
+                error: (error) => {
+                    console.error('Error loading tickets:', error);
+                    this.tickets = [];
+                    this.totalItems = 0;
+                    this.totalPages = 0;
+                }
+            });
     }
 
     get filteredTickets(): Ticket[] {
-        return this.tickets.filter((t) => {
-            const matchSearch =
-                !this.searchQuery.trim() ||
-                t.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-                t.assignee.toLowerCase().includes(this.searchQuery.toLowerCase());
-            const matchStatus = !this.selectedStatus || t.status === this.selectedStatus;
-            return matchSearch && matchStatus && this.isAssignedToMe(t);
-        });
+        // Return tickets directly from backend (already filtered)
+        return this.tickets;
     }
-
-    get totalItems(): number {
-        return this.filteredTickets.length;
-    }
-    get totalPages(): number {
-        return Math.max(1, Math.ceil(this.totalItems / this.itemsPerPage));
-    }
+    
     get paginatedTickets(): Ticket[] {
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        return this.filteredTickets.slice(start, start + this.itemsPerPage);
+        // Return tickets directly (pagination handled by backend)
+        return this.tickets;
     }
+    
     get rangeLabel(): string {
         if (this.totalItems === 0) {
             return '0 - 0 of 0';
@@ -157,18 +195,81 @@ export class UserTicketComponent {
     toggleFilter(): void {
         this.filterOpen = !this.filterOpen;
     }
+    
     resetFilter(): void {
         this.searchQuery = '';
         this.selectedStatus = '';
         this.currentPage = 1;
+        this.loadTickets();
     }
-    applyFilter(): void {
+    
+    onSearchChange(): void {
         this.currentPage = 1;
+        this.loadTickets();
     }
+    
+    onStatusChange(): void {
+        this.currentPage = 1;
+        this.loadTickets();
+    }
+    
     goToPage(page: number): void {
-        if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+            this.loadTickets();
+        }
     }
+    
     onItemsPerPageChange(): void {
         this.currentPage = 1;
+        this.loadTickets();
+    }
+
+    getPriorityLabel(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'Not Assigned';
+        }
+        const labels = ['Low', 'Normal', 'Medium', 'High', 'Critical'];
+        return labels[priority] || 'Unknown';
+    }
+
+    getPriorityClass(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'bg-gray-50 text-gray-500 border border-gray-200';
+        }
+        const classes = [
+            'bg-gray-100 text-gray-700',
+            'bg-blue-100 text-blue-700',
+            'bg-orange-100 text-orange-700',
+            'bg-red-100 text-red-700',
+            'bg-purple-100 text-purple-700'
+        ];
+        return classes[priority] || 'bg-gray-100 text-gray-700';
+    }
+
+    getStatusClass(status: number): string {
+        const classes = [
+            'bg-yellow-50 text-yellow-700 ring-yellow-200', // Pending
+            'bg-blue-50 text-blue-700 ring-blue-200',       // Process
+            'bg-green-50 text-green-700 ring-green-200',    // Resolved
+            'bg-green-50 text-green-700 ring-green-200',    // Closed
+            'bg-red-50 text-red-700 ring-red-200'           // Cancelled
+        ];
+        
+        // Handle draft status (-1)
+        if (status === -1) {
+            return 'bg-gray-50 text-gray-600 ring-gray-200';
+        }
+        
+        return classes[status] || 'bg-gray-50 text-gray-700 ring-gray-200';
+    }
+
+    formatDate(dateString: string): string {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { 
+            day: '2-digit', 
+            month: 'short', 
+            year: 'numeric' 
+        });
     }
 }

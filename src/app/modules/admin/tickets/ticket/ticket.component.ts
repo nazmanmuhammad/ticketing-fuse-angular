@@ -33,7 +33,7 @@ interface Ticket {
     help_topic?: string;
     subject_issue: string;
     issue_detail: string;
-    priority: number;
+    priority: number | null;
     assign_status: 'member' | 'team';
     team_id?: string;
     pic_technical_id?: string;
@@ -306,6 +306,7 @@ export class TicketComponent implements OnInit {
         // Update statuses
         this.statuses = [
             { label: this._translocoService.translate('TICKETS.STATUS.ALL'), value: '' },
+            { label: this._translocoService.translate('TICKETS.STATUS.DRAFT'), value: '-1' },
             { label: this._translocoService.translate('TICKETS.STATUS.PENDING'), value: '0' },
             { label: this._translocoService.translate('TICKETS.STATUS.PROCESS'), value: '1' },
             { label: this._translocoService.translate('TICKETS.STATUS.RESOLVED'), value: '2' },
@@ -421,6 +422,13 @@ export class TicketComponent implements OnInit {
                     this.totalItems = response.meta?.total || 0;
                     this.totalPages = response.meta?.last_page || 0;
                     console.log('Tickets loaded:', this.tickets.length);
+                    
+                    // Debug: Log first ticket to check data structure
+                    if (this.tickets.length > 0) {
+                        console.log('First ticket data:', this.tickets[0]);
+                        console.log('Subject Issue:', this.tickets[0].subject_issue);
+                        console.log('Issue Detail:', this.tickets[0].issue_detail);
+                    }
                 } else {
                     this._snackbar.error(this._translocoService.translate('TICKETS.MESSAGES.LOAD_FAILED'));
                 }
@@ -608,7 +616,8 @@ toggleFilter(): void {
 
     getStatusBadgeClass(status: number): string {
         const statusMap: Record<number, string> = {
-            0: 'text-gray-600 bg-gray-50 border border-gray-200', // Pending
+            '-1': 'text-gray-600 bg-gray-50 border border-gray-200', // Draft
+            0: 'text-yellow-600 bg-yellow-50 border border-yellow-200', // Pending
             1: 'text-blue-600 bg-blue-50 border border-blue-200', // Process
             2: 'text-green-600 bg-green-50 border border-green-200', // Resolved
             3: 'text-green-500 bg-green-100 border border-green-200', // Closed
@@ -617,7 +626,10 @@ toggleFilter(): void {
         return statusMap[status] || statusMap[0];
     }
 
-    getPriorityLabel(priority: number): string {
+    getPriorityLabel(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'Not Assigned';
+        }
         const priorityMap: Record<number, string> = {
             0: 'Low',
             1: 'Medium',
@@ -628,7 +640,10 @@ toggleFilter(): void {
         return priorityMap[priority] || 'Low';
     }
 
-    getPriorityColor(priority: number): string {
+    getPriorityColor(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'text-gray-400';
+        }
         const colorMap: Record<number, string> = {
             0: 'text-gray-600',
             1: 'text-blue-600',
@@ -716,7 +731,10 @@ toggleFilter(): void {
         return hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '');
     }
 
-    getPriorityBadgeClass(priority: number): string {
+    getPriorityBadgeClass(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'bg-gray-50 text-gray-500 border border-gray-200'; // Not Assigned
+        }
         const colorMap: Record<number, string> = {
             0: 'bg-gray-100 text-gray-700 border border-gray-300', // Low
             1: 'bg-blue-100 text-blue-700 border border-blue-300', // Medium

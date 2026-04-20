@@ -482,10 +482,13 @@ export class CreateComponent implements OnInit, OnDestroy {
         this.selectedEmployee = user;
         this.employeeInput.setValue(this.employeeDisplay(user), { emitEvent: false });
         this.employeeChanged = true;
+        
+        // Auto-fill form fields from selected employee
+        const phoneNumber = (user as any).phone || '';
         this.form.patchValue({
             email: user.email,
             fullName: user.fullName,
-            phone: '62' + ((user as any).phone || ''),
+            phone: phoneNumber.startsWith('62') ? phoneNumber : '62' + phoneNumber,
         });
     }
 
@@ -568,6 +571,9 @@ export class CreateComponent implements OnInit, OnDestroy {
         // Use user_id as the primary ID for backend
         const userId = Number(item?.user_id ?? item?.id ?? 0);
         
+        // Get phone number from selfupdate or employee data
+        const phone = item?.selfupdate?.phone_number ?? item?.employee?.phone ?? item?.phone ?? '';
+        
         return {
             id: userId, // This will be sent as requester_id to backend
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
@@ -575,7 +581,7 @@ export class CreateComponent implements OnInit, OnDestroy {
             userId: userId,
             fullName: item?.employee_name ?? item?.name ?? item?.employee?.name ?? '-',
             email: email,
-            phone: item?.phone ?? '-',
+            phone: phone,
             role: 'User',
             status: 'Active',
             avatar: photo
