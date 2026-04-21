@@ -1,0 +1,63 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">WhatsApp Setting</span>
+        <div class="text-secondary flex items-center gap-1">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Settings</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">WhatsApp</span>
+        </div>
+    </div>
+
+    <div class="mx-8 my-8 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">WhatsApp Configuration</h2>
+        <p class="text-secondary mt-1 text-sm">Atur koneksi WhatsApp API untuk notifikasi sistem.</p>
+        <p *ngIf="isLoading" class="mt-2 text-xs text-indigo-600">Memuat data WhatsApp...</p>
+
+        <div class="mt-6 grid grid-cols-1 gap-4">
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">WhatsApp API URL</label>
+                <input 
+                    [(ngModel)]="form.url" 
+                    type="text" 
+                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-0 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" 
+                    placeholder="https://api.whatsapp.com/send" 
+                />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">URL endpoint untuk WhatsApp API</p>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">WhatsApp API Key</label>
+                <input 
+                    [(ngModel)]="form.key" 
+                    type="text" 
+                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-0 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" 
+                    placeholder="Your API Key" 
+                />
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">API Key untuk autentikasi WhatsApp API</p>
+            </div>
+
+            <div>
+                <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Message Footer</label>
+                <textarea 
+                    [(ngModel)]="form.footer" 
+                    rows="4"
+                    class="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800 dark:text-white" 
+                    placeholder="Footer text yang akan ditambahkan di setiap pesan WhatsApp..."
+                ></textarea>
+                <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Text footer yang akan ditambahkan di akhir setiap pesan WhatsApp</p>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button
+                (click)="save()"
+                [disabled]="isSaving"
+                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+                {{ isSaving ? 'Saving...' : 'Save WhatsApp Setting' }}
+            </button>
+        </div>
+    </div>
+</div>

@@ -25,6 +25,12 @@ export interface SmtpSettingPayload {
     from_email: string;
 }
 
+export interface WhatsappSettingPayload {
+    url: string;
+    key: string;
+    footer: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SettingsService {
     private readonly _backendApiUrl: string =
@@ -119,7 +125,31 @@ export class SettingsService {
             );
     }
 
-    private _buildUrl(path: 'application' | 'smtp'): string {
+    getWhatsappSetting(): Observable<WhatsappSettingPayload> {
+        return this._httpClient
+            .get<ApiResponse<WhatsappSettingPayload>>(this._buildUrl('whatsapp'))
+            .pipe(
+                map((response) => ({
+                    url: response?.data?.url || '',
+                    key: response?.data?.key || '',
+                    footer: response?.data?.footer || '',
+                }))
+            );
+    }
+
+    updateWhatsappSetting(payload: WhatsappSettingPayload): Observable<WhatsappSettingPayload> {
+        return this._httpClient
+            .post<ApiResponse<WhatsappSettingPayload>>(this._buildUrl('whatsapp'), payload)
+            .pipe(
+                map((response) => ({
+                    url: response?.data?.url || '',
+                    key: response?.data?.key || '',
+                    footer: response?.data?.footer || '',
+                }))
+            );
+    }
+
+    private _buildUrl(path: 'application' | 'smtp' | 'whatsapp'): string {
         return `${this._backendApiUrl.replace(/\/$/, '')}/settings/${path}`;
     }
 

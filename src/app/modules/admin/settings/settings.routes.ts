@@ -20,6 +20,12 @@ const routes: Routes = [
             import('./smtp/smtp.component').then((m) => m.SmtpSettingComponent),
         data: { title: 'SMTP Setting' },
     },
+    {
+        path: 'whatsapp',
+        loadComponent: () =>
+            import('./whatsapp/whatsapp.component').then((m) => m.WhatsappSettingComponent),
+        data: { title: 'WhatsApp Setting' },
+    },
 ];
 
 export default routes;

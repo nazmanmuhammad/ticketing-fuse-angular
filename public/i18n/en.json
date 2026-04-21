@@ -39,6 +39,7 @@
         "SETTINGS": "Settings",
         "APPLICATION_SETTING": "Application Setting",
         "SMTP_SETTING": "SMTP Setting",
+        "WHATSAPP_SETTING": "WhatsApp Setting",
         "REQUESTS": "Requests"
     },
     

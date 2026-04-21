@@ -24,6 +24,8 @@ Route::get('settings/application', [SettingController::class, 'getApplicationSet
 Route::post('settings/application', [SettingController::class, 'updateApplicationSetting']);
 Route::get('settings/smtp', [SettingController::class, 'getSmtpSetting']);
 Route::post('settings/smtp', [SettingController::class, 'updateSmtpSetting']);
+Route::get('settings/whatsapp', [SettingController::class, 'getWhatsappSetting']);
+Route::post('settings/whatsapp', [SettingController::class, 'updateWhatsappSetting']);
 Route::get('tickets/counts', [TicketController::class, 'counts']);
 Route::get('tickets/statistics', [TicketController::class, 'statistics']);
 Route::resource('tickets', TicketController::class);

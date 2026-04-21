@@ -133,6 +133,48 @@ class SettingController extends Controller
         ]);
     }
 
+    public function getWhatsappSetting()
+    {
+        $setting = $this->getSingleton();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'WhatsApp setting berhasil diambil',
+            'data' => [
+                'url' => $setting->whatsapp_url,
+                'key' => $setting->whatsapp_key,
+                'footer' => $setting->whatsapp_footer,
+            ],
+        ]);
+    }
+
+    public function updateWhatsappSetting(Request $request)
+    {
+        $payload = $request->validate([
+            'url' => 'nullable|string|max:2048',
+            'key' => 'nullable|string|max:255',
+            'footer' => 'nullable|string|max:1000',
+        ]);
+
+        $setting = $this->getSingleton();
+
+        $setting->whatsapp_url = $payload['url'] ?? null;
+        $setting->whatsapp_key = $payload['key'] ?? null;
+        $setting->whatsapp_footer = $payload['footer'] ?? null;
+
+        $setting->save();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'WhatsApp setting berhasil diperbarui',
+            'data' => [
+                'url' => $setting->whatsapp_url,
+                'key' => $setting->whatsapp_key,
+                'footer' => $setting->whatsapp_footer,
+            ],
+        ]);
+    }
+
     private function getSingleton(): AppSetting
     {
         return AppSetting::query()->first() ?? AppSetting::query()->create([]);

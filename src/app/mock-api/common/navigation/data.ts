@@ -284,6 +284,14 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 icon: 'heroicons_outline:envelope',
                 link: '/settings/smtp',
             },
+            {
+                id: 'settings.whatsapp',
+                title: 'NAVIGATION.WHATSAPP_SETTING',
+                translate: 'NAVIGATION.WHATSAPP_SETTING',
+                type: 'basic',
+                icon: 'heroicons_outline:chat-bubble-left-right',
+                link: '/settings/whatsapp',
+            },
         ],
     },
 ];
