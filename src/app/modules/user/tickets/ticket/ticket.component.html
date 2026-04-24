@@ -187,7 +187,7 @@
                             <span *ngIf="!ticket.pic_technical && !ticket.pic_helpdesk" class="text-xs text-gray-400">Not assigned</span>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold" [ngClass]="getPriorityClass(ticket.priority)">
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap" [ngClass]="getPriorityClass(ticket.priority)">
                                 {{ getPriorityLabel(ticket.priority) }}
                             </span>
                         </td>

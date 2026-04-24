@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Attachment;
 use App\Models\Comment;
 use App\Models\Ticket;
+use App\Jobs\SendCommentFeedbackNotification;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -76,6 +77,11 @@ class CommentController extends Controller
 
         // Load relationships
         $comment->load(['user', 'attachments']);
+
+        // Send email notification for non-internal comments only
+        if (!$isInternal && $commentableType === Ticket::class) {
+            SendCommentFeedbackNotification::dispatch($comment->id);
+        }
 
         return response()->json([
             'status' => true,

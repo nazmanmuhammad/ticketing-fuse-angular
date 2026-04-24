@@ -83,7 +83,7 @@ export class NavigationService {
         } else if (params.role === 'technical') {
             params.user_id = user.id;
         } else if (params.role === 'user') {
-            params.requester_id = user.hris_user_id;
+            params.requester_id = user.id; // Use me-validation ID, not hris_user_id
         }
         
         console.log('[NavigationService] Loading ticket counts with params:', params);

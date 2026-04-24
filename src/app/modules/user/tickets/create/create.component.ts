@@ -156,43 +156,95 @@ export class UserTicketCreateComponent {
             priority: null, // Set to null - will be assigned by team later
             assign_status: 'member',
             status: isDraft ? -1 : 0, // -1 for draft, 0 for pending
+            role: 'user', // Add role for user tickets
         };
 
-        // Add requester_id from current user
+        // Add requester_id from current user (use me-validation ID)
         if (this.currentUser?.id) {
             ticketData.requester_id = this.currentUser.id;
         }
 
-        // Add user_id for tracking
+        // Add user_id for tracking (use me-validation ID)
         if (this.currentUser?.id) {
             ticketData.user_id = this.currentUser.id;
         }
 
         console.log('Submitting ticket data:', ticketData);
 
-        this._ticketService
-            .createTicket(ticketData)
-            .pipe(
-                catchError((error) => {
-                    console.error('Error creating ticket:', error);
-                    this._snackbar.error(
-                        error?.error?.message ||
-                            `Failed to ${isDraft ? 'save draft' : 'create ticket'}. Please try again.`
-                    );
-                    return of(null);
-                }),
-                finalize(() => {
-                    this.isSubmitting = false;
-                })
-            )
-            .subscribe((response) => {
-                if (response && response.status) {
-                    this._snackbar.success(
-                        response.message || (isDraft ? 'Draft saved successfully!' : 'Ticket created successfully!')
-                    );
-                    this.router.navigate(['/user/tickets']);
+        // Check if we have files to upload
+        if (this.uploadedFiles.length > 0) {
+            // Use FormData for file upload
+            const formData = new FormData();
+            
+            // Append all ticket data
+            Object.keys(ticketData).forEach(key => {
+                const value = ticketData[key];
+                if (value !== null && value !== undefined) {
+                    formData.append(key, value.toString());
                 }
             });
+            
+            // Append files
+            this.uploadedFiles.forEach((file) => {
+                formData.append('attachments[]', file, file.name);
+            });
+
+            // Debug: Log FormData contents
+            console.log('FormData contents:');
+            formData.forEach((value, key) => {
+                console.log(`${key}:`, value);
+            });
+
+            // Use createTicketWithFiles for file upload
+            this._ticketService
+                .createTicketWithFiles(formData)
+                .pipe(
+                    catchError((error) => {
+                        console.error('Error creating ticket:', error);
+                        this._snackbar.error(
+                            error?.error?.message ||
+                                `Failed to ${isDraft ? 'save draft' : 'create ticket'}. Please try again.`
+                        );
+                        return of(null);
+                    }),
+                    finalize(() => {
+                        this.isSubmitting = false;
+                    })
+                )
+                .subscribe((response) => {
+                    if (response && response.status) {
+                        this._snackbar.success(
+                            response.message || (isDraft ? 'Draft saved successfully!' : 'Ticket created successfully!')
+                        );
+                        this.router.navigate(['/user/tickets']);
+                    }
+                });
+        } else {
+            // Use regular createTicket for JSON data without files
+            this._ticketService
+                .createTicket(ticketData)
+                .pipe(
+                    catchError((error) => {
+                        console.error('Error creating ticket:', error);
+                        this._snackbar.error(
+                            error?.error?.message ||
+                                `Failed to ${isDraft ? 'save draft' : 'create ticket'}. Please try again.`
+                        );
+                        return of(null);
+                    }),
+                    finalize(() => {
+                        this.isSubmitting = false;
+                    })
+                )
+                .subscribe((response) => {
+                    if (response && response.status) {
+                        this._snackbar.success(
+                            response.message || (isDraft ? 'Draft saved successfully!' : 'Ticket created successfully!')
+                        );
+                        this.router.navigate(['/user/tickets']);
+                    }
+                });
+        }
     }
 
     onCancel(): void {

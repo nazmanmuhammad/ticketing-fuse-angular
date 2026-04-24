@@ -20,6 +20,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { EditApprovalDialogComponent } from './edit-approval-dialog/edit-approval-dialog.component';
 import { ApprovalNotesDialogComponent } from './approval-notes-dialog/approval-notes-dialog.component';
 import { ApprovalNotesViewDialogComponent } from './approval-notes-view-dialog/approval-notes-view-dialog.component';
+import { AssignTechnicalDialogComponent } from './assign-technical-dialog/assign-technical-dialog.component';
 
 interface Comment {
     id: string;
@@ -75,6 +76,9 @@ export class DetailComponent implements OnInit, AfterViewInit {
 
     // Scroll state
     showScrollToBottom = false;
+    
+    // Refresh state
+    isRefreshing = false;
 
     // Assign technical state
     showAssignTechnical = false;
@@ -136,17 +140,34 @@ export class DetailComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit(): void {
+        // console.log('=== DETAIL COMPONENT INIT ===');
         this.id = this.route.snapshot.paramMap.get('id') ?? '';
-        console.log('Detail Component - Ticket ID:', this.id);
+        // console.log('Detail Component - Ticket ID:', this.id);
         
         // Get current user from UserService (which calls me-validation)
         this._userService.user$.subscribe((user) => {
+            // console.log('=== USER SUBSCRIPTION TRIGGERED ===');
             this.currentUser = user;
-            console.log('Current User from UserService:', this.currentUser);
+            // console.log('Current User from UserService:', this.currentUser);
+            // if (this.currentUser) {
+            //     console.log('User role_name:', this.currentUser.role_name);
+            //     console.log('User role:', this.currentUser.role);
+            //     console.log('User id:', this.currentUser.id);
+            // } else {
+            //     console.log('WARNING: currentUser is null/undefined');
+            // }
+            
+            // Call canEditTicket after user is loaded
+            // if (this.ticket) {
+            //     console.log('User loaded, checking canEditTicket:', this.canEditTicket());
+            // }
         });
         
         if (this.id) {
+            // console.log('Loading ticket detail...');
             this.loadTicketDetail();
+        } else {
+            // console.log('ERROR: No ticket ID provided');
         }
     }
 
@@ -183,7 +204,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
     }
 
     loadTicketDetail(): void {
-        console.log('Loading ticket detail for ID:', this.id);
+        // console.log('Loading ticket detail for ID:', this.id);
         this.isLoading = true;
         
         // Get current user ID
@@ -209,12 +230,23 @@ export class DetailComponent implements OnInit, AfterViewInit {
                 })
             )
             .subscribe((response) => {
-                console.log('API Response:', response);
+                // console.log('=== TICKET API RESPONSE ===');
+                // console.log('API Response:', response);
                 if (response && response.status && response.data) {
                     this.ticket = response.data;
-                    console.log('Ticket data loaded:', this.ticket);
-                    console.log('Subject Issue:', this.ticket.subject_issue);
-                    console.log('Issue Detail:', this.ticket.issue_detail);
+                    // console.log('=== TICKET DATA LOADED ===');
+                    // console.log('Ticket data loaded:', this.ticket);
+                    // console.log('Ticket status:', this.ticket.status);
+                    // console.log('Ticket pic_helpdesk_id:', this.ticket.pic_helpdesk_id);
+                    // console.log('Subject Issue:', this.ticket.subject_issue);
+                    // console.log('Issue Detail:', this.ticket.issue_detail);
+                    
+                    // Call canEditTicket after ticket is loaded
+                    // if (this.currentUser) {
+                    //     console.log('Ticket loaded, checking canEditTicket:', this.canEditTicket());
+                    // } else {
+                    //     console.log('Ticket loaded but currentUser is null');
+                    // }
                     
                     // Load comments from ticket data (Facebook-style flat structure)
                     if (this.ticket.comments && Array.isArray(this.ticket.comments)) {
@@ -301,6 +333,108 @@ export class DetailComponent implements OnInit, AfterViewInit {
             });
     }
 
+    refreshTicketData(): void {
+        if (this.isRefreshing) {
+            return;
+        }
+
+        this.isRefreshing = true;
+        
+        // Get current user ID
+        const userId = this.currentUser?.id;
+        
+        this._ticketService.getTicket(this.id, userId)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error refreshing ticket:', error);
+                    this._snackbar.error('Failed to refresh ticket data');
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isRefreshing = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.ticket = response.data;
+                    this._snackbar.success('Ticket data refreshed successfully');
+                    
+                    // Update comments if needed
+                    if (this.ticket.comments && Array.isArray(this.ticket.comments)) {
+                        this.comments = this.ticket.comments.map((c: any) => ({
+                            id: c.id,
+                            author: c.user?.name || 'Unknown',
+                            user: c.user,
+                            text: c.comment,
+                            at: this.formatDate(c.created_at),
+                            isInternal: c.is_internal,
+                            attachments: c.attachments?.map((a: any) => ({
+                                id: a.id,
+                                name: a.name,
+                                size: this.formatFileSize(a.size),
+                                mime: a.mime,
+                                path: a.path
+                            })) || [],
+                            replies: c.replies?.map((r: any) => ({
+                                id: r.id,
+                                author: r.user?.name || 'Unknown',
+                                user: r.user,
+                                text: r.comment,
+                                at: this.formatDate(r.created_at),
+                                attachments: r.attachments?.map((a: any) => ({
+                                    id: a.id,
+                                    name: a.name,
+                                    size: this.formatFileSize(a.size),
+                                    mime: a.mime,
+                                    path: a.path
+                                })) || []
+                            })) || []
+                        }));
+                    }
+                }
+            });
+    }
+
+    canEditTicket(): boolean {
+        // console.log('=== canEditTicket Debug ===');
+        // console.log('currentUser:', this.currentUser);
+        // console.log('ticket:', this.ticket);
+        
+        if (!this.currentUser || !this.ticket) {
+            // console.log('Missing currentUser or ticket');
+            return false;
+        }
+
+        // console.log('ticket.status:', this.ticket.status);
+        // console.log('currentUser.role_name:', this.currentUser.role_name);
+        // console.log('ticket.pic_helpdesk_id:', this.ticket.pic_helpdesk_id);
+
+        // Only show edit button if status is Pending (0)
+        if (this.ticket.status !== 0) {
+            // console.log('Ticket status is not Pending (0), status:', this.ticket.status);
+            return false;
+        }
+
+        // Check if user role is Agent
+        const isAgent = this.currentUser.role_name?.toLowerCase() === 'agent';
+        // console.log('isAgent:', isAgent);
+
+        // Check if ticket has pic_helpdesk_id
+        const hasPicHelpdesk = !!this.ticket.pic_helpdesk_id;
+        // console.log('hasPicHelpdesk:', hasPicHelpdesk);
+
+        // Show edit button if user is Agent OR ticket has pic_helpdesk_id
+        const result = isAgent || hasPicHelpdesk;
+        // console.log('Final canEditTicket result:', result);
+        return result;
+    }
+
+    editTicket(): void {
+        if (this.ticket?.id) {
+            this.router.navigate(['/tickets/edit', this.ticket.id]);
+        }
+    }
+
     formatDate(dateString: string): string {
         const date = new Date(dateString);
         const now = new Date();
@@ -322,9 +456,18 @@ export class DetailComponent implements OnInit, AfterViewInit {
         });
     }
 
-    getPriorityLabel(priority: number): string {
-        const labels = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
-        return labels[priority] || 'Medium';
+    getPriorityLabel(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return this._translocoService.translate('TICKETS.PRIORITY.NOT_ASSIGNED');
+        }
+        const labels = [
+            this._translocoService.translate('TICKETS.PRIORITY.LOW'),
+            this._translocoService.translate('TICKETS.PRIORITY.MEDIUM'),
+            this._translocoService.translate('TICKETS.PRIORITY.HIGH'),
+            this._translocoService.translate('TICKETS.PRIORITY.CRITICAL'),
+            this._translocoService.translate('TICKETS.PRIORITY.EMERGENCY')
+        ];
+        return labels[priority] || this._translocoService.translate('TICKETS.PRIORITY.MEDIUM');
     }
 
     getStatusLabel(status: number): string {
@@ -430,9 +573,9 @@ export class DetailComponent implements OnInit, AfterViewInit {
         this.previewRotation = 0;
         
         // Debug: log the URL being used
-        console.log('Preview URL (by ID):', this.getAttachmentPreviewUrlById(attachment.id));
-        console.log('Preview URL (by path):', this.getAttachmentPreviewUrl(attachment.path));
-        console.log('Attachment:', attachment);
+        // console.log('Preview URL (by ID):', this.getAttachmentPreviewUrlById(attachment.id));
+        // console.log('Preview URL (by path):', this.getAttachmentPreviewUrl(attachment.path));
+        // console.log('Attachment:', attachment);
     }
 
     closePreview(): void {
@@ -536,7 +679,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
             });
         }
 
-        console.log('Submitting reply to comment:', comment.id);
+        // console.log('Submitting reply to comment:', comment.id);
 
         this._ticketService.createComment(formData)
             .pipe(
@@ -634,7 +777,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
             });
         }
 
-        console.log('Submitting comment with user_id:', this.currentUser.id);
+        // console.log('Submitting comment with user_id:', this.currentUser.id);
 
         this._ticketService.createComment(formData)
             .pipe(
@@ -720,6 +863,16 @@ export class DetailComponent implements OnInit, AfterViewInit {
             }
         });
         return total;
+    }
+
+    isInternalUser(): boolean {
+        if (!this.currentUser) {
+            return false;
+        }
+        
+        // Check if user is Agent or Technical
+        const roleName = this.currentUser.role_name?.toLowerCase();
+        return roleName === 'agent' || roleName === 'technical' || this.currentUser.role === 1 || this.currentUser.role === 2;
     }
 
     startProcess(): void {
@@ -912,31 +1065,75 @@ export class DetailComponent implements OnInit, AfterViewInit {
     }
 
     toggleAssignTechnical(): void {
-        this.showAssignTechnical = !this.showAssignTechnical;
-        if (this.showAssignTechnical) {
-            this.technicalSearchQuery = '';
-            this.technicalDropdownOpen = false;
-            this.selectedTechnical = null;
-            if (this.technicalUsers.length === 0) {
-                this.loadTechnicalUsers();
+        // Open dialog instead of inline form
+        const dialogRef = this._dialog.open(AssignTechnicalDialogComponent, {
+            width: '600px',
+            maxWidth: '90vw',
+            panelClass: 'custom-dialog-container',
+            data: {
+                ticket: this.ticket,
+                currentUser: this.currentUser,
+            },
+            disableClose: false,
+        });
+
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result) {
+                this.processAssignTechnical(result);
             }
-        }
+        });
     }
 
     canAssignTechnical(): boolean {
+        // console.log('=== canAssignTechnical Debug ===');
+        // console.log('currentUser:', this.currentUser);
+        // console.log('ticket:', this.ticket);
+        
         if (!this.currentUser || !this.ticket) {
+            // console.log('Missing currentUser or ticket');
             return false;
         }
 
+        // console.log('currentUser.role:', this.currentUser.role);
+        // console.log('currentUser.role_name:', this.currentUser.role_name);
+        // console.log('ticket.pic_technical_id:', this.ticket.pic_technical_id);
+        // console.log('ticket.pic_helpdesk_id:', this.ticket.pic_helpdesk_id);
+
         // If ticket already has pic_technical_id
         if (this.ticket.pic_technical_id) {
-            // Only the current pic_technical can reassign
-            return this.ticket.pic_technical_id === this.currentUser.id;
+            // console.log('Ticket has pic_technical_id, checking if current user is pic_technical');
+            const canReassign = this.ticket.pic_technical_id === this.currentUser.id;
+            // console.log('Can reassign:', canReassign);
+            return canReassign;
         }
 
-        // If no pic_technical_id, only Agent role can assign
-        // Role: 1 = Agent, 2 = Technical, 3 = Admin
-        return this.currentUser.role === 1;
+        // If no pic_technical_id yet
+        // Check if user is Agent (role_name === 'Agent')
+        const isAgent = this.currentUser.role_name?.toLowerCase() === 'agent' || this.currentUser.role === 1;
+        // console.log('Is Agent:', isAgent);
+        
+        if (isAgent) {
+            // console.log('User is Agent');
+            
+            // If ticket has no pic_helpdesk_id and no pic_technical_id, any agent can assign
+            if (!this.ticket.pic_helpdesk_id && !this.ticket.pic_technical_id) {
+                // console.log('Ticket has no pic_helpdesk_id and no pic_technical_id - Agent can assign');
+                return true;
+            }
+            
+            // If ticket already has pic_helpdesk_id, only that agent can assign
+            if (this.ticket.pic_helpdesk_id === this.currentUser.id) {
+                // console.log('Current user is the pic_helpdesk - Agent can assign');
+                return true;
+            }
+            
+            // console.log('Agent cannot assign - not the pic_helpdesk');
+        } else {
+            // console.log('User is not Agent, role_name:', this.currentUser.role_name);
+        }
+
+        // console.log('Final result: false');
+        return false;
     }
 
     // Check if user can see Actions button
@@ -1057,7 +1254,68 @@ export class DetailComponent implements OnInit, AfterViewInit {
         return (name || '').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
     }
 
+    processAssignTechnical(result: any): void {
+        if (!result || !result.pic_technical_id || !this.ticket) {
+            this._snackbar.error('Invalid assignment data');
+            return;
+        }
+
+        if (!this.currentUser || !this.currentUser.id) {
+            this._snackbar.error('User not authenticated');
+            return;
+        }
+
+        this.isAssigningTechnical = true;
+
+        const payload: any = {
+            pic_technical_id: result.pic_technical_id,
+            assign_technical: true,
+            user_id: this.currentUser.id,
+        };
+
+        // If ticket doesn't have pic_helpdesk_id yet and current user is agent, set it
+        const isAgent = this.currentUser.role_name?.toLowerCase() === 'agent' || this.currentUser.role === 1;
+        if (!this.ticket.pic_helpdesk_id && isAgent) {
+            payload.pic_helpdesk_id = this.currentUser.id;
+        }
+
+        // If full form was shown, include additional fields at ticket level
+        if (result.priority !== undefined && result.priority !== null) {
+            payload.priority = result.priority;
+        }
+
+        // Save response and internal note at ticket level
+        if (result.response && result.response.trim()) {
+            payload.response = result.response.trim();
+            payload.mark_internal = result.mark_as_internal || false;
+        }
+
+        if (result.internal_note && result.internal_note.trim()) {
+            payload.internal_note = result.internal_note.trim();
+        }
+
+        this._ticketService.updateTicket(this.ticket.id, payload)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error assigning technical:', error);
+                    this._snackbar.error('Failed to assign technical');
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isAssigningTechnical = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success('Technical assigned successfully');
+                    this.loadTicketDetail();
+                }
+            });
+    }
+
     assignTechnical(): void {
+        // This method is now replaced by processAssignTechnical
+        // Kept for backward compatibility
         if (!this.selectedTechnical || !this.ticket) {
             this._snackbar.error('Please select a technical user');
             return;
@@ -1070,11 +1328,17 @@ export class DetailComponent implements OnInit, AfterViewInit {
 
         this.isAssigningTechnical = true;
 
-        const payload = {
+        const payload: any = {
             pic_technical_id: this.selectedTechnical.id,
             assign_technical: true, // Flag untuk indicate assign dari detail page
             user_id: this.currentUser.id // User yang melakukan assignment
         };
+
+        // If ticket doesn't have pic_helpdesk_id yet and current user is agent, set it
+        const isAgent = this.currentUser.role_name?.toLowerCase() === 'agent' || this.currentUser.role === 1;
+        if (!this.ticket.pic_helpdesk_id && isAgent) {
+            payload.pic_helpdesk_id = this.currentUser.id;
+        }
 
         this._ticketService.updateTicket(this.ticket.id, payload)
             .pipe(

@@ -186,3 +186,15 @@
 .hidden-nav-item {
     display: none !important;
 }
+
+
+/* Custom Dialog Container - Remove default padding */
+.custom-dialog-container .mat-mdc-dialog-container {
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.custom-dialog-container .mat-mdc-dialog-surface {
+    padding: 0 !important;
+    overflow: hidden;
+}

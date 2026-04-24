@@ -402,16 +402,17 @@ class TicketController extends Controller
         $data = $request->all();
 
         // Check and create user if not exists (for requester)
+        $requesterUser = null;
         if ($request->requester_type === 'select_employee' && $request->requester_id) {
             // Check if user already exists by hris_user_id or email
-            $user = User::withTrashed()->where(function($query) use ($request) {
+            $requesterUser = User::withTrashed()->where(function($query) use ($request) {
                 $query->where('hris_user_id', $request->requester_id)
                       ->orWhere('email', $request->email);
             })->first();
             
-            if (!$user) {
+            if (!$requesterUser) {
                 // Only create if user doesn't exist
-                User::create([
+                $requesterUser = User::create([
                     'hris_user_id' => $request->requester_id,
                     'name' => $request->name,
                     'email' => $request->email,
@@ -434,9 +435,11 @@ class TicketController extends Controller
             $data['status'] = \App\TicketStatusEnum::PENDING->value;
         }
 
-        // USER buat ticket
-        if ($request->role === 'user') {
-            $data['requester_id'] = $request->requester_id;
+        // Set requester_id to User UUID (not hris_user_id)
+        if ($request->role === 'user' && $requesterUser) {
+            $data['requester_id'] = $requesterUser->id; // Use User UUID
+        } elseif ($request->role === 'agent' && $requesterUser) {
+            $data['requester_id'] = $requesterUser->id; // Use User UUID for agent-created tickets too
         }
 
         // AGENT HELPDESK buat ticket
@@ -458,8 +461,8 @@ class TicketController extends Controller
 
         $ticket = Ticket::create($data);
         
-        // Get user for ticket track
-        $creatorUserId = $request->role === 'agent' ? $request->pic_helpdesk_id : $request->requester_id;
+        // Get user for ticket track - use the actual User UUID
+        $creatorUserId = $request->role === 'agent' ? $request->pic_helpdesk_id : ($requesterUser ? $requesterUser->id : null);
         $creatorUser = User::find($creatorUserId);
         $creatorName = $creatorUser ? $creatorUser->name : 'Unknown';
         
@@ -507,7 +510,7 @@ class TicketController extends Controller
                     'path' => $path,
                     'size' => $file->getSize(),
                     'mime' => $file->extension(),
-                    'user_id' => $request->requester_id ?? $request->pic_helpdesk_id ?? null,
+                    'user_id' => $creatorUserId, // Use the correct User UUID
                     'visible' => true,
                 ]);
             }
@@ -533,10 +536,9 @@ class TicketController extends Controller
                 $requestedByUserId = null;
                 if ($request->role === 'agent') {
                     $requestedByUserId = $request->pic_helpdesk_id;
-                } elseif ($request->role === 'user' && $request->requester_id) {
-                    // Find user by hris_user_id to get UUID
-                    $requesterUser = User::where('hris_user_id', $request->requester_id)->first();
-                    $requestedByUserId = $requesterUser ? $requesterUser->id : null;
+                } elseif ($request->role === 'user' && $requesterUser) {
+                    // Use the requesterUser we already found/created
+                    $requestedByUserId = $requesterUser->id;
                 } elseif ($request->user_id) {
                     // Fallback to user_id if provided
                     $requestedByUserId = $request->user_id;
@@ -691,17 +693,18 @@ class TicketController extends Controller
         $oldPicTechnicalId = $ticket->pic_technical_id;
 
         // Check and create user if requester is being updated and not exists
+        $updatedRequesterUser = null;
         if ($request->has('requester_id') && $request->requester_id) {
             if ($request->requester_type === 'select_employee') {
                 // Check if user already exists by hris_user_id or email
-                $existingUser = User::withTrashed()->where(function($query) use ($request) {
+                $updatedRequesterUser = User::withTrashed()->where(function($query) use ($request) {
                     $query->where('hris_user_id', $request->requester_id)
                           ->orWhere('email', $request->email);
                 })->first();
                 
-                if (!$existingUser) {
+                if (!$updatedRequesterUser) {
                     // Only create if user doesn't exist
-                    User::create([
+                    $updatedRequesterUser = User::create([
                         'hris_user_id' => $request->requester_id,
                         'name' => $request->name,
                         'email' => $request->email,
@@ -710,6 +713,9 @@ class TicketController extends Controller
                         'status' => 1, // active
                     ]);
                 }
+                
+                // Update the requester_id to use User UUID
+                $data['requester_id'] = $updatedRequesterUser->id;
             }
         }
 
@@ -718,13 +724,41 @@ class TicketController extends Controller
             $ticket->update($data);
         }
 
+        // Handle response and internal notes update
+        if ($request->has(['response', 'internal_note', 'mark_internal'])) {
+            $responseData = [];
+            
+            if ($request->has('response')) {
+                $responseData['response'] = $request->response;
+            }
+            
+            if ($request->has('internal_note')) {
+                $responseData['internal_note'] = $request->internal_note;
+            }
+            
+            if ($request->has('mark_internal')) {
+                $responseData['mark_internal'] = $request->boolean('mark_internal');
+            }
+            
+            if (!empty($responseData)) {
+                $ticket->update($responseData);
+            }
+        }
+
         // Handle assignment
         if($request->assign_technical || $request->has('pic_technical_id'))
         {
-            $ticket->update([
+            $updateData = [
                 'pic_technical_id' => $request->pic_technical_id,
                 'pic_technical_assign_date' => Carbon::now()
-            ]);
+            ];
+            
+            // If pic_helpdesk_id is provided in request, update it as well
+            if ($request->has('pic_helpdesk_id') && $request->pic_helpdesk_id) {
+                $updateData['pic_helpdesk_id'] = $request->pic_helpdesk_id;
+            }
+            
+            $ticket->update($updateData);
 
             // Create ticket track for assignment
             if ($request->assign_technical && $request->pic_technical_id) {

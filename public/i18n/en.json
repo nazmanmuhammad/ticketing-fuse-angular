@@ -219,7 +219,8 @@
             "MEDIUM": "Medium",
             "HIGH": "High",
             "CRITICAL": "Critical",
-            "EMERGENCY": "Emergency"
+            "EMERGENCY": "Emergency",
+            "NOT_ASSIGNED": "Not Assigned"
         },
         "STATUS": {
             "ALL": "All Status",

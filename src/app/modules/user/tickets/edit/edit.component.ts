@@ -282,7 +282,7 @@ export class UserTicketEditComponent implements OnInit {
             status: isDraft ? -1 : 0,
         };
 
-        // Add requester_id and user_id
+        // Add requester_id and user_id (use me-validation ID)
         if (this.currentUser?.id) {
             ticketData.requester_id = this.currentUser.id;
             ticketData.user_id = this.currentUser.id;
@@ -334,7 +334,7 @@ export class UserTicketEditComponent implements OnInit {
         formData.append('assign_status', 'member');
         formData.append('status', isDraft ? '-1' : '0');
 
-        // Add requester_id and user_id
+        // Add requester_id and user_id (use me-validation ID)
         if (this.currentUser?.id) {
             formData.append('requester_id', this.currentUser.id);
             formData.append('user_id', this.currentUser.id);

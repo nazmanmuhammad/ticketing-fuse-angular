@@ -271,7 +271,7 @@ export class TicketComponent implements OnInit {
             params.pic_id = this.currentUser.id;
         } else if (this.currentUser.role_name === 'User') {
             params.role = 'user';
-            params.requester_id = this.currentUser.hris_user_id;
+            params.requester_id = this.currentUser.id; // Use me-validation ID, not hris_user_id
         }
 
         this._ticketService.getStatistics(params)
@@ -628,16 +628,16 @@ toggleFilter(): void {
 
     getPriorityLabel(priority: number | null): string {
         if (priority === null || priority === undefined) {
-            return 'Not Assigned';
+            return this._translocoService.translate('TICKETS.PRIORITY.NOT_ASSIGNED');
         }
         const priorityMap: Record<number, string> = {
-            0: 'Low',
-            1: 'Medium',
-            2: 'High',
-            3: 'Critical',
-            4: 'Emergency',
+            0: this._translocoService.translate('TICKETS.PRIORITY.LOW'),
+            1: this._translocoService.translate('TICKETS.PRIORITY.MEDIUM'),
+            2: this._translocoService.translate('TICKETS.PRIORITY.HIGH'),
+            3: this._translocoService.translate('TICKETS.PRIORITY.CRITICAL'),
+            4: this._translocoService.translate('TICKETS.PRIORITY.EMERGENCY'),
         };
-        return priorityMap[priority] || 'Low';
+        return priorityMap[priority] || this._translocoService.translate('TICKETS.PRIORITY.LOW');
     }
 
     getPriorityColor(priority: number | null): string {
@@ -688,16 +688,20 @@ toggleFilter(): void {
     }
 
     getRequesterName(ticket: Ticket): string {
-        if (ticket.requester) {
+        // Always prioritize requester relation over ticket fields
+        if (ticket.requester?.name) {
             return ticket.requester.name;
         }
+        // Fallback to ticket fields only if requester relation is null/empty
         return ticket.name || 'Unknown';
     }
 
     getRequesterEmail(ticket: Ticket): string {
-        if (ticket.requester) {
+        // Always use requester relation if available
+        if (ticket.requester?.email) {
             return ticket.requester.email;
         }
+        // Fallback to ticket fields only if requester relation is null
         return ticket.email || '';
     }
 

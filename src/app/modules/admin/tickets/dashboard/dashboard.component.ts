@@ -213,7 +213,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         } else if (this.currentUser.role === 'technical') {
             params.pic_id = this.currentUser.id;
         } else if (this.currentUser.role === 'user') {
-            params.requester_id = this.currentUser.hris_user_id;
+            params.requester_id = this.currentUser.id; // Use me-validation ID, not hris_user_id
         }
         
         this._ticketService.getStatistics(params)
@@ -389,14 +389,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return colors[status] || 'bg-gray-100 text-gray-700';
     }
     
-    getPriorityLabel(priority: number): string {
+    getPriorityLabel(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return this._translocoService.translate('TICKETS.PRIORITY.NOT_ASSIGNED');
+        }
         const labels: any = {
-            1: 'Low',
-            2: 'Medium',
-            3: 'High',
-            4: 'Emergency'
+            0: this._translocoService.translate('TICKETS.PRIORITY.LOW'),
+            1: this._translocoService.translate('TICKETS.PRIORITY.MEDIUM'),
+            2: this._translocoService.translate('TICKETS.PRIORITY.HIGH'),
+            3: this._translocoService.translate('TICKETS.PRIORITY.CRITICAL'),
+            4: this._translocoService.translate('TICKETS.PRIORITY.EMERGENCY')
         };
-        return labels[priority] || 'Unknown';
+        return labels[priority] || this._translocoService.translate('TICKETS.PRIORITY.LOW');
     }
     
     getPriorityColor(priority: number): string {
