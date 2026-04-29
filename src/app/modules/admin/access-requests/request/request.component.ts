@@ -75,6 +75,21 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
     totalItems = 0;
     totalPages = 0;
 
+    // Avatar color palette
+    private readonly avatarColors = [
+        'bg-indigo-400', 'bg-orange-400', 'bg-teal-400', 'bg-purple-400',
+        'bg-blue-400', 'bg-pink-400', 'bg-green-400', 'bg-red-400',
+        'bg-cyan-400', 'bg-amber-400', 'bg-lime-500', 'bg-rose-400',
+    ];
+
+    // Status configuration
+    statusConfig: { [key: number]: { label: string; classes: string } } = {
+        0: { label: 'Pending', classes: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
+        1: { label: 'Approved', classes: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+        2: { label: 'Rejected', classes: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+        3: { label: 'Provisioned', classes: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+    };
+
     periods = [
         { label: 'Today', value: 'today' },
         { label: 'This Week', value: 'this_week' },
@@ -104,6 +119,9 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
     ) {}
 
     ngOnInit(): void {
+        // Initialize translations first
+        this.updateTranslations();
+        
         // Get current user
         this._userService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
             this.currentUser = user;
@@ -154,9 +172,9 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
             params.status = this.selectedStatus;
         }
 
-        // Add requester filter for assigned tab
+        // Add assigned filter for assigned tab (filter by assign_to_user_id)
         if (this.activeTab === 'assigned' && this.currentUser) {
-            params.requester_id = this.currentUser.id;
+            params.assigned_to = this.currentUser.id;
         }
 
         this._accessRequestService.getAccessRequests(params)
@@ -185,7 +203,7 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
         const params: any = {};
         
         if (this.activeTab === 'assigned') {
-            params.requester_id = this.currentUser.id;
+            params.assigned_to = this.currentUser.id;
         }
 
         this._accessRequestService.getStatistics(params)
@@ -262,6 +280,26 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
             { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), value: 2 },
             { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PROVISIONED'), value: 3 },
         ];
+
+        // Update status config with translations
+        this.statusConfig = {
+            0: { 
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), 
+                classes: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' 
+            },
+            1: { 
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), 
+                classes: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' 
+            },
+            2: { 
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), 
+                classes: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
+            },
+            3: { 
+                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PROVISIONED'), 
+                classes: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
+            },
+        };
     }
 
     setTab(tab: 'all' | 'assigned'): void {
@@ -434,6 +472,88 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
             day: '2-digit',
             month: 'short',
             year: 'numeric',
+        });
+    }
+
+    getInitialOf(name: string): string {
+        if (!name || typeof name !== 'string') return '?';
+        return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    }
+
+    getAvatarColor(index: number): string {
+        return this.avatarColors[index % this.avatarColors.length];
+    }
+
+    getRequesterAvatar(request: AccessRequest): string | null {
+        if (request.requester?.photo) {
+            const photoBase = this.getPhotoBaseUrl();
+            const photoUrl = `${photoBase}/assets/img/user/${request.requester.photo}`;
+            console.log('Requester photo URL:', photoUrl);
+            return photoUrl;
+        }
+        console.log('No requester photo for request:', request.request_number, 'requester:', request.requester);
+        return null;
+    }
+
+    getAssignedAvatar(request: AccessRequest): string | null {
+        if (request.assign_type === 'member' && request.assignedUser?.photo) {
+            const photoBase = this.getPhotoBaseUrl();
+            const photoUrl = `${photoBase}/assets/img/user/${request.assignedUser.photo}`;
+            console.log('Assigned user photo URL:', photoUrl);
+            return photoUrl;
+        }
+        console.log('No assigned user photo for request:', request.request_number, 'assignedUser:', request.assignedUser);
+        return null;
+    }
+
+    private getPhotoBaseUrl(): string {
+        const hrisApiUrl =
+            (globalThis as any)?.__env?.HRIS_API_URL ||
+            (globalThis as any)?.process?.env?.HRIS_API_URL ||
+            (globalThis as any)?.HRIS_API_URL ||
+            'https://back.siglab.co.id';
+        return hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '');
+    }
+
+    getPriorityLabel(priority: number): string {
+        const labels: { [key: number]: string } = {
+            0: 'Low',
+            1: 'Medium',
+            2: 'High',
+            3: 'Critical'
+        };
+        return labels[priority] || 'Medium';
+    }
+
+    onEdit(request: AccessRequest): void {
+        this.router.navigate(['/access-requests/edit', request.id]);
+    }
+
+    onDelete(request: AccessRequest): void {
+        this._confirmDialog.confirm({
+            title: 'Delete Access Request',
+            message: `Are you sure you want to delete access request ${request.request_number}? This action cannot be undone.`,
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            type: 'danger'
+        }).subscribe((confirmed) => {
+            if (confirmed) {
+                this._accessRequestService.deleteAccessRequest(request.id)
+                    .pipe(
+                        catchError((error) => {
+                            console.error('Error deleting access request:', error);
+                            this._snackbar.error('Failed to delete access request');
+                            return of(null);
+                        })
+                    )
+                    .subscribe((response) => {
+                        if (response && response.status) {
+                            this._snackbar.success('Access request deleted successfully');
+                            this.loadAccessRequests();
+                            this.loadStatistics();
+                        }
+                    });
+            }
         });
     }
 

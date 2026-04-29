@@ -31,6 +31,14 @@ const routes: Routes = [
         data: { title: 'Create Access Request' },
     },
     {
+        path: 'edit/:id',
+        loadComponent: () =>
+            import('./edit/edit.component').then(
+                (m) => m.EditAccessRequestComponent
+            ),
+        data: { title: 'Edit Access Request' },
+    },
+    {
         path: 'detail/:id',
         loadComponent: () =>
             import('./detail/detail.component').then(

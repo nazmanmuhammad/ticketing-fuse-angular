@@ -12,6 +12,80 @@
         </div>
     </div>
 
+    <!-- SKELETON LOADING -->
+    <div *ngIf="isLoading" class="animate-pulse">
+        <!-- HEADER SKELETON -->
+        <div class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+            <div class="flex items-start justify-between">
+                <div class="flex-1">
+                    <div class="h-6 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="mt-2 h-4 w-48 rounded bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="h-9 w-24 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-9 w-24 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-9 w-32 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-9 w-9 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6 px-8 pb-8">
+            <!-- STAT CARDS SKELETON -->
+            <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                <div *ngFor="let i of [1,2,3,4]" class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:bg-card">
+                    <div class="flex items-start justify-between">
+                        <div class="h-11 w-11 rounded-xl bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-6 w-16 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="h-8 w-20 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="mt-1 h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE SKELETON -->
+            <div class="rounded-2xl border border-gray-100 bg-white shadow-sm dark:bg-card">
+                <!-- Table Header -->
+                <div class="border-b border-gray-100 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="h-5 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="h-5 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                </div>
+                <!-- Table Rows -->
+                <div class="divide-y divide-gray-100">
+                    <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="px-6 py-4">
+                        <div class="flex items-center gap-4">
+                            <div class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-4 w-24 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-4 flex-1 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-6 w-20 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-6 w-24 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-4 w-32 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Pagination Skeleton -->
+                <div class="border-t border-gray-100 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="h-4 w-48 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        <div class="flex items-center gap-2">
+                            <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="h-8 w-8 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTUAL CONTENT -->
+    <div *ngIf="!isLoading">
+
     <div
         class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
     >
@@ -264,7 +338,7 @@
                     [ngClass]="activeTab === 'all' ? 'text-blue-700' : 'text-gray-500'"
                 >
                     {{ 'ACCESS_REQUESTS.TABS.ALL' | transloco }}
-                    <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAll }}</span>
+                    <!-- <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAll }}</span> -->
                     <span *ngIf="activeTab === 'all'" class="absolute inset-x-0 -bottom-px h-0.5 rounded bg-blue-700"></span>
                 </button>
                 <button
@@ -273,7 +347,8 @@
                     [ngClass]="activeTab === 'assigned' ? 'text-blue-700' : 'text-gray-500'"
                 >
                     {{ 'ACCESS_REQUESTS.TABS.ASSIGNED' | transloco }}
-                    <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span>
+                    <!-- {{ 'ACCESS_REQUESTS.TABS.ASSIGNED' | transloco }} -->
+                    <!-- <span class="ml-2 rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-600">{{ countAssigned }}</span> -->
                     <span *ngIf="activeTab === 'assigned'" class="absolute inset-x-0 -bottom-px h-0.5 rounded bg-blue-700"></span>
                 </button>
             </div>
@@ -294,148 +369,177 @@
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b bg-gray-50/50 dark:bg-gray-900/60">
-                            <th
-                                class="text-secondary w-20 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                {{ 'ACCESS_REQUESTS.TABLE.ID' | transloco }}
+                            <th class="text-secondary w-16 px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                #
                             </th>
-                            <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                {{ 'ACCESS_REQUESTS.TABLE.REQUESTER' | transloco }}
+                            <th class="text-secondary min-w-[120px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.REQUEST_NUMBER' | transloco }}
                             </th>
-                            <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                {{ 'ACCESS_REQUESTS.TABLE.RESOURCE' | transloco }}
+                            <th class="text-secondary min-w-[200px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.TITLE' | transloco }}
                             </th>
-                            <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                {{ 'ACCESS_REQUESTS.TABLE.STATUS' | transloco }}
+                            <th class="text-secondary min-w-[250px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.DESCRIPTION' | transloco }}
                             </th>
-                            <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                {{ 'ACCESS_REQUESTS.TABLE.REQUEST_DATE' | transloco }}
+                            <th class="text-secondary min-w-[180px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.REQUESTER' | transloco }}
                             </th>
-                            <th
-                                class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                            >
-                                {{ 'ACCESS_REQUESTS.TABLE.ACTION' | transloco }}
+                            <th class="text-secondary min-w-[180px] px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.ASSIGNED_TO' | transloco }}
+                            </th>
+                            <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.PRIORITY' | transloco }}
+                            </th>
+                            <th class="text-secondary px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.STATUS' | transloco }}
+                            </th>
+                            <th class="text-secondary sticky right-0 z-10 bg-gray-50/50 px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider dark:bg-gray-900/60">
+                                {{ 'ACCESS_REQUESTS.TABLE.COLUMNS.ACTION' | transloco }}
                             </th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-50">
-                        <tr
-                            *ngFor="let r of paginatedRequests"
-                            class="transition-colors hover:bg-gray-50/60"
-                        >
+                        <tr *ngFor="let r of paginatedRequests; let i = index" class="transition-colors hover:bg-gray-50/60">
+                            <!-- # (Increment Number) -->
                             <td class="px-6 py-4">
-                                <span class="font-semibold text-indigo-600">{{
-                                    r.code
-                                }}</span>
+                                <span class="font-semibold text-indigo-600">#{{ (currentPage - 1) * itemsPerPage + i + 1 }}</span>
                             </td>
+
+                            <!-- Access Request Number (Clickable) -->
+                            <td class="px-6 py-4">
+                                <a [routerLink]="['/access-requests/detail', r.id]" 
+                                   class="font-mono text-sm font-semibold text-blue-900 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer underline decoration-dotted hover:decoration-solid transition-all">
+                                    {{ r.request_number }}
+                                </a>
+                            </td>
+
+                            <!-- Title -->
+                            <td class="px-6 py-4">
+                                <a
+                                    class="font-semibold text-gray-900 hover:text-indigo-600 dark:text-white cursor-pointer"
+                                    [routerLink]="['/access-requests/detail', r.id]"
+                                >
+                                    {{ r.resource_name }}
+                                </a>
+                            </td>
+
+                            <!-- Description -->
+                            <td class="px-6 py-4">
+                                <div 
+                                    class="text-secondary max-w-xs truncate text-sm cursor-help"
+                                    [matTooltip]="r.reason || '-'"
+                                    matTooltipPosition="above"
+                                    matTooltipClass="custom-tooltip"
+                                >
+                                    {{ r.reason || '-' }}
+                                </div>
+                            </td>
+
+                            <!-- Requester -->
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2.5">
-                                    <div
-                                        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                                        [ngClass]="
-                                            avatarColors[r.avatar] ??
-                                            'bg-gray-400'
-                                        "
-                                    >
-                                        {{ r.avatar }}
-                                    </div>
+                                    <ng-container *ngIf="getRequesterAvatar(r); else requesterInitial">
+                                        <img [src]="getRequesterAvatar(r)"
+                                            class="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                                            (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
+                                    </ng-container>
+                                    <ng-template #requesterInitial>
+                                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                                            [ngClass]="getAvatarColor(i)">
+                                            {{ getInitialOf(r.requester?.name || r.full_name || '') }}
+                                        </div>
+                                    </ng-template>
                                     <div class="flex flex-col">
-                                        <span
-                                            class="font-medium text-gray-700 dark:text-gray-300"
-                                            >{{ r.requester }}</span
-                                        >
-                                        <span class="text-secondary text-xs"
-                                            >{{ 'ACCESS_REQUESTS.TABLE.REQUESTER' | transloco }}</span
-                                        >
+                                        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            {{ r.requester?.name || r.full_name }}
+                                        </span>
+                                        <span class="text-xs text-gray-500">{{ r.requester?.email || r.email }}</span>
                                     </div>
                                 </div>
                             </td>
+
+                            <!-- Assigned To -->
                             <td class="px-6 py-4">
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="font-medium text-gray-700 dark:text-gray-300"
-                                        >{{ r.resource }}</span
-                                    >
-                                    <span class="text-secondary text-xs"
-                                        >• {{ r.resourceType }}</span
-                                    >
+                                <div *ngIf="r.assignedUser || r.assignedTeam; else notAssigned" class="flex items-center gap-2.5">
+                                    <ng-container *ngIf="r.assign_type === 'member' && r.assignedUser">
+                                        <ng-container *ngIf="getAssignedAvatar(r); else assignedInitial">
+                                            <img [src]="getAssignedAvatar(r)"
+                                                class="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                                                (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
+                                        </ng-container>
+                                        <ng-template #assignedInitial>
+                                            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white bg-blue-400">
+                                                {{ getInitialOf(r.assignedUser?.name || '') }}
+                                            </div>
+                                        </ng-template>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                {{ r.assignedUser?.name }}
+                                            </span>
+                                            <span class="text-xs text-gray-500">{{ r.assignedUser?.email }}</span>
+                                        </div>
+                                    </ng-container>
+                                    <ng-container *ngIf="r.assign_type === 'team' && r.assignedTeam">
+                                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white bg-purple-400">
+                                            {{ getInitialOf(r.assignedTeam?.name || '') }}
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                {{ r.assignedTeam?.name }}
+                                            </span>
+                                            <span class="text-xs text-gray-500">Team</span>
+                                        </div>
+                                    </ng-container>
                                 </div>
+                                <ng-template #notAssigned>
+                                    <span class="text-xs text-gray-400 italic">{{ 'ACCESS_REQUESTS.TABLE.NOT_ASSIGNED' | transloco }}</span>
+                                </ng-template>
                             </td>
+
+                            <!-- Priority -->
                             <td class="px-6 py-4">
-                                <span
-                                    class="rounded-full px-3 py-1 text-xs font-bold tracking-wide"
-                                    [ngClass]="statusConfig[r.status].classes"
-                                >
+                                <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+                                    [ngClass]="{
+                                        'bg-gray-100 text-gray-700': r.priority === 0,
+                                        'bg-blue-100 text-blue-700': r.priority === 1,
+                                        'bg-orange-100 text-orange-700': r.priority === 2,
+                                        'bg-red-100 text-red-700': r.priority === 3
+                                    }">
+                                    <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L11 4.323V3a1 1 0 011-1zm-5 8.274l-.818 2.552c-.25.78.409 1.574 1.195 1.574H6.75a1 1 0 00.894-.553l.991-1.984a.5.5 0 00-.447-.724H6a.5.5 0 00-.447.276L5 11.274z"/>
+                                    </svg>
+                                    {{ getPriorityLabel(r.priority) }}
+                                </span>
+                            </td>
+
+                            <!-- Status -->
+                            <td class="px-6 py-4">
+                                <span class="rounded-full px-3 py-1 text-xs font-bold tracking-wide"
+                                    [ngClass]="statusConfig[r.status].classes">
                                     {{ statusConfig[r.status].label }}
                                 </span>
                             </td>
-                            <td
-                                class="px-6 py-4 text-gray-600 dark:text-gray-400"
-                            >
-                                {{ r.requestDate }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <button
-                                    (click)="onAction(r)"
-                                    class="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition hover:bg-gray-50"
-                                >
-                                    <ng-container
-                                        [ngSwitch]="
-                                            statusConfig[r.status].actionIcon
-                                        "
-                                    >
-                                        <svg
-                                            *ngSwitchCase="'approved'"
-                                            class="h-4 w-4 text-emerald-600"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M5 13l4 4L19 7"
-                                            />
+
+                            <!-- Action -->
+                            <td class="sticky right-0 z-10 bg-white px-6 py-4 dark:bg-gray-800">
+                                <div class="flex items-center justify-center gap-2">
+                                    <button (click)="onEdit(r)" 
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 text-blue-600 transition hover:bg-blue-100"
+                                        [title]="'ACCESS_REQUESTS.TABLE.EDIT' | transloco">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                         </svg>
-                                        <svg
-                                            *ngSwitchCase="'rejected'"
-                                            class="h-4 w-4 text-red-600"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M6 18L18 6M6 6l12 12"
-                                            />
+                                    </button>
+                                    <button (click)="onDelete(r)" 
+                                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-600 transition hover:bg-red-100"
+                                        [title]="'ACCESS_REQUESTS.TABLE.DELETE' | transloco">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                         </svg>
-                                        <svg
-                                            *ngSwitchDefault
-                                            class="h-4 w-4 text-indigo-600"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                            />
-                                        </svg>
-                                    </ng-container>
-                                </button>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         
@@ -459,19 +563,6 @@
                                     />
                                 </svg>
                                 <p class="font-medium">{{ 'ACCESS_REQUESTS.TABLE.EMPTY' | transloco }}</p>
-                            </td>
-                        </tr>
-                        
-                        <!-- Loading State -->
-                        <tr *ngIf="isLoading">
-                            <td
-                                colspan="6"
-                                class="text-secondary px-6 py-16 text-center"
-                            >
-                                <div class="flex flex-col items-center justify-center">
-                                    <div class="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600"></div>
-                                    <p class="mt-3 font-medium">{{ 'ACCESS_REQUESTS.TABLE.LOADING' | transloco }}</p>
-                                </div>
                             </td>
                         </tr>
                     </tbody>
@@ -532,5 +623,6 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>

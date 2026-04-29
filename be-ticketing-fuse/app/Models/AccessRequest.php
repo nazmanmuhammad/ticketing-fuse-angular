@@ -66,26 +66,43 @@ class AccessRequest extends Model
     }
 
     /**
-     * Generate unique request number
+     * Generate unique request number with retry mechanism
      */
     public static function generateRequestNumber(): string
     {
         $year = date('Y');
         $month = date('m');
-        
-        // Get last request number for this month
-        $lastRequest = self::whereYear('created_at', $year)
-            ->whereMonth('created_at', $month)
-            ->orderBy('created_at', 'desc')
-            ->first();
+        $maxRetries = 5;
+        $attempt = 0;
 
-        if ($lastRequest && preg_match('/AR-' . $year . $month . '-(\d+)/', $lastRequest->request_number, $matches)) {
-            $number = intval($matches[1]) + 1;
-        } else {
-            $number = 1;
+        while ($attempt < $maxRetries) {
+            // Get the highest request number for this month
+            $lastNumber = self::whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->where('request_number', 'like', 'AR-' . $year . $month . '-%')
+                ->max('request_number');
+
+            if ($lastNumber && preg_match('/AR-' . $year . $month . '-(\d+)/', $lastNumber, $matches)) {
+                $number = intval($matches[1]) + 1;
+            } else {
+                $number = 1;
+            }
+
+            $requestNumber = sprintf('AR-%s%s-%04d', $year, $month, $number);
+
+            // Check if this number already exists
+            $exists = self::where('request_number', $requestNumber)->exists();
+            
+            if (!$exists) {
+                return $requestNumber;
+            }
+
+            $attempt++;
+            usleep(100000); // Wait 100ms before retry
         }
 
-        return sprintf('AR-%s%s-%04d', $year, $month, $number);
+        // Fallback: use timestamp to ensure uniqueness
+        return sprintf('AR-%s%s-%04d-%s', $year, $month, $number, substr(microtime(true) * 10000, -4));
     }
 
     /**
@@ -136,11 +153,11 @@ class AccessRequest extends Model
     }
 
     /**
-     * Get approval
+     * Get approval (polymorphic relationship)
      */
     public function approval()
     {
-        return $this->hasOne(AccessRequestApproval::class);
+        return $this->morphOne(Approval::class, 'approvable');
     }
 
     /**

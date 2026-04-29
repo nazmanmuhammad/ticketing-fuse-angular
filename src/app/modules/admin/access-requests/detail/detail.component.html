@@ -1,977 +1,716 @@
-<div
-    class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent"
-    *ngIf="detail"
->
-    <!-- ─── Breadcrumb Header ─────────────────────────────────────────── -->
-    <div
-        class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card"
-    >
-        <span class="font-semibold text-gray-800 dark:text-white"
-            >Access Request Detail</span
-        >
+﻿<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    <!-- Breadcrumb Header -->
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Access Request Detail</span>
         <div class="flex items-center gap-3">
             <div class="text-secondary flex items-center gap-1">
                 <span>Dashboard</span>
-                <span>•</span>
-                <a
-                    class="cursor-pointer hover:text-primary"
-                    [routerLink]="['/access-requests', 'data']"
-                    >Access Requests</a
-                >
-                <span>•</span>
-                <span class="font-semibold text-primary">{{ detail.code }}</span>
+                <span></span>
+                <a class="cursor-pointer hover:text-primary" [routerLink]="['/access-requests', 'data']">Access Requests</a>
+                <span></span>
+                <span class="font-semibold text-primary" *ngIf="accessRequest">{{ accessRequest.request_number || accessRequest.id }}</span>
+                <span class="font-semibold text-primary" *ngIf="!accessRequest">...</span>
             </div>
-            <button mat-stroked-button [matMenuTriggerFor]="actionsMenu" class="rounded-lg">
-                Actions
-            </button>
-            <mat-menu #actionsMenu="matMenu">
-                <button mat-menu-item>Start Process</button>
-                <button mat-menu-item>Approve</button>
-                <button mat-menu-item>Reject</button>
-                <button mat-menu-item>Request Revision</button>
-            </mat-menu>
         </div>
     </div>
 
-    <!-- ─── Body Grid ─────────────────────────────────────────────────── -->
-    <div class="mx-8 my-5 mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <!-- ═══ LEFT COLUMN ══════════════════════════════════════════════ -->
-        <div class="space-y-6 lg:col-span-2">
-            <!-- ── Info Card ─────────────────────────────────── -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
-            >
-                <div class="flex items-start justify-between">
-                    <div>
-                        <h2
-                            class="text-xl font-bold text-gray-900 dark:text-white"
+    <!-- SKELETON LOADING -->
+    <div *ngIf="!accessRequest && isLoading" class="animate-pulse">
+        <div class="mx-8 my-5 mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <!-- LEFT COLUMN SKELETON -->
+            <div class="space-y-6 lg:col-span-2">
+                <div class="flex items-center justify-between">
+                    <div class="h-10 w-24 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                    <div class="h-10 w-28 rounded-lg bg-gray-200 dark:bg-gray-700"></div>
+                </div>
+                <div class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="h-7 w-3/4 rounded bg-gray-200 dark:bg-gray-700"></div>
+                            <div class="mt-2 h-4 w-1/2 rounded bg-gray-200 dark:bg-gray-700"></div>
+                        </div>
+                        <div class="h-6 w-20 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTUAL CONTENT -->
+    <div *ngIf="accessRequest">
+        <div class="mx-8 my-5 mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <!-- LEFT COLUMN -->
+            <div class="space-y-6 lg:col-span-2">
+                <!-- Actions Bar -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <button mat-stroked-button [routerLink]="['/access-requests', 'data']" class="rounded-lg bg-white">
+                            <mat-icon class="icon-size-5">arrow_back</mat-icon>
+                            <span class="ml-2">Back</span>
+                        </button>
+                        
+                        <!-- Edit Button - Same conditions as in ticket detail -->
+                        <button
+                            mat-raised-button
+                            *ngIf="canEditAccessRequest()"
+                            (click)="editAccessRequest()"
+                            class="rounded-lg bg-primary text-white hover:bg-primary/90"
                         >
-                            {{ detail.subject }}
-                        </h2>
-                        <p class="text-secondary mt-1 text-sm">
-                            Requested by {{ detail.fullName }} •
-                            {{ detail.createdAgo }}
+                            <mat-icon class="icon-size-5">edit</mat-icon>
+                            <span class="ml-2">Edit</span>
+                        </button>
+                    </div>
+                    
+                    <button mat-stroked-button *ngIf="canSeeActions()" [matMenuTriggerFor]="actionsMenu" class="rounded-lg bg-white">
+                        <mat-icon class="icon-size-5">more_vert</mat-icon>
+                        <span class="ml-2">Actions</span>
+                    </button>
+                    <mat-menu #actionsMenu="matMenu">
+                        <button mat-menu-item (click)="approveAccessRequest()">
+                            <mat-icon class="icon-size-5">check_circle</mat-icon>
+                            <span>Approve</span>
+                        </button>
+                        <button mat-menu-item (click)="rejectAccessRequest()">
+                            <mat-icon class="icon-size-5">cancel</mat-icon>
+                            <span>Reject</span>
+                        </button>
+                        <button mat-menu-item (click)="provisionAccess()">
+                            <mat-icon class="icon-size-5">vpn_key</mat-icon>
+                            <span>Provision Access</span>
+                        </button>
+                    </mat-menu>
+                </div>
+
+                <!-- Approval Section -->
+                <div class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
+                    *ngIf="accessRequest.approval && accessRequest.approval.items && accessRequest.approval.items.length > 0">
+                    <div class="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+                        <h3 class="text-base font-bold uppercase tracking-wide text-gray-700">APPROVALS</h3>
+                        <span class="text-sm text-blue-600">{{ accessRequest.created_at | date:'dd-MM-yyyy HH:mm' }}</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        <div *ngFor="let item of accessRequest.approval.items" class="flex items-start gap-3">
+                            <div class="relative h-12 w-12 flex-shrink-0">
+                                <img *ngIf="item.user?.photo" [src]="getAvatarUrl(item.user.photo)" [alt]="item.user?.name"
+                                    class="h-full w-full rounded-full object-cover" />
+                                <div *ngIf="!item.user?.photo"
+                                    class="flex h-full w-full items-center justify-center rounded-full text-sm font-bold text-white"
+                                    [ngClass]="getAvatarColor(item.user?.name || '')">
+                                    {{ item.user?.name?.charAt(0) || '?' }}
+                                </div>
+                            </div>
+                            
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-semibold text-gray-900 text-sm">{{ item.user?.name || 'Unknown' }}</h4>
+                                <p class="text-xs text-gray-500">{{ item.user?.department_id || 'N/A' }}</p>
+                                <p class="text-xs text-gray-400 mt-0.5">
+                                    {{ (item.approved_at || item.created_at) | date:'EEE, dd-MMM-yy HH:mm' }}
+                                </p>
+                                
+                                <div class="mt-2 flex items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase"
+                                        [ngClass]="{
+                                            'bg-yellow-100 text-yellow-700': item.status === 'pending',
+                                            'bg-green-100 text-green-700': item.status === 'approved',
+                                            'bg-red-100 text-red-700': item.status === 'rejected'
+                                        }">
+                                        {{ item.status }}
+                                    </span>
+                                    
+                                    <button *ngIf="item.notes" (click)="showApprovalNotes(item)"
+                                        class="flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition hover:bg-gray-300"
+                                        matTooltip="View notes">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                
+                                <div *ngIf="item.status === 'pending' && isCurrentUserApprover(item)" class="mt-2 flex gap-2">
+                                    <button (click)="approveRequest(item.id)"
+                                        class="flex-1 rounded bg-green-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-green-600">
+                                        Approve
+                                    </button>
+                                    <button (click)="declineRequest(item.id)"
+                                        class="flex-1 rounded bg-red-500 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-red-600">
+                                        Decline
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Access Request Info Card -->
+                <div class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+                                {{ accessRequest?.resource_name || 'No Resource Name' }}
+                            </h2>
+                            <p class="text-secondary mt-1 text-sm">
+                                Created by {{ createdByUser }}  {{ formatDate(createdAt) }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <div class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1"
+                                [ngClass]="{
+                                    'bg-yellow-50 text-yellow-700 ring-yellow-200': accessRequest.status === 0,
+                                    'bg-green-50 text-green-700 ring-green-200': accessRequest.status === 1,
+                                    'bg-red-50 text-red-700 ring-red-200': accessRequest.status === 2,
+                                    'bg-blue-50 text-blue-700 ring-blue-200': accessRequest.status === 3
+                                }">
+                                {{ getStatusLabel(accessRequest.status) }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-sm font-medium text-gray-500 mb-1">Reason:</p>
+                        <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {{ accessRequest?.reason || 'No reason provided' }}
                         </p>
                     </div>
-                    <div class="text-right">
-                        <div
-                            class="inline-flex items-center rounded-full bg-yellow-50 px-3 py-1 text-xs font-semibold text-yellow-700 ring-1 ring-yellow-200"
-                            *ngIf="detail.status === 'Pending approval'"
-                        >
-                            <span
-                                class="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-yellow-400"
-                            ></span>
-                            Pending approval
+                </div>
+
+                <!-- Details Card -->
+                <div class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card">
+                    <h3 class="mb-4 text-sm font-bold uppercase tracking-wide text-gray-500">Details</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Request Type</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.request_type }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Access Level</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.access_level }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Duration Type</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.duration_type }}</span>
+                        </div>
+                        <div class="flex justify-between" *ngIf="accessRequest.start_date">
+                            <span class="text-secondary">Start Date</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.start_date | date:'dd-MM-yyyy' }}</span>
+                        </div>
+                        <div class="flex justify-between" *ngIf="accessRequest.end_date">
+                            <span class="text-secondary">End Date</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.end_date | date:'dd-MM-yyyy' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Priority</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ getPriorityLabel(accessRequest.priority) }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Email</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.email }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Phone</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.phone }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-secondary">Department</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.department }}</span>
                         </div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Justification</h4>
-                    <p class="text-gray-700 dark:text-gray-300">
-                        {{ detail.description }}
-                    </p>
-                </div>
 
-                <!-- Attachments -->
-                <div class="mt-5" *ngIf="detail.attachments?.length">
-                    <div
-                        class="text-secondary mb-2 text-xs font-medium uppercase tracking-wide"
-                    >
-                        Supporting Documents
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <div
-                            *ngFor="let doc of detail.attachments"
-                            class="group flex cursor-pointer items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs transition-colors hover:border-primary hover:bg-primary/5 dark:bg-gray-800"
-                        >
-                            <svg
-                                class="h-4 w-4 text-gray-400 transition-colors group-hover:text-primary"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L18 9.828V7h-2.828z"
-                                />
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M16 3h5v5"
-                                />
-                            </svg>
-                            <span
-                                class="font-medium text-gray-700 dark:text-gray-300"
-                                >{{ doc.id.slice(0, 8) }}.{{
-                                    doc.name.split('.').pop()
-                                }}</span
-                            >
-                            <span class="text-secondary">• {{ doc.size }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Approval Workflow Card ────────────────────────────── -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
-            >
+            <!-- Comments Card -->
+            <div class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card">
                 <!-- Header -->
                 <div class="mb-5 flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div
-                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-600"
-                        >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                />
+                        <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z" />
                             </svg>
                         </div>
                         <div>
-                            <h3 class="font-bold text-gray-900 dark:text-white">
-                                Approval Workflow
-                            </h3>
-                            <p class="text-secondary text-xs">
-                                Progress of approvals
-                            </p>
+                            <h3 class="font-bold text-gray-900 dark:text-white">Comments</h3>
+                            <p class="text-secondary text-xs">Discussion and internal notes</p>
                         </div>
                     </div>
-                    <!-- Progress pill -->
-                    <div class="flex items-center gap-2">
-                        <span
-                            class="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                        >
-                        {{ approvedCount() }} / {{ approvalsTotal() }} Approved
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Progress bar -->
-                <div
-                    class="mb-5 h-1.5 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700"
-                >
-                    <div
-                        class="h-full rounded-full bg-green-500 transition-all duration-500"
-                        [style.width.%]="getApprovalProgress()"
-                    ></div>
-                </div>
-
-                <!-- Steps — vertical stepper style -->
-                <div class="relative space-y-0">
-                    <!-- connector line -->
-                    <div
-                        class="absolute bottom-5 left-[19px] top-5 z-0 w-px bg-gray-200 dark:bg-gray-700"
-                    ></div>
-
-                    <div
-                        *ngFor="let step of detail.approvals; let last = last"
-                        class="relative z-10 flex gap-4"
-                        [class.pb-5]="!last"
-                    >
-                        <!-- Step indicator -->
-                        <div class="flex flex-shrink-0 flex-col items-center">
-                            <div
-                                class="flex h-10 w-10 items-center justify-center rounded-full border-2 text-xs font-bold transition-all"
-                                [ngClass]="
-                                    step.status === 'Approved'
-                                        ? 'border-green-500 bg-green-500 text-white'
-                                        : step.status === 'Rejected'
-                                          ? 'border-red-400 bg-red-400 text-white'
-                                          : 'border-gray-300 bg-white text-gray-500 dark:bg-card dark:border-gray-600'
-                                "
-                            >
-                                <ng-container
-                                    *ngIf="step.status === 'Approved'"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="3"
-                                            d="M5 13l4 4L19 7"
-                                        />
-                                    </svg>
-                                </ng-container>
-                                <ng-container
-                                    *ngIf="step.status === 'Rejected'"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="3"
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </ng-container>
-                                <ng-container
-                                    *ngIf="
-                                        step.status !== 'Approved' &&
-                                        step.status !== 'Rejected'
-                                    "
-                                >
-                                    L{{ step.level }}
-                                </ng-container>
-                            </div>
-                        </div>
-
-                        <!-- Step content -->
-                        <div
-                            class="mb-1 flex-1 rounded-xl border px-4 py-3"
-                            [ngClass]="
-                                step.status === 'Approved'
-                                    ? 'border-green-200 bg-green-50 dark:bg-green-900/10'
-                                    : step.status === 'Rejected'
-                                      ? 'border-red-200 bg-red-50 dark:bg-red-900/10'
-                                      : 'border-gray-200 bg-gray-50 dark:bg-gray-800'
-                            "
-                        >
-                            <div class="flex items-start justify-between gap-3">
-                                <div class="flex items-center gap-2">
-                                    <!-- Avatar -->
-                                    <div
-                                        class="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                                        [ngClass]="
-                                            step.status === 'Approved'
-                                                ? 'bg-green-600'
-                                                : step.status === 'Rejected'
-                                                  ? 'bg-red-500'
-                                                  : 'bg-gray-400'
-                                        "
-                                    >
-                                        {{ getInitials(step.approver) }}
-                                    </div>
-                                    <div>
-                                        <div
-                                            class="text-sm font-semibold text-gray-900 dark:text-white"
-                                        >
-                                            {{ step.approver }}
-                                        </div>
-                                        <div class="text-secondary text-xs">
-                                            Level {{ step.level }} Approver
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col items-end gap-1">
-                                    <span
-                                        class="rounded-full px-2.5 py-0.5 text-xs font-semibold"
-                                        [ngClass]="
-                                            step.status === 'Approved'
-                                                ? 'bg-green-100 text-green-700'
-                                                : step.status === 'Rejected'
-                                                  ? 'bg-red-100 text-red-700'
-                                                  : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
-                                        "
-                                        >{{ step.status }}</span
-                                    >
-                                    <span
-                                        class="text-secondary whitespace-nowrap text-xs"
-                                        >{{ step.updatedAt }}</span
-                                    >
-                                </div>
-                            </div>
-                            <!-- Approval note -->
-                            <p
-                                *ngIf="step.note"
-                                class="mt-2.5 border-t pt-2.5 text-xs text-gray-600 dark:text-gray-400"
-                                [ngClass]="
-                                    step.status === 'Approved'
-                                        ? 'border-green-200'
-                                        : step.status === 'Rejected'
-                                          ? 'border-red-200'
-                                          : 'border-gray-200 dark:border-gray-700'
-                                "
-                            >
-                                <span class="font-medium">Note:</span>
-                                {{ step.note }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ── Comments Card ─────────────────────────────────────── -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-6 shadow-sm dark:bg-card"
-            >
-                <!-- Header -->
-                <div class="mb-5 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600"
-                        >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3v-3z"
-                                />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-gray-900 dark:text-white">
-                                Comments
-                            </h3>
-                            <p class="text-secondary text-xs">
-                                Discussion and internal notes
-                            </p>
-                        </div>
-                    </div>
-                    <span
-                        class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600"
-                    >
-                        {{ detail.comments.length }}
+                    <span class="rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-600">
+                        {{ getTotalCommentCount() }} Comments
                     </span>
                 </div>
 
-                <!-- Comment list -->
-                <div class="space-y-4">
-                    <div *ngFor="let c of detail.comments">
-                        <!-- Main comment -->
-                        <div
-                            class="rounded-xl border px-4 py-4 shadow-sm"
-                            [ngClass]="
-                                c.isInternal
-                                    ? 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10'
-                                    : 'border-gray-200 bg-white dark:bg-card'
-                            "
-                        >
-                            <!-- Internal badge -->
-                            <div
-                                *ngIf="c.isInternal"
-                                class="mb-2 inline-flex items-center gap-1 rounded-md bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700"
-                            >
-                                <svg
-                                    class="h-3 w-3"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 15v2m0 0v2m0-2h2m-2 0H10m8-9a8 8 0 11-16 0 8 8 0 0116 0z"
-                                    />
+                <!-- Comment list with fixed height and scroll -->
+                <div #commentList
+                    class="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 relative"
+                    *ngIf="comments.length > 0">
+                    <!-- Scroll to bottom button -->
+                    <div *ngIf="showScrollToBottom" class="sticky top-2 z-10 flex justify-center">
+                        <button (click)="scrollToBottom()"
+                            class="flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white shadow-lg transition hover:bg-indigo-700">
+                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
+                            New comments
+                        </button>
+                    </div>
+                    <div *ngFor="let c of comments">
+                        <div class="rounded-xl border px-4 py-4 shadow-sm"
+                            [ngClass]="c.isInternal ? 'border-yellow-200 bg-yellow-50 dark:bg-yellow-900/10' : 'border-gray-200 bg-white dark:bg-card'">
+                            <div *ngIf="c.isInternal"
+                                class="mb-2 inline-flex items-center gap-1 rounded-md bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-700">
+                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 15v2m0 0v2m0-2h2m-2 0H10m8-9a8 8 0 11-16 0 8 8 0 0116 0z" />
                                 </svg>
                                 Internal Note
                             </div>
 
-                            <!-- Author row -->
-                            <div
-                                class="flex items-center justify-between gap-2"
-                            >
+                            <div class="flex items-center justify-between gap-2">
                                 <div class="flex items-center gap-2.5">
-                                    <div
-                                        class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-900 text-[11px] font-bold text-white dark:bg-gray-700"
-                                    >
-                                        {{ getInitials(c.author) }}
+                                    <div class="relative h-8 w-8 flex-shrink-0">
+                                        <img *ngIf="c.user?.photo" [src]="getAvatarUrl(c.user.photo)" [alt]="c.author"
+                                            class="h-full w-full rounded-full object-cover"
+                                            (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
+                                        <div *ngIf="!c.user?.photo"
+                                            class="flex h-full w-full items-center justify-center rounded-full bg-gray-900 text-[11px] font-bold text-white dark:bg-gray-700">
+                                            {{ getInitials(c.author) }}
+                                        </div>
                                     </div>
-                                    <span
-                                        class="text-sm font-semibold text-gray-900 dark:text-white"
-                                        >{{ c.author }}</span
-                                    >
+                                    <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ c.author }}</span>
                                 </div>
-                                <span
-                                    class="text-secondary flex-shrink-0 text-xs"
-                                    >{{ c.at }}</span
-                                >
+                                <span class="text-secondary flex-shrink-0 text-xs">{{ c.at }}</span>
                             </div>
-                            <p
-                                class="mt-2 text-sm leading-relaxed text-gray-700 dark:text-gray-300"
-                            >
-                                {{ c.text }}
-                            </p>
 
-                            <!-- Inline attachments on comment -->
-                            <div
-                                class="mt-2.5 flex flex-wrap gap-1.5"
-                                *ngIf="c.attachments?.length"
-                            >
-                                <div
-                                    *ngFor="let att of c.attachments"
-                                    class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs dark:border-gray-700 dark:bg-gray-800"
-                                >
-                                    <svg
-                                        class="h-3.5 w-3.5 text-gray-400"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L18 9.828V7h-2.828z"
-                                        />
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M16 3h5v5"
-                                        />
+                            <p class="mt-2.5 text-sm leading-relaxed text-gray-700 dark:text-gray-300">{{ c.text }}</p>
+
+                            <!-- Comment Attachments -->
+                            <div *ngIf="c.attachments && c.attachments.length > 0" class="mt-3 space-y-2">
+                                <div *ngFor="let att of c.attachments" (click)="openPreview(att)"
+                                    class="flex cursor-pointer items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2 transition hover:border-indigo-200 hover:bg-indigo-50">
+                                    <svg class="h-4 w-4 text-indigo-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                     </svg>
-                                    <span
-                                        class="font-medium text-gray-600 dark:text-gray-400"
-                                        >{{ att.name }}</span
-                                    >
-                                    <span class="text-secondary">{{
-                                        att.size
-                                    }}</span>
+                                    <span class="flex-1 text-xs text-gray-700">{{ att.name }}</span>
+                                    <span class="text-xs text-gray-400">{{ att.size }}</span>
                                 </div>
                             </div>
 
-                            <!-- Action bar -->
-                            <div
-                                class="mt-3 flex items-center gap-4 border-t border-gray-100 pt-3 dark:border-gray-700"
-                            >
-                                <button
-                                    (click)="startReply(c.id)"
-                                    class="text-secondary flex items-center gap-1.5 text-xs transition-colors hover:text-primary"
-                                >
-                                    <svg
-                                        class="h-3.5 w-3.5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                                        />
+                            <!-- Reply Button -->
+                            <div class="mt-3 flex items-center gap-2">
+                                <button (click)="startReply(c.id)" type="button"
+                                    class="flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-100">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
                                     </svg>
                                     Reply
                                 </button>
-                                <span
-                                    class="text-secondary text-xs"
-                                    *ngIf="c.replies?.length"
-                                >
-                                    {{ c.replies!.length }}
-                                    {{
-                                        c.replies!.length === 1
-                                            ? 'reply'
-                                            : 'replies'
-                                    }}
+                                <span *ngIf="c.replies && c.replies.length > 0" class="text-xs text-gray-400">
+                                    {{ c.replies.length }} {{ c.replies.length === 1 ? 'reply' : 'replies' }}
                                 </span>
                             </div>
 
-                            <!-- Inline reply input -->
-                            <div
-                                *ngIf="replyingToId === c.id"
-                                class="mt-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-800"
-                            >
-                                <textarea
-                                    [(ngModel)]="replyText"
-                                    rows="2"
-                                    placeholder="Write a reply…"
-                                    class="w-full rounded-lg border border-gray-200 bg-white p-2.5 text-sm dark:bg-card focus:outline-none focus:ring-2 focus:ring-primary/20"
-                                ></textarea>
-                                <div
-                                    class="mt-2 flex items-center justify-end gap-2"
-                                >
-                                    <button
-                                        (click)="cancelReply()"
-                                        class="rounded-full border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        (click)="submitReply(c)"
-                                        class="rounded-full bg-primary px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-primary/90"
-                                    >
-                                        Post Reply
-                                    </button>
+                            <!-- Reply Form -->
+                            <div *ngIf="replyingToId === c.id"
+                                class="mt-3 rounded-lg border border-indigo-200 bg-indigo-50 p-3">
+                                <textarea [(ngModel)]="replyText" rows="2" placeholder="Write a reply..."
+                                    class="w-full rounded-lg border border-gray-200 bg-white p-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200"></textarea>
+
+                                <!-- Reply File attachments -->
+                                <div *ngIf="replyFiles.length > 0" class="mt-2 space-y-1">
+                                    <div *ngFor="let file of replyFiles; let i = index"
+                                        class="flex items-center justify-between rounded border border-gray-200 bg-white p-1.5">
+                                        <div class="flex items-center gap-1.5">
+                                            <svg class="h-3 w-3 text-gray-400" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            <span class="text-xs text-gray-700">{{ file.name }}</span>
+                                            <span class="text-xs text-gray-400">({{ formatFileSize(file.size) }})</span>
+                                        </div>
+                                        <button (click)="removeReplyFile(i)" type="button"
+                                            class="rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="mt-2 flex items-center justify-between gap-2">
+                                    <div>
+                                        <input #replyFileInput type="file" multiple class="hidden"
+                                            (change)="onReplyFileSelect($event)" />
+                                        <button (click)="replyFileInput.click()" type="button"
+                                            class="flex items-center gap-1 rounded border border-gray-200 bg-white px-2 py-1 text-xs text-gray-600 transition hover:bg-gray-50">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            Attach
+                                        </button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button (click)="cancelReply()" type="button"
+                                            class="rounded-lg px-3 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-100">
+                                            Cancel
+                                        </button>
+                                        <button (click)="submitReply(c)" type="button"
+                                            [disabled]="!replyText.trim() || isSubmittingReply"
+                                            class="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <svg *ngIf="isSubmittingReply" class="h-3 w-3 animate-spin" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                            <span>{{ isSubmittingReply ? 'Posting...' : 'Post Reply' }}</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Nested replies -->
-                        <div
-                            *ngIf="c.replies?.length"
-                            class="ml-8 mt-2 space-y-2"
-                        >
-                            <div
-                                *ngFor="let reply of c.replies"
-                                class="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800"
-                            >
-                                <div
-                                    class="flex items-center justify-between gap-2"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <div
-                                            class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gray-700 text-[9px] font-bold text-white"
-                                        >
-                                            {{ getInitials(reply.author) }}
+                            <!-- Replies -->
+                            <div *ngIf="c.replies && c.replies.length > 0"
+                                class="mt-3 space-y-2 border-l-2 border-gray-200 pl-4">
+                                <div *ngFor="let reply of c.replies"
+                                    class="rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-2">
+                                            <div class="relative h-6 w-6 flex-shrink-0">
+                                                <img *ngIf="reply.user?.photo" [src]="getAvatarUrl(reply.user.photo)"
+                                                    [alt]="reply.author"
+                                                    class="h-full w-full rounded-full object-cover"
+                                                    (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
+                                                <div *ngIf="!reply.user?.photo"
+                                                    class="flex h-full w-full items-center justify-center rounded-full bg-gray-700 text-[9px] font-bold text-white">
+                                                    {{ getInitials(reply.author) }}
+                                                </div>
+                                            </div>
+                                            <span class="text-xs font-semibold text-gray-900">{{ reply.author }}</span>
                                         </div>
-                                        <span
-                                            class="text-xs font-semibold text-gray-800 dark:text-white"
-                                            >{{ reply.author }}</span
-                                        >
-                                        <svg
-                                            class="h-3 w-3 text-gray-300"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            viewBox="0 0 24 24"
-                                        >
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
-                                            />
-                                        </svg>
+                                        <span class="text-xs text-gray-400">{{ reply.at }}</span>
                                     </div>
-                                    <span
-                                        class="text-secondary flex-shrink-0 text-xs"
-                                        >{{ reply.at }}</span
-                                    >
+                                    <p class="mt-1.5 text-xs text-gray-700">{{ reply.text }}</p>
+
+                                    <!-- Reply Attachments -->
+                                    <div *ngIf="reply.attachments && reply.attachments.length > 0"
+                                        class="mt-2 space-y-1">
+                                        <div *ngFor="let att of reply.attachments" (click)="openPreview(att)"
+                                            class="flex cursor-pointer items-center gap-2 rounded border border-gray-200 bg-white p-1.5 text-xs transition hover:border-indigo-200 hover:bg-indigo-50">
+                                            <svg class="h-3 w-3 text-indigo-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                            </svg>
+                                            <span class="flex-1 text-gray-700">{{ att.name }}</span>
+                                            <span class="text-gray-400">{{ att.size }}</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Reply Button -->
+                                    <div class="mt-2">
+                                        <button (click)="startReply(c.id)" type="button"
+                                            class="flex items-center gap-1 rounded px-2 py-1 text-xs font-medium text-gray-600 transition hover:bg-gray-100">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                            </svg>
+                                            Reply
+                                        </button>
+                                    </div>
                                 </div>
-                                <p
-                                    class="mt-1.5 text-xs leading-relaxed text-gray-600 dark:text-gray-400"
-                                >
-                                    {{ reply.text }}
-                                </p>
                             </div>
                         </div>
                     </div>
-                    <!-- end *ngFor comments -->
                 </div>
 
-                <!-- ── New Comment Composer ─────────────────────────── -->
-                <div
-                    class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800"
-                >
-                    <!-- Options row -->
-                    <div class="mb-3 flex items-center gap-4">
-                        <label
-                            class="flex cursor-pointer select-none items-center gap-2 text-xs"
-                        >
-                            <input
-                                type="checkbox"
-                                [(ngModel)]="internalNote"
-                                class="h-4 w-4 cursor-pointer rounded border-gray-300 accent-primary"
-                            />
-                            <span class="text-gray-600 dark:text-gray-400"
-                                >Internal Note</span
-                            >
+                <!-- Empty state -->
+                <div *ngIf="comments.length === 0" class="py-8 text-center">
+                    <p class="text-secondary text-sm">No comments yet</p>
+                </div>
+
+                <!-- New Comment Composer -->
+                <div class="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
+                    <div class="mb-2 flex items-center gap-2">
+                        <input type="checkbox" id="internalNote" [(ngModel)]="newCommentInternal"
+                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                        <label for="internalNote" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Internal Note
                         </label>
-                        <div
-                            class="h-3.5 w-px bg-gray-300 dark:bg-gray-600"
-                        ></div>
-                        <button
-                            class="text-secondary flex items-center gap-1.5 text-xs transition-colors hover:text-primary"
-                        >
-                            <svg
-                                class="h-3.5 w-3.5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4 6h16M4 10h16M4 14h10"
-                                />
-                            </svg>
-                            Canned Response
-                        </button>
                     </div>
+                    <textarea [(ngModel)]="newCommentText" rows="3" placeholder="Write a comment..."
+                        class="w-full rounded-lg border border-gray-200 bg-white p-3 text-sm dark:bg-card focus:outline-none focus:ring-2 focus:ring-primary/20"></textarea>
 
-                    <!-- Textarea -->
-                    <div
-                        class="overflow-hidden rounded-lg border bg-white transition-colors dark:bg-card"
-                        [ngClass]="
-                            internalNote
-                                ? 'border-yellow-300 ring-2 ring-yellow-100'
-                                : 'border-gray-200 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20'
-                        "
-                    >
-                        <!-- Internal note banner -->
-                        <div
-                            *ngIf="internalNote"
-                            class="flex items-center gap-2 border-b border-yellow-200 bg-yellow-50 px-3 py-1.5"
-                        >
-                            <svg
-                                class="h-3.5 w-3.5 text-yellow-600"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 15v2m0 0v2m0-2h2m-2 0H10m8-9a8 8 0 11-16 0 8 8 0 0116 0z"
-                                />
-                            </svg>
-                            <span class="text-xs font-medium text-yellow-700"
-                                >This is an internal note — only visible to
-                                agents</span
-                            >
-                        </div>
-                        <textarea
-                            [(ngModel)]="newComment"
-                            rows="4"
-                            placeholder="Write a comment…"
-                            class="placeholder-gray-400 w-full resize-none bg-transparent p-3 text-sm text-gray-900 focus:outline-none dark:text-white"
-                        ></textarea>
-
-                        <!-- Pending file attachments preview -->
-                        <div
-                            *ngIf="pendingFiles.length"
-                            class="flex flex-wrap gap-2 border-t border-gray-100 px-3 py-2.5 dark:border-gray-700"
-                        >
-                            <div
-                                *ngFor="let f of pendingFiles; let i = index"
-                                class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1.5 text-xs dark:border-gray-600 dark:bg-gray-700"
-                            >
-                                <svg
-                                    class="h-3.5 w-3.5 text-gray-400"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L18 9.828V7h-2.828z"
-                                    />
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M16 3h5v5"
-                                    />
-                                </svg>
-                                <span
-                                    class="font-medium text-gray-600 dark:text-gray-300"
-                                    >{{ f.name }}</span
-                                >
-                                <span class="text-secondary">{{ f.size }}</span>
-                                <button
-                                    (click)="removeAttach(i)"
-                                    class="ml-1 text-gray-400 transition-colors hover:text-red-500"
-                                >
-                                    <svg
-                                        class="h-3 w-3"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2.5"
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Toolbar -->
-                        <div
-                            class="flex items-center justify-between border-t border-gray-100 px-3 py-2 dark:border-gray-700"
-                        >
+                    <!-- File attachments -->
+                    <div *ngIf="newCommentFiles.length > 0" class="mt-3 space-y-2">
+                        <div *ngFor="let file of newCommentFiles; let i = index"
+                            class="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-2">
                             <div class="flex items-center gap-2">
-                                <!-- Attach button -->
-                                <button
-                                    (click)="simulateAttach()"
-                                    class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                                    title="Attach file"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828L18 9.828V7h-2.828z"
-                                        />
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M16 3h5v5"
-                                        />
-                                    </svg>
-                                    Attach
-                                </button>
-                                <!-- Emoji placeholder -->
-                                <button
-                                    class="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-700 dark:hover:text-gray-300"
-                                    title="Insert emoji"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <circle
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                            stroke-width="2"
-                                        />
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-width="2"
-                                            d="M8 13s1.5 2 4 2 4-2 4-2"
-                                        />
-                                        <line
-                                            x1="9"
-                                            y1="9"
-                                            x2="9.01"
-                                            y2="9"
-                                            stroke-width="3"
-                                            stroke-linecap="round"
-                                            stroke-linecap="round"
-                                        />
-                                        <line
-                                            x1="15"
-                                            y1="9"
-                                            x2="15.01"
-                                            y2="9"
-                                            stroke-width="3"
-                                            stroke-linecap="round"
-                                            stroke-linecap="round"
-                                        />
-                                    </svg>
-                                </button>
+                                <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                <span class="text-sm text-gray-700">{{ file.name }}</span>
+                                <span class="text-xs text-gray-400">({{ formatFileSize(file.size) }})</span>
                             </div>
-                            <button
-                                (click)="addComment()"
-                                class="rounded-full bg-primary px-5 py-2 text-xs font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50"
-                                [disabled]="!newComment.trim()"
-                            >
-                                Send
+                            <button (click)="removeCommentFile(i)" type="button"
+                                class="rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-500">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12" />
+                                </svg>
                             </button>
                         </div>
+                    </div>
+
+                    <div class="mt-3 flex items-center justify-between gap-2">
+                        <div>
+                            <input #commentFileInput type="file" multiple class="hidden"
+                                (change)="onCommentFileSelect($event)" />
+                            <button (click)="commentFileInput.click()" type="button"
+                                class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 transition hover:bg-gray-50">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                                </svg>
+                                Attach Files
+                            </button>
+                        </div>
+                        <button (click)="addComment()" [disabled]="!newCommentText.trim() || isSubmittingComment"
+                            class="flex items-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <svg *ngIf="isSubmittingComment" class="h-4 w-4 animate-spin" fill="none"
+                                viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span>{{ isSubmittingComment ? 'Posting...' : 'Post Comment' }}</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ═══ RIGHT COLUMN ══════════════════════════════════════════════ -->
+        <!-- RIGHT COLUMN -->
         <div class="space-y-6">
-            <!-- Priority & Status (Small summary) -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
-            >
-                <h3
-                    class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                >
-                    Overview
-                </h3>
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary text-sm">Status</span>
-                        <span
-                            class="rounded-full bg-yellow-100 px-3 py-1 text-xs font-semibold text-yellow-700"
-                        >
-                            {{ detail.status }}
-                        </span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary text-sm">Priority</span>
-                        <span
-                            class="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700"
-                        >
-                            {{ detail.priority }}
-                        </span>
-                    </div>
+            <!-- Status & Priority Card -->
+            <div class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+                <div class="mb-4 flex items-center justify-between">
+                    <h3 class="text-sm font-bold uppercase tracking-wide text-gray-500">Status & Priority</h3>
+                    <button type="button" (click)="refreshAccessRequestData()" [disabled]="isRefreshing"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 bg-white text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700"
+                        [class.animate-spin]="isRefreshing" title="Refresh access request data">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
                 </div>
-            </div>
-
-            <!-- Assigned To -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
-            >
-                <h3
-                    class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                >
-                    Assigned To
-                </h3>
-                <div class="flex items-center gap-3">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-900 text-xs font-bold text-white dark:bg-gray-700"
-                    >
-                        {{ getInitials(detail.assignTo) }}
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-secondary mb-1 text-xs">Status</div>
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ring-1"
+                            [ngClass]="{
+                                'bg-yellow-50 text-yellow-700 ring-yellow-200': accessRequest.status === 0,
+                                'bg-green-50 text-green-700 ring-green-200': accessRequest.status === 1,
+                                'bg-red-50 text-red-700 ring-red-200': accessRequest.status === 2,
+                                'bg-blue-50 text-blue-700 ring-blue-200': accessRequest.status === 3
+                            }">
+                            <span class="inline-block h-1.5 w-1.5 rounded-full"
+                                [ngClass]="{
+                                    'bg-yellow-400': accessRequest.status === 0,
+                                    'bg-green-400': accessRequest.status === 1,
+                                    'bg-red-400': accessRequest.status === 2,
+                                    'bg-blue-400': accessRequest.status === 3
+                                }"></span>
+                            {{ getStatusLabel(accessRequest.status) }}
+                        </span>
                     </div>
                     <div>
-                        <div
-                            class="text-sm font-semibold text-gray-900 dark:text-white"
-                        >
-                            {{ detail.assignTo }}
-                        </div>
-                        <div class="text-secondary text-xs">
-                            {{ detail.assignType === 'team' ? 'Team' : 'Agent' }}
-                        </div>
+                        <div class="text-secondary mb-1 text-xs">Priority</div>
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold"
+                            [ngClass]="{
+                                'bg-gray-100 text-gray-700': accessRequest.priority === 0,
+                                'bg-blue-100 text-blue-700': accessRequest.priority === 1,
+                                'bg-orange-100 text-orange-700': accessRequest.priority === 2,
+                                'bg-red-100 text-red-700': accessRequest.priority === 3
+                            }">
+                            {{ getPriorityLabel(accessRequest.priority) }}
+                        </span>
                     </div>
                 </div>
             </div>
 
-            <!-- SLA -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
-            >
-                <h3
-                    class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                >
-                    SLA
-                </h3>
-                <div class="flex items-center justify-between">
-                    <span class="text-secondary text-sm">SLA Plan</span>
-                    <span
-                        class="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700"
-                    >
-                        {{ detail.slaPlan }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Details -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
-            >
-                <h3
-                    class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                >
-                    Access Details
-                </h3>
-                <div class="space-y-2.5 text-sm">
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">System</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.system }}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">Environment</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.environment }}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">Access Type</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.accessType }}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">Role</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.role }}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">Duration</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.duration }}</span
-                        >
-                    </div>
-                     <div class="flex items-start justify-between gap-4">
-                        <span class="text-secondary flex-shrink-0"
-                            >Created</span
-                        >
-                        <span
-                            class="text-right font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.createdAt }}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">Requester Email</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.email }}</span
-                        >
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-secondary">Department</span>
-                        <span
-                            class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ detail.department }}</span
-                        >
-                    </div>
-                </div>
-            </div>
-
-            <!-- Activity Log -->
-            <div
-                class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
-            >
-                <h3
-                    class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400"
-                >
-                    Activity Log
-                </h3>
+            <!-- Activity Log Card -->
+            <div class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+                <h3 class="mb-4 text-sm font-bold uppercase tracking-wide text-gray-500">Activity Log</h3>
                 <div class="relative space-y-0">
-                    <!-- vertical line -->
+                    <!-- Timeline line -->
                     <div
-                        class="absolute bottom-2 left-[7px] top-2 w-px bg-gray-100 dark:bg-gray-700"
-                    ></div>
-                    <div
-                        *ngFor="let a of detail.activity; let last = last"
-                        class="relative flex gap-3"
-                        [class.pb-4]="!last"
-                    >
-                        <div
-                            class="z-10 mt-1.5 h-3.5 w-3.5 flex-shrink-0 rounded-full border-2 border-gray-300 bg-white dark:bg-card dark:border-gray-600"
-                        ></div>
-                        <div class="min-w-0 flex-1">
-                            <p
-                                class="text-xs leading-relaxed text-gray-700 dark:text-gray-300"
-                            >
+                        class="absolute bottom-3 left-[11px] top-3 z-0 w-0.5 bg-gradient-to-b from-gray-200 via-gray-200 to-gray-100 dark:from-gray-700 dark:via-gray-700 dark:to-gray-800">
+                    </div>
+
+                    <div *ngFor="let a of activity; let i = index; let last = last" class="relative flex gap-4"
+                        [class.pb-5]="!last">
+                        <!-- Icon Dot -->
+                        <div class="relative z-10 flex-shrink-0">
+                            <div [class]="getIconClasses(a.action, i === 0)">
+                                <mat-icon class="icon-size-4 text-white">{{ getActionIcon(a.action) }}</mat-icon>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 pb-1">
+                            <!-- Time -->
+                            <div class="mb-1 flex items-center gap-2">
+                                <span class="text-xs font-semibold"
+                                    [ngClass]="{
+                                        'text-amber-600 dark:text-amber-400': i === 0,
+                                        'text-gray-500 dark:text-gray-400': i !== 0
+                                    }">
+                                    {{ a.at }}
+                                </span>
+                            </div>
+
+                            <!-- Activity description -->
+                            <p class="text-sm leading-relaxed"
+                                [ngClass]="{
+                                    'font-semibold text-gray-900 dark:text-white': i === 0,
+                                    'text-gray-700 dark:text-gray-300': i !== 0
+                                }">
                                 {{ a.text }}
                             </p>
-                            <span class="text-secondary text-xs">{{
-                                a.at
-                            }}</span>
+
+                            <!-- User info with avatar -->
+                            <div *ngIf="a.user" class="mt-2 flex items-center gap-2">
+                                <div class="relative h-7 w-7 flex-shrink-0">
+                                    <img *ngIf="a.user.photo" [src]="getAvatarUrl(a.user.photo)" [alt]="a.user.name"
+                                        class="h-full w-full rounded-full object-cover ring-2"
+                                        [ngClass]="{
+                                            'ring-amber-400 dark:ring-amber-500': i === 0,
+                                            'ring-gray-300 dark:ring-gray-600': i !== 0
+                                        }"
+                                        (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
+                                    <div *ngIf="!a.user.photo"
+                                        class="flex h-full w-full items-center justify-center rounded-full text-[10px] font-bold text-white ring-2"
+                                        [ngClass]="[
+                                            getAvatarColor(a.user.name),
+                                            i === 0 ? 'ring-amber-400 dark:ring-amber-500' : 'ring-gray-300 dark:ring-gray-600'
+                                        ]">
+                                        {{ getInitials(a.user.name) }}
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
+                                        {{ a.user.name }}
+                                    </div>
+                                    <div class="text-xs text-gray-400 truncate">{{ a.user.email }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div *ngIf="showPreviewModal"
+    class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+    (click)="closePreview()">
+    <div class="relative max-h-[90vh] max-w-[90vw] overflow-hidden rounded-2xl bg-white shadow-2xl"
+        (click)="$event.stopPropagation()">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-6 py-4">
+            <div class="flex items-center gap-3">
+                <svg class="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                </svg>
+                <div>
+                    <h3 class="font-semibold text-gray-900">{{ previewAttachment?.name }}</h3>
+                    <p class="text-xs text-gray-500">{{ formatFileSize(previewAttachment?.size) }}</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Zoom controls (only for images) -->
+                <div *ngIf="isImageFile(previewAttachment)" class="flex items-center gap-1 rounded-lg bg-white px-2 py-1">
+                    <button (click)="zoomOut()" [disabled]="previewZoom <= 0.5"
+                        class="rounded p-1 text-gray-600 transition hover:bg-gray-100 disabled:opacity-30">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                        </svg>
+                    </button>
+                    <span class="px-2 text-xs font-medium text-gray-600">{{ (previewZoom * 100).toFixed(0) }}%</span>
+                    <button (click)="zoomIn()" [disabled]="previewZoom >= 3"
+                        class="rounded p-1 text-gray-600 transition hover:bg-gray-100 disabled:opacity-30">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4v16m8-8H4" />
+                        </svg>
+                    </button>
+                    <button (click)="rotateImage()"
+                        class="ml-1 rounded p-1 text-gray-600 transition hover:bg-gray-100">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                    </button>
+                    <button (click)="resetZoom()" class="ml-1 rounded p-1 text-gray-600 transition hover:bg-gray-100">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Download button -->
+                <button (click)="downloadAttachment(previewAttachment)"
+                    class="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-indigo-700">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                </button>
+                <!-- Close button -->
+                <button (click)="closePreview()"
+                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="flex max-h-[calc(90vh-80px)] items-center justify-center overflow-auto bg-gray-900 p-8">
+            <!-- Image preview -->
+            <img *ngIf="isImageFile(previewAttachment)"
+                [src]="getAttachmentPreviewUrlById(previewAttachment.id) | safe:'resourceUrl'"
+                [alt]="previewAttachment.name" class="max-h-full max-w-full object-contain transition-transform"
+                [style.transform]="'scale(' + previewZoom + ') rotate(' + previewRotation + 'deg)'" />
+
+            <!-- PDF preview -->
+            <iframe *ngIf="isPdfFile(previewAttachment)"
+                [src]="getAttachmentPreviewUrlById(previewAttachment.id) | safe:'resourceUrl'"
+                class="h-[calc(90vh-80px)] w-full" frameborder="0"></iframe>
+
+            <!-- Other files -->
+            <div *ngIf="!isImageFile(previewAttachment) && !isPdfFile(previewAttachment)"
+                class="text-center text-white">
+                <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p class="mt-4 text-lg font-medium">Preview not available</p>
+                <p class="mt-2 text-sm text-gray-400">Click download to view this file</p>
             </div>
         </div>
     </div>

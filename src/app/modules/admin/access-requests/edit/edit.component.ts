@@ -9,7 +9,7 @@ import {
     ReactiveFormsModule,
     Validators,
 } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
@@ -24,7 +24,7 @@ import { User } from 'app/modules/admin/master-data/users/user.types';
 import { Team } from 'app/modules/admin/master-data/teams/team.types';
 
 @Component({
-    selector: 'app-create-access-request',
+    selector: 'app-edit-access-request',
     standalone: true,
     imports: [
         CommonModule, 
@@ -37,9 +37,9 @@ import { Team } from 'app/modules/admin/master-data/teams/team.types';
         MatAutocompleteModule,
         TranslocoModule
     ],
-    templateUrl: './create.component.html',
+    templateUrl: './edit.component.html',
 })
-export class CreateAccessRequestComponent implements OnInit, OnDestroy {
+export class EditAccessRequestComponent implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     form: FormGroup;
     uploadedFiles: File[] = [];
@@ -47,7 +47,10 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
     assignType: 'member' | 'team' = 'member';
     selectedAssignee: any = null;
     isSubmitting = false;
+    isLoading = false;
     currentUser: any = null;
+    accessRequestId: string = '';
+    accessRequestData: any = null;
 
     // ── Requester mode ──────────────────────────────────────────
     requesterMode: 'select_employee' | 'by_input' = 'select_employee';
@@ -119,6 +122,7 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
     constructor(
         private fb: FormBuilder,
         private router: Router,
+        private route: ActivatedRoute,
         private translocoService: TranslocoService,
         private _accessRequestService: AccessRequestService,
         private _userService: UserService,
@@ -187,19 +191,15 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(): void {
+        // Get access request ID from route
+        this.accessRequestId = this.route.snapshot.paramMap.get('id') || '';
+        
         // Initialize translations first
         this.updateTranslations();
         
         // Get current user
         this._userService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
             this.currentUser = user;
-            if (this.currentUser) {
-                // Auto-fill email and full name
-                this.form.patchValue({
-                    email: this.currentUser.email || '',
-                    fullName: this.currentUser.name || '',
-                });
-            }
         });
 
         this.translocoService.events$
@@ -209,6 +209,14 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     this.updateTranslations();
                 }
             });
+
+        // Load access request data
+        if (this.accessRequestId) {
+            this.loadAccessRequestData();
+        } else {
+            this._snackbar.error('Invalid access request ID');
+            this.router.navigate(['/access-requests/data']);
+        }
     }
 
     ngOnDestroy(): void {
@@ -216,6 +224,111 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
         this._detachPanelScrollListener();
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    private loadAccessRequestData(): void {
+        this.isLoading = true;
+        
+        this._accessRequestService.getAccessRequest(this.accessRequestId)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading access request:', error);
+                    this._snackbar.error(error?.error?.message || 'Failed to load access request');
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isLoading = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.accessRequestData = response.data;
+                    this.populateForm();
+                } else {
+                    this._snackbar.error('Access request not found');
+                    this.router.navigate(['/access-requests/data']);
+                }
+            });
+    }
+
+    private populateForm(): void {
+        if (!this.accessRequestData) return;
+
+        // ALWAYS set requester mode to 'select_employee' in edit mode
+        this.requesterMode = 'select_employee';
+
+        // Map priority number to string
+        const priorityMap: any = { 0: 'Low', 1: 'Medium', 2: 'High', 3: 'Critical' };
+        const priorityString = priorityMap[this.accessRequestData.priority] || 'Medium';
+
+        // Populate form
+        this.form.patchValue({
+            email: this.accessRequestData.email || '',
+            fullName: this.accessRequestData.full_name || '',
+            phone: this.accessRequestData.phone || '',
+            department: this.accessRequestData.department || '',
+            resourceName: this.accessRequestData.resource_name || '',
+            requestType: this.accessRequestData.request_type || '',
+            accessLevel: this.accessRequestData.access_level || '',
+            reason: this.accessRequestData.reason || '',
+            durationType: this.accessRequestData.duration_type || '',
+            startDate: this.accessRequestData.start_date || '',
+            endDate: this.accessRequestData.end_date || '',
+            priority: priorityString,
+            assignType: this.accessRequestData.assign_type || 'member',
+        });
+
+        // Set assign type
+        this.assignType = this.accessRequestData.assign_type || 'member';
+
+        // Set selected assignee if exists
+        if (this.assignType === 'member' && this.accessRequestData.assigned_user) {
+            this.selectedAssignee = {
+                id: this.accessRequestData.assigned_user.id,
+                name: this.accessRequestData.assigned_user.name,
+                initial: this.getInitialOf(this.accessRequestData.assigned_user.name),
+                color: this.avatarColors[0],
+                avatar: this.accessRequestData.assigned_user.photo ? 
+                    `${this.employeePhotoBaseUrl}/assets/img/user/${this.accessRequestData.assigned_user.photo}` : null,
+            };
+            this.form.patchValue({ assignTo: this.selectedAssignee.name });
+        } else if (this.assignType === 'team' && this.accessRequestData.assigned_team) {
+            this.selectedAssignee = {
+                id: this.accessRequestData.assigned_team.id,
+                name: this.accessRequestData.assigned_team.name,
+                initial: this.getInitialOf(this.accessRequestData.assigned_team.name),
+                color: this.avatarColors[0],
+                avatar: null,
+            };
+            this.form.patchValue({ assignTo: this.selectedAssignee.name });
+        }
+
+        // ALWAYS set selected employee if requester exists (regardless of requester_type)
+        // This ensures the employee is auto-selected in edit mode
+        if (this.accessRequestData.requester) {
+            this.selectedEmployee = {
+                id: this.accessRequestData.requester.hris_user_id || this.accessRequestData.requester.id,
+                fullName: this.accessRequestData.requester.name,
+                email: this.accessRequestData.requester.email,
+                role: 'User' as User['role'],
+                status: 'Active' as User['status'],
+                department: this.accessRequestData.requester.department_id || '',
+                avatar: this.accessRequestData.requester.photo ? 
+                    `${this.employeePhotoBaseUrl}/assets/img/user/${this.accessRequestData.requester.photo}` : 'assets/images/avatars/male-01.jpg',
+                photo: this.accessRequestData.requester.photo || '',
+            };
+            this.employeeInput.setValue(this.employeeDisplay(this.selectedEmployee), { emitEvent: false });
+            
+            // Also add to employees list if not already there
+            const exists = this.employees.find(e => 
+                e.id === this.selectedEmployee?.id || 
+                e.email === this.selectedEmployee?.email
+            );
+            if (!exists && this.selectedEmployee) {
+                this.employees.unshift(this.selectedEmployee);
+                this.filteredEmployeesList = this.employees;
+            }
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -802,122 +915,53 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
             const requesterId = this.selectedEmployee?.id || this.currentUser.id;
             const requesterPhoto = this.selectedEmployee?.photo || null;
             
-            // Check if we have files to upload
-            if (this.uploadedFiles.length > 0) {
-                // Use FormData for file upload
-                const formData = new FormData();
-                
-                // Add requester info
-                formData.append('requester_type', requesterType);
-                formData.append('requester_id', requesterId);
-                if (requesterPhoto) {
-                    formData.append('requester_photo', requesterPhoto);
-                }
-                formData.append('full_name', formValue.fullName);
-                formData.append('email', formValue.email);
-                if (formValue.phone) formData.append('phone', formValue.phone);
-                formData.append('department', formValue.department);
-                formData.append('resource_name', formValue.resourceName);
-                formData.append('request_type', formValue.requestType);
-                formData.append('access_level', formValue.accessLevel);
-                formData.append('reason', formValue.reason);
-                formData.append('duration_type', formValue.durationType.value || formValue.durationType);
-                if (formValue.startDate) formData.append('start_date', formValue.startDate);
-                if (formValue.endDate) formData.append('end_date', formValue.endDate);
-                formData.append('assign_type', formValue.assignType);
-                if (this.selectedAssignee) {
-                    if (formValue.assignType === 'member') {
-                        formData.append('assign_to_user_id', this.selectedAssignee.id);
-                    } else {
-                        formData.append('assign_to_team_id', this.selectedAssignee.id);
-                    }
-                }
-                
-                // Map priority string to number
-                const priorityMap: any = { 'Low': 0, 'Medium': 1, 'High': 2, 'Critical': 3 };
-                const priorityValue = priorityMap[formValue.priority] ?? 1;
-                formData.append('priority', priorityValue.toString());
-                
-                formData.append('notify_requester', formValue.notifyRequester ? '1' : '0');
-                formData.append('require_manager_approval', formValue.requireManagerApproval ? '1' : '0');
-                
-                // Add files
-                this.uploadedFiles.forEach((file) => {
-                    formData.append('attachments[]', file, file.name);
-                });
+            // Map priority string to number
+            const priorityMap: any = { 'Low': 0, 'Medium': 1, 'High': 2, 'Critical': 3 };
+            const priorityValue = priorityMap[formValue.priority] ?? 1;
 
-                this._accessRequestService.createAccessRequestWithFiles(formData)
-                    .pipe(
-                        catchError((error) => {
-                            console.error('Error creating access request:', error);
-                            this._snackbar.error(error?.error?.message || 'Failed to create access request');
-                            return of(null);
-                        }),
-                        finalize(() => {
-                            this.isSubmitting = false;
-                        })
-                    )
-                    .subscribe((response) => {
-                        if (response && response.status) {
-                            this._snackbar.success('Access request created successfully');
-                            this.router.navigate(['/access-requests/data']);
-                        }
-                    });
-            } else {
-                // No files, use JSON
-                const priorityMap: any = { 'Low': 0, 'Medium': 1, 'High': 2, 'Critical': 3 };
-                const priorityValue = priorityMap[formValue.priority] ?? 1;
+            const payload: any = {
+                requester_type: requesterType,
+                requester_id: requesterId,
+                full_name: formValue.fullName,
+                email: formValue.email,
+                phone: formValue.phone,
+                department: formValue.department,
+                resource_name: formValue.resourceName,
+                request_type: formValue.requestType,
+                access_level: formValue.accessLevel,
+                reason: formValue.reason,
+                duration_type: formValue.durationType.value || formValue.durationType,
+                start_date: formValue.startDate,
+                end_date: formValue.endDate,
+                assign_type: formValue.assignType,
+                assign_to_user_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
+                assign_to_team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
+                priority: priorityValue,
+                user_id: this.currentUser.id, // Add user_id for tracking
+            };
 
-                // Determine requester info
-                const requesterType = this.selectedEmployee ? 'select_employee' : 'by_input';
-                const requesterId = this.selectedEmployee?.id || this.currentUser.id;
-                const requesterPhoto = this.selectedEmployee?.photo || null;
-
-                const payload: any = {
-                    requester_type: requesterType,
-                    requester_id: requesterId,
-                    full_name: formValue.fullName,
-                    email: formValue.email,
-                    phone: formValue.phone,
-                    department: formValue.department,
-                    resource_name: formValue.resourceName,
-                    request_type: formValue.requestType,
-                    access_level: formValue.accessLevel,
-                    reason: formValue.reason,
-                    duration_type: formValue.durationType.value || formValue.durationType,
-                    start_date: formValue.startDate,
-                    end_date: formValue.endDate,
-                    assign_type: formValue.assignType,
-                    assign_to_user_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
-                    assign_to_team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
-                    priority: priorityValue,
-                    notify_requester: formValue.notifyRequester,
-                    require_manager_approval: formValue.requireManagerApproval,
-                };
-
-                // Add requester_photo if available
-                if (requesterPhoto) {
-                    payload.requester_photo = requesterPhoto;
-                }
-
-                this._accessRequestService.createAccessRequest(payload)
-                    .pipe(
-                        catchError((error) => {
-                            console.error('Error creating access request:', error);
-                            this._snackbar.error(error?.error?.message || 'Failed to create access request');
-                            return of(null);
-                        }),
-                        finalize(() => {
-                            this.isSubmitting = false;
-                        })
-                    )
-                    .subscribe((response) => {
-                        if (response && response.status) {
-                            this._snackbar.success('Access request created successfully');
-                            this.router.navigate(['/access-requests/data']);
-                        }
-                    });
+            // Add requester_photo if available
+            if (requesterPhoto) {
+                payload.requester_photo = requesterPhoto;
             }
+
+            this._accessRequestService.updateAccessRequest(this.accessRequestId, payload)
+                .pipe(
+                    catchError((error) => {
+                        console.error('Error updating access request:', error);
+                        this._snackbar.error(error?.error?.message || 'Failed to update access request');
+                        return of(null);
+                    }),
+                    finalize(() => {
+                        this.isSubmitting = false;
+                    })
+                )
+                .subscribe((response) => {
+                    if (response && response.status) {
+                        this._snackbar.success('Access request updated successfully');
+                        this.router.navigate(['/access-requests/detail', this.accessRequestId]);
+                    }
+                });
         } else {
             this.form.markAllAsTouched();
             this._snackbar.error('Please fill all required fields');

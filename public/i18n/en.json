@@ -222,11 +222,25 @@
             "EMERGENCY": "Emergency",
             "NOT_ASSIGNED": "Not Assigned"
         },
+        "DETAIL": {
+            "TITLE": "Ticket Detail",
+            "LOADING": "Loading ticket details...",
+            "NOT_FOUND": "Ticket not found",
+            "BACK": "Back to Tickets"
+        },
+        "EDIT": {
+            "TITLE": "Edit Ticket",
+            "SUBTITLE": "Update ticket information",
+            "LOADING": "Loading ticket data...",
+            "SAVE": "Save Changes",
+            "CANCEL": "Cancel"
+        },
         "STATUS": {
             "ALL": "All Status",
             "DRAFT": "Draft",
             "PENDING": "Pending",
             "PROCESSING": "Process",
+            "PROCESS": "Process",
             "RESOLVED": "Resolved",
             "CLOSED": "Closed",
             "CANCELLED": "Cancelled"
@@ -348,11 +362,19 @@
             "REQUEST_DATE": "Request Date",
             "ACTION": "Action",
             "ITEMS_PER_PAGE": "Items per page:",
+            "NOT_ASSIGNED": "Not Assigned",
+            "EDIT": "Edit",
+            "DELETE": "Delete",
             "COLUMNS": {
                 "NUMBER": "#",
-                "REQUEST_TYPE": "Request Type",
+                "REQUEST_NUMBER": "Request Number",
+                "TITLE": "Title",
+                "TITLE_DESC": "Title & Description",
                 "DESCRIPTION": "Description",
+                "REQUEST_TYPE": "Request Type",
                 "REQUESTER": "Requester",
+                "ASSIGNED_TO": "Assigned To",
+                "PRIORITY": "Priority",
                 "STATUS": "Status",
                 "DATE": "Date",
                 "ACTION": "Action"
@@ -448,7 +470,8 @@
             "ALL": "All Status",
             "PENDING": "Pending",
             "APPROVED": "Approved",
-            "REJECTED": "Rejected"
+            "REJECTED": "Rejected",
+            "PROVISIONED": "Provisioned"
         },
         "MESSAGES": {
             "CREATED_SUCCESS": "Access request created successfully!",

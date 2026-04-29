@@ -4,10 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\AccessRequest;
 use App\Models\AccessRequestTrack;
-use App\Models\AccessRequestApproval;
-use App\Models\AccessRequestApprovalItem;
 use App\Models\Attachment;
 use App\Models\User;
+use App\UserRoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -145,7 +144,9 @@ class AccessRequestController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'requester_id' => 'required|exists:users,id',
+            'requester_type' => 'nullable|in:select_employee,by_input',
+            'requester_id' => 'nullable|integer',
+            'requester_photo' => 'nullable|string',
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:50',
@@ -169,9 +170,41 @@ class AccessRequestController extends Controller
 
         DB::beginTransaction();
         try {
+            // Handle requester user
+            $requesterUser = null;
+            if ($request->requester_type === 'select_employee' && $request->requester_id) {
+                // Check if user already exists by hris_user_id or email
+                $requesterUser = User::withTrashed()->where(function($query) use ($request) {
+                    $query->where('hris_user_id', $request->requester_id)
+                          ->orWhere('email', $request->email);
+                })->first();
+
+                if (!$requesterUser) {
+                    // Only create if user doesn't exist
+                    $requesterUser = User::create([
+                        'hris_user_id' => $request->requester_id,
+                        'name' => $request->full_name,
+                        'email' => $request->email,
+                        'photo' => $request->requester_photo ?? null,
+                        'role' => UserRoleEnum::USER->value,
+                        'status' => 1, // active
+                    ]);
+                } elseif ($requesterUser->trashed()) {
+                    // Restore if soft deleted
+                    $requesterUser->restore();
+                }
+            } else {
+                // For by_input mode, use the provided requester_id or current user
+                $requesterUser = User::find($request->requester_id ?? auth()->id());
+            }
+
+            if (!$requesterUser) {
+                throw new \Exception('Requester user not found or could not be created');
+            }
+
             // Create access request
             $accessRequest = AccessRequest::create([
-                'requester_id' => $request->requester_id,
+                'requester_id' => $requesterUser->id,
                 'full_name' => $request->full_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -364,24 +397,66 @@ class AccessRequestController extends Controller
     }
 
     /**
-     * Create approvals for access request
+     * Create approvals for access request (using shared approvals table)
      */
     private function createApprovals(AccessRequest $accessRequest, array $approverIds)
     {
-        // Create approval
-        $approval = AccessRequestApproval::create([
+        // Get the requested_by user ID
+        $requestedByUserId = null;
+        if ($accessRequest->requester_id) {
+            $requestedByUserId = $accessRequest->requester_id;
+        }
+        
+        if (!$requestedByUserId) {
+            \Log::warning('Cannot create approval: requestedByUserId is null for access request', [
+                'access_request_id' => $accessRequest->id
+            ]);
+            return;
+        }
+        
+        \Log::info('Creating approval for access request', [
             'access_request_id' => $accessRequest->id,
-            'level' => 1,
+            'requested_by' => $requestedByUserId,
+            'approver_ids' => $approverIds
+        ]);
+        
+        // Create approval (parent) using shared approvals table
+        $approval = \App\Models\Approval::create([
+            'approvable_id' => $accessRequest->id,
+            'approvable_type' => \App\Models\AccessRequest::class,
+            'status' => 'pending',
+            'requested_by' => $requestedByUserId,
         ]);
 
-        // Create approval items
-        foreach ($approverIds as $approverData) {
-            AccessRequestApprovalItem::create([
-                'access_request_approval_id' => $approval->id,
-                'user_id' => $approverData['user_id'],
-                'level' => $approverData['level'] ?? 1,
-                'status' => 'pending',
-            ]);
+        \Log::info('Approval created', ['approval_id' => $approval->id]);
+
+        // Create approval items (children)
+        $approvalItems = [];
+        foreach ($approverIds as $approver) {
+            // Support both old format (just ID) and new format (object with user_id and level)
+            if (is_array($approver)) {
+                $userId = $approver['user_id'] ?? null;
+                $level = $approver['level'] ?? 1;
+            } else {
+                $userId = $approver;
+                $level = 1;
+            }
+            
+            if ($userId) {
+                $approvalItems[] = [
+                    'approval_id' => $approval->id,
+                    'user_id' => $userId,
+                    'level' => $level,
+                    'status' => 'pending',
+                ];
+            }
+        }
+        
+        \Log::info('Approval items to create', ['items' => $approvalItems]);
+        
+        if (count($approvalItems) > 0) {
+            $approval->items()->createMany($approvalItems);
+            \Log::info('Approval items created successfully');
         }
     }
 }

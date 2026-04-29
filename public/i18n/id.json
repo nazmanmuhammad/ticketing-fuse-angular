@@ -222,11 +222,25 @@
             "EMERGENCY": "Darurat",
             "NOT_ASSIGNED": "Belum Ditentukan"
         },
+        "DETAIL": {
+            "TITLE": "Detail Tiket",
+            "LOADING": "Memuat detail tiket...",
+            "NOT_FOUND": "Tiket tidak ditemukan",
+            "BACK": "Kembali ke Tiket"
+        },
+        "EDIT": {
+            "TITLE": "Edit Tiket",
+            "SUBTITLE": "Perbarui informasi tiket",
+            "LOADING": "Memuat data tiket...",
+            "SAVE": "Simpan Perubahan",
+            "CANCEL": "Batal"
+        },
         "STATUS": {
             "ALL": "Semua Status",
             "DRAFT": "Draft",
             "PENDING": "Menunggu",
             "PROCESSING": "Proses",
+            "PROCESS": "Proses",
             "RESOLVED": "Terselesaikan",
             "CLOSED": "Ditutup",
             "CANCELLED": "Dibatalkan"
@@ -348,11 +362,19 @@
             "REQUEST_DATE": "Tanggal Permintaan",
             "ACTION": "Aksi",
             "ITEMS_PER_PAGE": "Item per halaman:",
+            "NOT_ASSIGNED": "Belum Ditugaskan",
+            "EDIT": "Edit",
+            "DELETE": "Hapus",
             "COLUMNS": {
                 "NUMBER": "#",
-                "REQUEST_TYPE": "Tipe Permintaan",
+                "REQUEST_NUMBER": "Nomor Permintaan",
+                "TITLE": "Judul",
+                "TITLE_DESC": "Judul & Deskripsi",
                 "DESCRIPTION": "Deskripsi",
+                "REQUEST_TYPE": "Tipe Permintaan",
                 "REQUESTER": "Pemohon",
+                "ASSIGNED_TO": "Ditugaskan Ke",
+                "PRIORITY": "Prioritas",
                 "STATUS": "Status",
                 "DATE": "Tanggal",
                 "ACTION": "Aksi"
@@ -448,7 +470,8 @@
             "ALL": "Semua Status",
             "PENDING": "Menunggu",
             "APPROVED": "Disetujui",
-            "REJECTED": "Ditolak"
+            "REJECTED": "Ditolak",
+            "PROVISIONED": "Disediakan"
         },
         "MESSAGES": {
             "CREATED_SUCCESS": "Permintaan akses berhasil dibuat!",

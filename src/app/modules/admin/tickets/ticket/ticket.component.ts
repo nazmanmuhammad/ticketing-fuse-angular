@@ -640,6 +640,20 @@ toggleFilter(): void {
         return priorityMap[priority] || this._translocoService.translate('TICKETS.PRIORITY.LOW');
     }
 
+    getPriorityTranslationKey(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'TICKETS.PRIORITY.NOT_ASSIGNED';
+        }
+        const keyMap: Record<number, string> = {
+            0: 'TICKETS.PRIORITY.LOW',
+            1: 'TICKETS.PRIORITY.MEDIUM',
+            2: 'TICKETS.PRIORITY.HIGH',
+            3: 'TICKETS.PRIORITY.CRITICAL',
+            4: 'TICKETS.PRIORITY.EMERGENCY',
+        };
+        return keyMap[priority] || 'TICKETS.PRIORITY.LOW';
+    }
+
     getPriorityColor(priority: number | null): string {
         if (priority === null || priority === undefined) {
             return 'text-gray-400';
@@ -715,7 +729,7 @@ toggleFilter(): void {
             const photoBase = this.getPhotoBaseUrl();
             return `${photoBase}/assets/img/user/${ticket.requester.photo}`;
         }
-        return null;
+        return null; 
     }
 
     getAssignedAvatar(ticket: Ticket): string | null {
