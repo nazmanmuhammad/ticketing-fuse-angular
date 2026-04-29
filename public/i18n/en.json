@@ -357,7 +357,8 @@
                 "DATE": "Date",
                 "ACTION": "Action"
             },
-            "EMPTY": "No requests found"
+            "EMPTY": "No requests found",
+            "LOADING": "Loading requests..."
         },
         "FORM": {
             "TITLE": "Create New Access Request",
@@ -397,6 +398,7 @@
             "DURATION": "Access Duration",
             "DURATION_DESC": "Define access duration details",
             "DURATION_TYPE": "Access Duration Type",
+            "DURATION_TYPE_PLACEHOLDER": "Select Duration Type",
             "DURATION_TEMPORARY": "Temporary Access",
             "DURATION_PERMANENT": "Permanent Access",
             "START_DATE": "Start Date",
@@ -417,6 +419,12 @@
             "TEAM": "Team",
             "SELECT_MEMBER": "Select Member",
             "SELECT_TEAM": "Select Team",
+            "SEARCH_MEMBER": "Search member...",
+            "SEARCH_TEAM": "Search team...",
+            "LOADING_DATA": "Loading...",
+            "NOT_FOUND": "Not found",
+            "NO_MEMBER": "No members available",
+            "NO_TEAM": "No teams available",
             "ASSIGNED": "Assigned",
             "SETTINGS": "Additional Settings",
             "SETTINGS_DESC": "Optional configurations",

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccessRequestController;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\AuthController;
@@ -44,3 +45,7 @@ Route::put('approval-items/{id}', [ApprovalController::class, 'updateItem']);
 Route::post('approval-items/{itemId}/approve', [ApprovalController::class, 'approve']);
 Route::post('approval-items/{itemId}/reject', [ApprovalController::class, 'reject']);
 Route::post('approvals/{id}/cancel', [ApprovalController::class, 'cancel']);
+
+// Access Request routes
+Route::get('access-requests/statistics', [AccessRequestController::class, 'statistics']);
+Route::resource('access-requests', AccessRequestController::class);

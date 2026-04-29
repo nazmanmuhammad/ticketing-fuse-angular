@@ -83,6 +83,129 @@
                         </div>
                     </div>
 
+                    <!-- REQUESTER TYPE TOGGLE -->
+                    <div class="mb-5">
+                        <label class="text-secondary mb-1.5 block text-xs font-medium">
+                            {{ 'TICKETS.FORM.FIELDS.REQUESTER_TYPE' | transloco }} <span class="text-red-500">*</span>
+                        </label>
+                        <div class="mb-4 flex w-full max-w-xs rounded-xl border border-gray-200 bg-gray-50 p-1">
+                            <button type="button" (click)="requesterMode = 'select_employee'; onRequesterModeChange()"
+                                class="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all"
+                                [ngClass]="requesterMode === 'select_employee' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'">
+                                <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                {{ 'TICKETS.FORM.FIELDS.SELECT_EMPLOYEE' | transloco }}
+                            </button>
+                        </div>
+
+                        <!-- EMPLOYEE AUTOCOMPLETE -->
+                        <div *ngIf="requesterMode === 'select_employee'"
+                            class="mb-5 rounded-xl border border-indigo-100 bg-indigo-50/40 p-4">
+                            <label class="text-secondary mb-1.5 block text-xs font-medium">
+                                {{ 'TICKETS.FORM.FIELDS.SELECT_EMPLOYEE' | transloco }}
+                            </label>
+
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic"
+                                floatLabel="never">
+                                <input matInput [formControl]="employeeInput" [matAutocomplete]="employeeAuto"
+                                    #empTrigger="matAutocompleteTrigger"
+                                    (focus)="enableEmployeeAutocomplete(empTrigger)"
+                                    [placeholder]="'TICKETS.FORM.FIELDS.SEARCH_EMPLOYEE' | transloco" />
+
+                                <span matSuffix *ngIf="isLoadingEmployees" class="mr-2 flex items-center">
+                                    <svg class="h-4 w-4 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                            stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </span>
+
+                                <button matSuffix *ngIf="selectedEmployee && !isLoadingEmployees" type="button"
+                                    (click)="clearEmployee(); $event.stopPropagation()"
+                                    class="mr-1 flex items-center text-gray-400 hover:text-red-500">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+
+                                <mat-autocomplete #employeeAuto="matAutocomplete"
+                                    (opened)="onEmployeePanelOpened(empTrigger)" (closed)="onEmployeePanelClosed()"
+                                    (optionSelected)="onEmployeeSelected($event.option.value)">
+                                    <mat-option *ngIf="!isLoadingEmployees && filteredEmployeesList.length === 0"
+                                        disabled>
+                                        <span class="text-sm text-gray-400">{{ 'TICKETS.FORM.FIELDS.NO_EMPLOYEE_FOUND' | transloco }}</span>
+                                    </mat-option>
+                                    <mat-option *ngFor="let emp of filteredEmployeesList; let i = index" [value]="emp">
+                                        <div class="flex items-center gap-3 py-1">
+                                            <ng-container
+                                                *ngIf="emp.avatar && !emp.avatar.includes('male-01'); else empInitial">
+                                                <img [src]="emp.avatar"
+                                                    class="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+                                                    (error)="emp.avatar = ''" />
+                                            </ng-container>
+                                            <ng-template #empInitial>
+                                                <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                                                    [ngClass]="getAvatarColor(i)">
+                                                    {{ getInitialOf(emp.fullName) }}
+                                                </div>
+                                            </ng-template>
+                                            <div class="min-w-0">
+                                                <p class="truncate text-sm font-medium text-gray-800">{{ emp.fullName }}
+                                                </p>
+                                                <p class="truncate text-xs text-gray-400">{{ emp.email }}</p>
+                                            </div>
+                                        </div>
+                                    </mat-option>
+                                    <mat-option *ngIf="isLoadingEmployees" disabled>
+                                        <div class="flex items-center gap-2 py-1">
+                                            <svg class="h-4 w-4 animate-spin text-indigo-400" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                            <span class="text-xs text-gray-400">{{ 'TICKETS.FORM.FIELDS.LOADING_EMPLOYEES' | transloco }}</span>
+                                        </div>
+                                    </mat-option>
+                                </mat-autocomplete>
+                            </mat-form-field>
+
+                            <!-- Selected employee preview -->
+                            <div *ngIf="selectedEmployee"
+                                class="mt-3 flex items-center gap-3 rounded-xl border border-indigo-200 bg-white px-4 py-3 shadow-sm">
+                                <ng-container
+                                    *ngIf="selectedEmployee.avatar && !selectedEmployee.avatar.includes('male-01'); else selectedInitial">
+                                    <img [src]="selectedEmployee.avatar"
+                                        class="h-10 w-10 flex-shrink-0 rounded-full object-cover" />
+                                </ng-container>
+                                <ng-template #selectedInitial>
+                                    <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full text-sm font-bold text-white"
+                                        [ngClass]="getAvatarColor(getEmployeeIndex(selectedEmployee))">
+                                        {{ getInitialOf(selectedEmployee.fullName) }}
+                                    </div>
+                                </ng-template>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-gray-900">{{ selectedEmployee.fullName }}</p>
+                                    <p class="text-xs text-gray-500">{{ selectedEmployee.email }}</p>
+                                </div>
+                                <span
+                                    class="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-medium text-indigo-600">{{ 'TICKETS.FORM.FIELDS.SELECTED' | transloco }}</span>
+                            </div>
+                            <p *ngIf="selectedEmployee" class="mt-2 flex items-center gap-1 text-xs text-emerald-600">
+                                <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                                {{ 'TICKETS.FORM.FIELDS.AUTO_FILLED' | transloco }}
+                            </p>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div>
                             <label
@@ -108,13 +231,13 @@
                                     type="email"
                                     formControlName="email"
                                     [placeholder]="'ACCESS_REQUESTS.FORM.EMAIL_PLACEHOLDER' | transloco"
+                                    [readonly]="requesterMode === 'select_employee' && !!selectedEmployee"
                                     class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                    [ngClass]="
-                                        form.get('email')?.invalid &&
-                                        form.get('email')?.touched
-                                            ? 'border-red-300'
-                                            : 'border-gray-200'
-                                    "
+                                    [ngClass]="{
+                                        'border-red-300': form.get('email')?.invalid && form.get('email')?.touched,
+                                        'border-gray-200': !(form.get('email')?.invalid && form.get('email')?.touched),
+                                        'bg-indigo-50 border-indigo-200 text-indigo-700 cursor-default': requesterMode === 'select_employee' && !!selectedEmployee
+                                    }"
                                 />
                             </div>
                         </div>
@@ -143,13 +266,13 @@
                                     type="text"
                                     formControlName="fullName"
                                     [placeholder]="'ACCESS_REQUESTS.FORM.FULL_NAME_PLACEHOLDER' | transloco"
+                                    [readonly]="requesterMode === 'select_employee' && !!selectedEmployee"
                                     class="h-12 w-full rounded-xl border bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                    [ngClass]="
-                                        form.get('fullName')?.invalid &&
-                                        form.get('fullName')?.touched
-                                            ? 'border-red-300'
-                                            : 'border-gray-200'
-                                    "
+                                    [ngClass]="{
+                                        'border-red-300': form.get('fullName')?.invalid && form.get('fullName')?.touched,
+                                        'border-gray-200': !(form.get('fullName')?.invalid && form.get('fullName')?.touched),
+                                        'bg-indigo-50 border-indigo-200 text-indigo-700 cursor-default': requesterMode === 'select_employee' && !!selectedEmployee
+                                    }"
                                 />
                             </div>
                         </div>
@@ -177,7 +300,9 @@
                                     type="tel"
                                     formControlName="phone"
                                     [placeholder]="'ACCESS_REQUESTS.FORM.PHONE_PLACEHOLDER' | transloco"
+                                    [readonly]="requesterMode === 'select_employee' && !!selectedEmployee"
                                     class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                    [ngClass]="{'bg-indigo-50 border-indigo-200 text-indigo-700 cursor-default': requesterMode === 'select_employee' && !!selectedEmployee}"
                                 />
                             </div>
                         </div>
@@ -383,24 +508,19 @@
                                 <span class="text-red-500">*</span></label
                             >
                             <div class="relative">
-                                <select
-                                    formControlName="durationType"
-                                    class="appearance-none w-full rounded-xl border bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                    [ngClass]="
-                                        form.get('durationType')?.invalid &&
-                                        form.get('durationType')?.touched
-                                            ? 'border-red-300'
-                                            : 'border-gray-200'
-                                    "
-                                >
-                                    <option
-                                        *ngFor="let dt of durationTypes"
-                                        [value]="dt.value"
+                                <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                    <mat-select
+                                        formControlName="durationType"
+                                        [placeholder]="'ACCESS_REQUESTS.FORM.DURATION_TYPE_PLACEHOLDER' | transloco"
                                     >
-                                        {{ dt.label }}
-                                    </option>
-                                </select>
-                               
+                                        <mat-option [value]="" disabled>
+                                            {{ 'ACCESS_REQUESTS.FORM.DURATION_TYPE_PLACEHOLDER' | transloco }}
+                                        </mat-option>
+                                        <mat-option *ngFor="let dt of durationTypes" [value]="dt.value">
+                                            {{ dt.label }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
                             </div>
                         </div>
 
@@ -444,6 +564,190 @@
                     </div>
                 </div>
 
+                <!-- CLOSE ON RESPONSE & APPROVAL -->
+                <div
+                    class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
+                >
+                    <div class="mb-5 flex items-center gap-3">
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-100"
+                        >
+                            <svg
+                                class="h-4 w-4 text-purple-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-900 dark:text-white">
+                                Additional Options
+                            </h3>
+                            <p class="text-secondary text-xs">
+                                Configure response and approval settings
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Close on Response -->
+                    <div class="mb-4 flex items-center gap-3 rounded-xl bg-green-50 p-3 dark:bg-green-900/10">
+                        <label class="relative inline-flex cursor-pointer items-center">
+                            <input type="checkbox" formControlName="closeOnResponse" class="peer sr-only" />
+                            <div
+                                class="peer h-5 w-10 rounded-full bg-gray-200 transition-all after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-green-600 peer-checked:after:translate-x-5 peer-focus:ring-2 peer-focus:ring-green-300">
+                            </div>
+                        </label>
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Close on Response</span>
+                            <p class="text-xs text-gray-500">Automatically close request when response is sent</p>
+                        </div>
+                    </div>
+
+                    <!-- Approval Required -->
+                    <div class="mb-4 flex items-center gap-3 rounded-xl bg-amber-50 p-3 dark:bg-amber-900/10">
+                        <label class="relative inline-flex cursor-pointer items-center">
+                            <input type="checkbox" formControlName="approvalRequired" class="peer sr-only" />
+                            <div
+                                class="peer h-5 w-10 rounded-full bg-gray-200 transition-all after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition-all after:content-[''] peer-checked:bg-amber-600 peer-checked:after:translate-x-5 peer-focus:ring-2 peer-focus:ring-amber-300">
+                            </div>
+                        </label>
+                        <div class="flex-1">
+                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Approval Required</span>
+                            <p class="text-xs text-gray-500">Require approval before closing request</p>
+                        </div>
+                    </div>
+
+                    <!-- Approvers Selection (shown when approval required) -->
+                    <div *ngIf="form.get('approvalRequired')?.value" class="rounded-xl border border-amber-200 bg-amber-50/50 p-4">
+                        <label class="text-secondary mb-2 block text-xs font-medium">
+                            Select Approvers <span class="text-red-500">*</span>
+                        </label>
+                        
+                        <!-- Custom Dropdown with Search -->
+                        <div class="relative approver-dropdown-container">
+                            <!-- Toggle button -->
+                            <button type="button" (click)="toggleApproverDropdown(); $event.stopPropagation()"
+                                class="flex w-full items-center gap-2 rounded-xl border border-amber-200 bg-white px-3 py-2.5 text-left text-sm transition hover:border-amber-300 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200">
+                                <svg class="h-4 w-4 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                                </svg>
+                                <span class="flex-1 text-gray-400">Select approvers...</span>
+                                <svg class="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform"
+                                    [class.rotate-180]="approverDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown panel -->
+                            <div *ngIf="approverDropdownOpen"
+                                class="absolute left-0 right-0 top-[calc(100%+4px)] z-[9999] rounded-xl border border-amber-200 bg-white shadow-xl">
+                                <!-- Search input -->
+                                <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
+                                    <svg class="h-3.5 w-3.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                    <input type="text" [(ngModel)]="approverSearchQuery" [ngModelOptions]="{ standalone: true }"
+                                        (input)="onApproverSearchInput()" placeholder="Search approvers..."
+                                        class="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400" />
+                                    <button *ngIf="approverSearchQuery" type="button"
+                                        (click)="approverSearchQuery = ''; onApproverSearchInput()"
+                                        class="flex-shrink-0 text-gray-300 hover:text-red-400">
+                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                <!-- Options list -->
+                                <div class="max-h-48 overflow-y-auto py-1">
+                                    <!-- Loading state -->
+                                    <div *ngIf="isLoadingApprovers && approverOptions.length === 0"
+                                        class="flex items-center justify-center gap-2 px-3 py-4">
+                                        <svg class="h-4 w-4 animate-spin text-amber-400" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                        </svg>
+                                        <span class="text-xs text-gray-400">Loading...</span>
+                                    </div>
+                                    <!-- Empty state -->
+                                    <div *ngIf="!isLoadingApprovers && approverOptions.length === 0"
+                                        class="px-3 py-3 text-center text-xs text-gray-400">
+                                        No approvers found
+                                    </div>
+                                    <button *ngFor="let opt of approverOptions" type="button"
+                                        (click)="selectApprover(opt)"
+                                        class="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-amber-50"
+                                        [class.opacity-50]="isApproverSelected(opt.id)">
+                                        <ng-container *ngIf="opt.avatar; else approverInit">
+                                            <img [src]="opt.avatar" class="h-6 w-6 flex-shrink-0 rounded-full object-cover">
+                                        </ng-container>
+                                        <ng-template #approverInit>
+                                            <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                                [ngClass]="opt.color">{{ opt.initial }}</div>
+                                        </ng-template>
+                                        <span class="truncate text-sm text-gray-700">{{ opt.name }}</span>
+                                        <svg *ngIf="isApproverSelected(opt.id)"
+                                            class="ml-auto h-4 w-4 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected approvers chips -->
+                        <div *ngIf="selectedApprovers.length > 0" class="mt-3 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-gray-600">Selected ({{ selectedApprovers.length }})</span>
+                                <button type="button" (click)="clearAllApprovers()"
+                                    class="text-xs text-red-500 hover:text-red-600">Clear all</button>
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <div *ngFor="let approver of selectedApprovers; let i = index"
+                                    class="flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                                    <div class="flex items-center gap-1.5 flex-1">
+                                        <ng-container *ngIf="approver.avatar; else chipApproverInit">
+                                            <img [src]="approver.avatar" class="h-5 w-5 flex-shrink-0 rounded-full object-cover">
+                                        </ng-container>
+                                        <ng-template #chipApproverInit>
+                                            <div class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                                                [ngClass]="approver.color">{{ approver.initial }}</div>
+                                        </ng-template>
+                                        <span class="text-xs font-medium text-amber-800">{{ approver.name }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        <select 
+                                            [value]="approver.level || 1"
+                                            (change)="updateApproverLevel(i, +$any($event.target).value)"
+                                            class="text-xs border border-amber-300 rounded px-2 py-1 bg-white text-amber-800 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                                            <option value="1">Level 1</option>
+                                            <option value="2">Level 2</option>
+                                            <option value="3">Level 3</option>
+                                            <option value="4">Level 4</option>
+                                            <option value="5">Level 5</option>
+                                        </select>
+                                        <button type="button" (click)="removeApprover(i)"
+                                            class="text-amber-500 transition hover:text-amber-700">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ATTACHMENTS -->
                 <div
                     class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm dark:bg-card"
                 >
@@ -586,283 +890,201 @@
                             {{ 'ACCESS_REQUESTS.FORM.ASSIGNMENT_DESC' | transloco }}
                         </p>
 
+                        <!-- Priority -->
                         <div class="mb-4">
-                            <label
-                                class="text-secondary mb-1.5 block text-xs font-medium"
-                                >{{ 'ACCESS_REQUESTS.FORM.PRIORITY' | transloco }}</label
-                            >
-                            <div class="relative">
-                                <select
-                                    formControlName="priority"
-                                    class="appearance-none w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
-                                >
-                                    <option *ngFor="let p of priorities" [value]="p.value">
-                                        {{ p.label }}
-                                    </option>
-                                </select>
-                               
-                            </div>
+                            <label class="text-secondary mb-1.5 block text-xs font-medium">{{ 'ACCESS_REQUESTS.FORM.PRIORITY' | transloco }}</label>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="priority" [placeholder]="'ACCESS_REQUESTS.FORM.PRIORITY' | transloco">
+                                    <mat-option value="Low">{{ 'ACCESS_REQUESTS.FORM.PRIORITY_LOW' | transloco }}</mat-option>
+                                    <mat-option value="Medium">{{ 'ACCESS_REQUESTS.FORM.PRIORITY_MEDIUM' | transloco }}</mat-option>
+                                    <mat-option value="High">{{ 'ACCESS_REQUESTS.FORM.PRIORITY_HIGH' | transloco }}</mat-option>
+                                    <mat-option value="Critical">{{ 'ACCESS_REQUESTS.FORM.PRIORITY_CRITICAL' | transloco }}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
                         </div>
 
+                        <!-- Assign To -->
                         <div>
-                            <label
-                                class="text-secondary mb-1.5 block text-xs font-medium"
-                                >{{ 'ACCESS_REQUESTS.FORM.ASSIGN_TO' | transloco }}</label
-                            >
-
-                            <div
-                                class="mb-3 flex rounded-xl border border-gray-200 bg-gray-50 p-1"
-                            >
-                                <button
-                                    type="button"
-                                    (click)="
-                                        assignType = 'member';
-                                        onAssignTypeChange()
-                                    "
+                            <label class="text-secondary mb-1.5 block text-xs font-medium">{{ 'ACCESS_REQUESTS.FORM.ASSIGN_TO' | transloco }}</label>
+                            <div class="mb-3 flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+                                <button type="button" (click)="assignType = 'member'; onAssignTypeChange()"
                                     class="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all"
-                                    [ngClass]="
-                                        assignType === 'member'
-                                            ? 'bg-white text-indigo-600 shadow-sm'
-                                            : 'text-gray-400 hover:text-gray-600'
-                                    "
-                                >
-                                    <svg
-                                        class="h-3.5 w-3.5"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
-                                        <path
-                                            fill-rule="evenodd"
+                                    [ngClass]="assignType === 'member' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'">
+                                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
                                             d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                            clip-rule="evenodd"
-                                        />
+                                            clip-rule="evenodd" />
                                     </svg>
                                     {{ 'ACCESS_REQUESTS.FORM.MEMBER' | transloco }}
                                 </button>
-                                <button
-                                    type="button"
-                                    (click)="
-                                        assignType = 'team';
-                                        onAssignTypeChange()
-                                    "
+                                <button type="button" (click)="assignType = 'team'; onAssignTypeChange()"
                                     class="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-1.5 text-xs font-medium transition-all"
-                                    [ngClass]="
-                                        assignType === 'team'
-                                            ? 'bg-white text-indigo-600 shadow-sm'
-                                            : 'text-gray-400 hover:text-gray-600'
-                                    "
-                                >
-                                    <svg
-                                        class="h-3.5 w-3.5"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                    >
+                                    [ngClass]="assignType === 'team' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'">
+                                    <svg class="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20">
                                         <path
-                                            d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"
-                                        />
+                                            d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
                                     </svg>
                                     {{ 'ACCESS_REQUESTS.FORM.TEAM' | transloco }}
                                 </button>
                             </div>
 
-                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                                <span matPrefix class="ml-2 mr-2 flex items-center">
-                                    <ng-container *ngIf="selectedAssignee; else iconDefault">
-                                        <ng-container *ngIf="getAssigneeImage(selectedAssignee); else initialOnly">
-                                            <img [src]="getAssigneeImage(selectedAssignee)" class="h-5 w-5 rounded-full object-cover">
-                                        </ng-container>
-                                        <ng-template #initialOnly>
-                                            <div
-                                                class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold text-white"
-                                                [ngClass]="getAssigneeColor(selectedAssignee)"
-                                            >
-                                                {{ getAssigneeInitial(selectedAssignee) }}
-                                            </div>
-                                        </ng-template>
-                                    </ng-container>
-                                    <ng-template #iconDefault>
-                                        <svg
-                                            class="h-4 w-4 text-gray-400"
-                                            fill="currentColor"
-                                            viewBox="0 0 20 20"
-                                        >
-                                            <path
-                                                fill-rule="evenodd"
-                                                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-                                                clip-rule="evenodd"
-                                            />
-                                        </svg>
-                                    </ng-template>
-                                </span>
-                                <mat-select
-                                    [(ngModel)]="selectedAssignee"
-                                    [ngModelOptions]="{ standalone: true }"
-                                    (selectionChange)="onAssigneeChange()"
-                                    [placeholder]="(assignType === 'member' ? 'ACCESS_REQUESTS.FORM.SELECT_MEMBER' : 'ACCESS_REQUESTS.FORM.SELECT_TEAM') | transloco"
-                                >
-                                    <mat-option [value]="" disabled>
-                                        {{ (assignType === 'member' ? 'ACCESS_REQUESTS.FORM.SELECT_MEMBER' : 'ACCESS_REQUESTS.FORM.SELECT_TEAM') | transloco }}
-                                    </mat-option>
-                                    <mat-option
-                                        *ngFor="let opt of assignOptions"
-                                        [value]="opt.name"
-                                    >
-                                        <div class="flex items-center gap-2">
-                                            <ng-container *ngIf="opt.image; else optInitial">
-                                                <img [src]="opt.image" class="h-6 w-6 rounded-full object-cover">
-                                            </ng-container>
-                                            <ng-template #optInitial>
-                                                <div
-                                                    class="flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                                                    [ngClass]="opt.color"
-                                                >
-                                                    {{ opt.initial }}
-                                                </div>
-                                            </ng-template>
-                                            <span>{{ opt.name }}</span>
-                                        </div>
-                                    </mat-option>
-                                </mat-select>
-                            </mat-form-field>
 
-                            <div
-                                *ngIf="selectedAssignee"
-                                class="mt-2 flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2"
-                            >
-                                <ng-container *ngIf="getAssigneeImage(selectedAssignee); else chipInitial">
-                                    <img [src]="getAssigneeImage(selectedAssignee)" class="h-6 w-6 flex-shrink-0 rounded-full object-cover">
-                                </ng-container>
-                                <ng-template #chipInitial>
-                                    <div
-                                        class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                                        [ngClass]="
-                                            getAssigneeColor(selectedAssignee)
-                                        "
-                                    >
-                                        {{ getAssigneeInitial(selectedAssignee) }}
+                            <!-- Custom Dropdown with Search -->
+                            <div class="relative assign-dropdown-container">
+                                <!-- Toggle button -->
+                                <button type="button" (click)="toggleAssignDropdown(); $event.stopPropagation()"
+                                    class="flex w-full items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-left text-sm transition hover:border-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                                    <!-- Avatar prefix -->
+                                    <ng-container *ngIf="getAssigneeOpt() as opt; else defaultIcon">
+                                        <ng-container *ngIf="opt.avatar; else toggleInit">
+                                            <img [src]="opt.avatar"
+                                                class="h-5 w-5 flex-shrink-0 rounded-full object-cover">
+                                        </ng-container>
+                                        <ng-template #toggleInit>
+                                            <div class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white"
+                                                [ngClass]="opt.color">{{ opt.initial }}</div>
+                                        </ng-template>
+                                        <span class="flex-1 truncate">{{ opt.name }}</span>
+                                    </ng-container>
+                                    <ng-template #defaultIcon>
+                                        <svg class="h-4 w-4 flex-shrink-0 text-gray-400" fill="currentColor"
+                                            viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                                                clip-rule="evenodd" />
+                                        </svg>
+                                        <span class="flex-1 text-gray-400">{{ assignType === 'member' ? ('ACCESS_REQUESTS.FORM.SELECT_MEMBER' | transloco) : ('ACCESS_REQUESTS.FORM.SELECT_TEAM' | transloco) }}</span>
+                                    </ng-template>
+                                    <!-- Chevron -->
+                                    <svg class="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform"
+                                        [class.rotate-180]="assignDropdownOpen" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+
+                                <!-- Dropdown panel -->
+                                <div *ngIf="assignDropdownOpen"
+                                    class="absolute left-0 right-0 top-[calc(100%+4px)] z-[9999] rounded-xl border border-gray-200 bg-white shadow-xl"
+                                    style="position: absolute !important; z-index: 9999 !important;">
+                                    <!-- Search input -->
+                                    <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
+                                        <svg class="h-3.5 w-3.5 flex-shrink-0 text-gray-400" fill="none"
+                                            stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                        <input type="text" [(ngModel)]="assignSearchQuery"
+                                            [ngModelOptions]="{ standalone: true }" (input)="onAssignSearchInput()"
+                                            [placeholder]="assignType === 'member' ? ('ACCESS_REQUESTS.FORM.SEARCH_MEMBER' | transloco) : ('ACCESS_REQUESTS.FORM.SEARCH_TEAM' | transloco)"
+                                            class="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400" />
+                                        <button *ngIf="assignSearchQuery" type="button"
+                                            (click)="assignSearchQuery = ''; onAssignSearchInput()"
+                                            class="flex-shrink-0 text-gray-300 hover:text-red-400">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
                                     </div>
-                                </ng-template>
-                                <div class="min-w-0 flex-1">
-                                    <p
-                                        class="truncate text-sm font-medium text-gray-900"
-                                    >
-                                        {{ selectedAssignee }}
-                                    </p>
-                                    <p class="text-xs text-gray-500">
-                                        {{ 'ACCESS_REQUESTS.FORM.ASSIGNED' | transloco }}
-                                        {{
-                                            (assignType === 'member'
-                                                ? 'ACCESS_REQUESTS.FORM.MEMBER'
-                                                : 'ACCESS_REQUESTS.FORM.TEAM') | transloco
-                                        }}
-                                    </p>
+                                    <!-- Options list -->
+                                    <div class="max-h-48 overflow-y-auto py-1">
+                                        <!-- Loading state -->
+                                        <div *ngIf="isLoadingAssignment && assignOptions.length === 0"
+                                            class="flex items-center justify-center gap-2 px-3 py-4">
+                                            <svg class="h-4 w-4 animate-spin text-indigo-400" fill="none"
+                                                viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z">
+                                                </path>
+                                            </svg>
+                                            <span class="text-xs text-gray-400">{{ 'ACCESS_REQUESTS.FORM.LOADING_DATA' | transloco }}</span>
+                                        </div>
+                                        <!-- Empty state -->
+                                        <div *ngIf="!isLoadingAssignment && assignOptions.length === 0"
+                                            class="px-3 py-3 text-center text-xs text-gray-400">
+                                            {{ assignSearchQuery ? ('ACCESS_REQUESTS.FORM.NOT_FOUND' | transloco) : (assignType === 'member' ? ('ACCESS_REQUESTS.FORM.NO_MEMBER' | transloco) : ('ACCESS_REQUESTS.FORM.NO_TEAM' | transloco)) }}
+                                        </div>
+                                        <button *ngFor="let opt of assignOptions" type="button"
+                                            (click)="selectAssignee(opt)"
+                                            class="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-indigo-50"
+                                            [class.bg-indigo-50]="selectedAssignee?.id === opt.id">
+                                            <ng-container *ngIf="opt.avatar; else optInitDD">
+                                                <img [src]="opt.avatar"
+                                                    class="h-6 w-6 flex-shrink-0 rounded-full object-cover">
+                                            </ng-container>
+                                            <ng-template #optInitDD>
+                                                <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                                    [ngClass]="opt.color">{{ opt.initial }}</div>
+                                            </ng-template>
+                                            <span class="truncate text-sm text-gray-700">{{ opt.name }}</span>
+                                            <svg *ngIf="selectedAssignee?.id === opt.id"
+                                                class="ml-auto h-4 w-4 flex-shrink-0 text-indigo-500"
+                                                fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd"
+                                                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                                    clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    (click)="clearAssignee()"
-                                    class="ml-auto text-gray-400 hover:text-red-500"
-                                >
-                                    <svg
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                    >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"
-                                        />
+                            </div>
+
+                            <!-- Selected chip -->
+                            <div *ngIf="getAssigneeOpt() as opt"
+                                class="mt-2 flex items-center gap-2 rounded-xl bg-indigo-50 px-3 py-2">
+                                <ng-container *ngIf="opt.avatar; else chipInit">
+                                    <img [src]="opt.avatar" class="h-6 w-6 flex-shrink-0 rounded-full object-cover">
+                                </ng-container>
+                                <ng-template #chipInit>
+                                    <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                                        [ngClass]="opt.color">{{ opt.initial }}</div>
+                                </ng-template>
+                                <span class="flex-1 truncate text-xs font-medium text-indigo-700">{{ opt.name }}</span>
+                                <button type="button" (click)="clearAssignee()"
+                                    class="text-indigo-400 transition hover:text-indigo-600">
+                                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    <div
-                        class="mt-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm dark:bg-card"
-                    >
-                        <h3
-                            class="mb-1 font-bold text-gray-900 dark:text-white"
-                        >
-                            {{ 'ACCESS_REQUESTS.FORM.SETTINGS' | transloco }}
-                        </h3>
-                        <p class="text-secondary mb-4 text-xs">
-                            {{ 'ACCESS_REQUESTS.FORM.SETTINGS_DESC' | transloco }}
-                        </p>
-
-                        <label class="flex cursor-pointer items-center gap-2">
-                            <input
-                                type="checkbox"
-                                formControlName="notifyRequester"
-                                class="h-4 w-4 rounded accent-indigo-600"
-                            />
-                            <span
-                                class="text-sm text-gray-600 dark:text-gray-300"
-                                >{{ 'ACCESS_REQUESTS.FORM.NOTIFY_REQUESTER' | transloco }}</span
-                            >
-                        </label>
-
-                        <label
-                            class="mt-4 flex cursor-pointer items-center gap-2"
-                        >
-                            <input
-                                type="checkbox"
-                                formControlName="requireManagerApproval"
-                                class="h-4 w-4 rounded accent-indigo-600"
-                            />
-                            <span
-                                class="text-sm text-gray-600 dark:text-gray-300"
-                                >{{ 'ACCESS_REQUESTS.FORM.REQUIRE_APPROVAL' | transloco }}</span
-                            >
-                        </label>
-                    </div>
-
-                    <div class="mt-4 space-y-2.5">
+                    <!-- ACTION BUTTONS -->
+                    <div class="space-y-2.5">
                         <button
                             type="submit"
                             class="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition-all"
                             [ngClass]="
-                                form.valid
+                                form.valid && !isSubmitting
                                     ? 'bg-indigo-600 text-white hover:bg-indigo-700'
                                     : 'cursor-not-allowed bg-gray-200 text-gray-400'
                             "
-                            [disabled]="!form.valid"
+                            [disabled]="!form.valid || isSubmitting"
                         >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                                />
+                            <svg *ngIf="isSubmitting" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                             </svg>
-                            {{ 'ACCESS_REQUESTS.BUTTONS.SUBMIT' | transloco }}
+                            <svg *ngIf="!isSubmitting" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                            {{ isSubmitting ? ('ACCESS_REQUESTS.BUTTONS.SUBMITTING' | transloco) : ('ACCESS_REQUESTS.BUTTONS.SUBMIT' | transloco) }}
                         </button>
 
                         <button
                             type="button"
                             (click)="onReset()"
-                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-600 transition-all hover:bg-gray-50"
+                            class="flex w-full items-center justify-center gap-2 rounded-xl border border-orange-200 bg-orange-50 py-3 text-sm font-semibold text-orange-600 transition-all hover:bg-orange-100"
                         >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-14-7"
-                                />
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                             </svg>
                             {{ 'ACCESS_REQUESTS.BUTTONS.RESET' | transloco }}
                         </button>
@@ -872,18 +1094,9 @@
                             (click)="onCancel()"
                             class="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3 text-sm font-semibold text-gray-500 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-500"
                         >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"
-                                />
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
                             </svg>
                             {{ 'ACCESS_REQUESTS.BUTTONS.CANCEL' | transloco }}
                         </button>

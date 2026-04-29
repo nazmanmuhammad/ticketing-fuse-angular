@@ -357,7 +357,8 @@
                 "DATE": "Tanggal",
                 "ACTION": "Aksi"
             },
-            "EMPTY": "Tidak ada permintaan ditemukan"
+            "EMPTY": "Tidak ada permintaan ditemukan",
+            "LOADING": "Memuat permintaan..."
         },
         "FORM": {
             "TITLE": "Buat Permintaan Akses Baru",
@@ -397,6 +398,7 @@
             "DURATION": "Durasi Akses",
             "DURATION_DESC": "Tentukan detail durasi akses",
             "DURATION_TYPE": "Tipe Durasi Akses",
+            "DURATION_TYPE_PLACEHOLDER": "Pilih Tipe Durasi",
             "DURATION_TEMPORARY": "Akses Sementara",
             "DURATION_PERMANENT": "Akses Permanen",
             "START_DATE": "Tanggal Mulai",
@@ -417,6 +419,12 @@
             "TEAM": "Tim",
             "SELECT_MEMBER": "Pilih Anggota",
             "SELECT_TEAM": "Pilih Tim",
+            "SEARCH_MEMBER": "Cari anggota...",
+            "SEARCH_TEAM": "Cari tim...",
+            "LOADING_DATA": "Memuat...",
+            "NOT_FOUND": "Tidak ditemukan",
+            "NO_MEMBER": "Tidak ada anggota tersedia",
+            "NO_TEAM": "Tidak ada tim tersedia",
             "ASSIGNED": "Ditugaskan",
             "SETTINGS": "Pengaturan Tambahan",
             "SETTINGS_DESC": "Konfigurasi opsional",

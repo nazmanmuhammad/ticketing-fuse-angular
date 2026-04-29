@@ -21,7 +21,7 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #0E0F6B 0%, #42439eff 100%);
             color: white;
             padding: 20px;
             border-radius: 8px;
@@ -172,12 +172,12 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔔 New Feedback</h1>
+            <h1>New Feedback</h1>
             <p style="margin: 5px 0 0 0; opacity: 0.9;">Ticket #{{ $ticket['ticket_number'] }}</p>
         </div>
 
         <div class="ticket-info">
-            <h2>📋 Ticket Information</h2>
+            <h2>Ticket Information</h2>
             <div class="info-row">
                 <span class="info-label">Ticket Number:</span>
                 <span class="info-value"><strong>{{ $ticket['ticket_number'] }}</strong></span>

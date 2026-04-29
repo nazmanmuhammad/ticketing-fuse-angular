@@ -15,21 +15,10 @@ import { MatSelectModule } from '@angular/material/select';
 import { Router, RouterModule } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { UserService } from 'app/core/user/user.service';
-import { User } from 'app/core/user/user.types';
-import { take } from 'rxjs';
-
-type Status = 'PENDING' | 'APPROVED' | 'REJECTED';
-
-interface AccessRequest {
-    id: number;
-    code: string;
-    requester: string;
-    avatar: string;
-    resource: string;
-    resourceType: string;
-    status: Status;
-    requestDate: string;
-}
+import { catchError, finalize, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { AccessRequestService, AccessRequest } from '../access-request.service';
+import { SnackbarService } from 'app/core/services/snackbar.service';
+import { ConfirmationDialogService } from 'app/core/services/confirmation-dialog.service';
 
 @Component({
     selector: 'app-access-request-list',
@@ -70,16 +59,21 @@ interface AccessRequest {
     ],
 })
 export class AccessRequestListComponent implements OnInit, OnDestroy {
+    private destroy$ = new Subject<void>();
     filterOpen = false;
     searchQuery = '';
     selectedPeriod = 'this_month';
     startDate = '2026-02-01';
     endDate = '2026-02-28';
-    selectedStatus: '' | Status = '';
-    itemsPerPage = 5;
+    selectedStatus: '' | number = '';
+    itemsPerPage = 10;
     currentPage = 1;
     activeTab: 'all' | 'assigned' = 'all';
-    currentUser = 'Alice';
+    currentUser: any = null;
+    isLoading = false;
+    requests: AccessRequest[] = [];
+    totalItems = 0;
+    totalPages = 0;
 
     periods = [
         { label: 'Today', value: 'today' },
@@ -92,119 +86,162 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
 
     statuses = [
         { label: 'All Status', value: '' },
-        { label: 'Pending', value: 'PENDING' as Status },
-        { label: 'Approved', value: 'APPROVED' as Status },
-        { label: 'Rejected', value: 'REJECTED' as Status },
+        { label: 'Pending', value: 0 },
+        { label: 'Approved', value: 1 },
+        { label: 'Rejected', value: 2 },
+        { label: 'Provisioned', value: 3 },
     ];
-
-    requests: AccessRequest[] = [
-        {
-            id: 1,
-            code: '#AR1',
-            requester: 'John Doe',
-            avatar: 'J',
-            resource: 'Admin Portal',
-            resourceType: 'Admin Access',
-            status: 'PENDING',
-            requestDate: '28 Dec 2025',
-        },
-        {
-            id: 2,
-            code: '#AR2',
-            requester: 'Jane Smith',
-            avatar: 'J',
-            resource: 'Finance System',
-            resourceType: 'Read Only',
-            status: 'APPROVED',
-            requestDate: '27 Dec 2025',
-        },
-        {
-            id: 3,
-            code: '#AR3',
-            requester: 'Mike Johnson',
-            avatar: 'M',
-            resource: 'HR System',
-            resourceType: 'Standard User',
-            status: 'REJECTED',
-            requestDate: '26 Dec 2025',
-        },
-        {
-            id: 4,
-            code: '#AR4',
-            requester: 'Sarah Williams',
-            avatar: 'S',
-            resource: 'Product Catalog',
-            resourceType: 'Editor',
-            status: 'APPROVED',
-            requestDate: '30 Dec 2025',
-        },
-        {
-            id: 5,
-            code: '#AR5',
-            requester: 'David Brown',
-            avatar: 'D',
-            resource: 'Analytics',
-            resourceType: 'Viewer',
-            status: 'PENDING',
-            requestDate: '29 Dec 2025',
-        },
-    ];
-
-    avatarColors: Record<string, string> = {
-        J: 'bg-indigo-400',
-        M: 'bg-teal-400',
-        S: 'bg-purple-400',
-        D: 'bg-orange-400',
-    };
-
-    statusConfig: Record<
-        Status,
-        { label: string; classes: string; actionIcon: 'review' | 'approved' | 'rejected' }
-    > = {
-        PENDING: {
-            label: 'PENDING',
-            classes: 'text-orange-600 bg-orange-50 border border-orange-200',
-            actionIcon: 'review',
-        },
-        APPROVED: {
-            label: 'APPROVED',
-            classes: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
-            actionIcon: 'approved',
-        },
-        REJECTED: {
-            label: 'REJECTED',
-            classes: 'text-red-600 bg-red-50 border border-red-200',
-            actionIcon: 'rejected',
-        },
-    };
 
     stats: any[] = [];
 
     constructor(
         private router: Router,
         private _userService: UserService,
-        private _translocoService: TranslocoService
-    ) {
-        this._userService.user$.pipe(take(1)).subscribe((user: User) => {
-            this.currentUser = (user?.name || 'Alice').trim() || 'Alice';
-        });
-    }
+        private _translocoService: TranslocoService,
+        private _accessRequestService: AccessRequestService,
+        private _snackbar: SnackbarService,
+        private _confirmDialog: ConfirmationDialogService
+    ) {}
 
     ngOnInit(): void {
-        // Wait for translations to load
-        this._translocoService.events$.subscribe((event) => {
-            if (event.type === 'translationLoadSuccess') {
-                this.updateTranslations();
-            }
+        // Get current user
+        this._userService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
+            this.currentUser = user;
+            // Load data after getting user
+            this.loadAccessRequests();
+            this.loadStatistics();
         });
+
+        // Wait for translations to load
+        this._translocoService.events$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((event) => {
+                if (event.type === 'translationLoadSuccess') {
+                    this.updateTranslations();
+                }
+            });
 
         // Update translations when language changes
-        this._translocoService.langChanges$.subscribe(() => {
-            this.updateTranslations();
-        });
+        this._translocoService.langChanges$
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(() => {
+                this.updateTranslations();
+            });
     }
 
-    ngOnDestroy(): void {}
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    loadAccessRequests(): void {
+        if (this.isLoading) return;
+
+        this.isLoading = true;
+
+        const params: any = {
+            page: this.currentPage,
+            per_page: this.itemsPerPage,
+        };
+
+        // Add search query
+        if (this.searchQuery.trim()) {
+            params.search = this.searchQuery.trim();
+        }
+
+        // Add status filter
+        if (this.selectedStatus !== '') {
+            params.status = this.selectedStatus;
+        }
+
+        // Add requester filter for assigned tab
+        if (this.activeTab === 'assigned' && this.currentUser) {
+            params.requester_id = this.currentUser.id;
+        }
+
+        this._accessRequestService.getAccessRequests(params)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading access requests:', error);
+                    this._snackbar.error('Failed to load access requests');
+                    return of(null);
+                }),
+                finalize(() => {
+                    this.isLoading = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this.requests = response.data || [];
+                    this.totalItems = response.meta?.total || 0;
+                    this.totalPages = response.meta?.last_page || 0;
+                }
+            });
+    }
+
+    loadStatistics(): void {
+        if (!this.currentUser) return;
+
+        const params: any = {};
+        
+        if (this.activeTab === 'assigned') {
+            params.requester_id = this.currentUser.id;
+        }
+
+        this._accessRequestService.getStatistics(params)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading statistics:', error);
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.updateStats(response.data);
+                }
+            });
+    }
+
+    private updateStats(data: any): void {
+        this.stats = [
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.TOTAL'),
+                value: data.total || 0,
+                trend: '+8%',
+                up: true,
+                bg: 'bg-indigo-100',
+                icon: 'text-indigo-500',
+                border: 'border-t-indigo-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.PENDING'),
+                value: data.pending || 0,
+                trend: '+3%',
+                up: true,
+                bg: 'bg-orange-100',
+                icon: 'text-orange-500',
+                border: 'border-t-orange-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'),
+                value: data.approved || 0,
+                trend: '+12%',
+                up: true,
+                bg: 'bg-emerald-100',
+                icon: 'text-emerald-600',
+                border: 'border-t-emerald-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'),
+                value: data.rejected || 0,
+                trend: '-1%',
+                up: false,
+                bg: 'bg-red-100',
+                icon: 'text-red-500',
+                border: 'border-t-red-500',
+            },
+        ];
+    }
 
     private updateTranslations(): void {
         // Update periods
@@ -220,86 +257,18 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
         // Update statuses
         this.statuses = [
             { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.ALL'), value: '' },
-            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), value: 'PENDING' as Status },
-            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), value: 'APPROVED' as Status },
-            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), value: 'REJECTED' as Status },
-        ];
-
-        // Update status config labels
-        this.statusConfig = {
-            PENDING: {
-                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'),
-                classes: 'text-orange-600 bg-orange-50 border border-orange-200',
-                actionIcon: 'review',
-            },
-            APPROVED: {
-                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'),
-                classes: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
-                actionIcon: 'approved',
-            },
-            REJECTED: {
-                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'),
-                classes: 'text-red-600 bg-red-50 border border-red-200',
-                actionIcon: 'rejected',
-            },
-        };
-
-        // Update stats
-        const total = this.requests.length;
-        const pending = this.requests.filter((r) => r.status === 'PENDING').length;
-        const approved = this.requests.filter((r) => r.status === 'APPROVED').length;
-        const rejected = this.requests.filter((r) => r.status === 'REJECTED').length;
-
-        this.stats = [
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.TOTAL'),
-                value: total,
-                trend: '+8%',
-                up: true,
-                bg: 'bg-indigo-100',
-                icon: 'text-indigo-500',
-                border: 'border-t-indigo-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.PENDING'),
-                value: pending,
-                trend: '+3%',
-                up: true,
-                bg: 'bg-orange-100',
-                icon: 'text-orange-500',
-                border: 'border-t-orange-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'),
-                value: approved,
-                trend: '+12%',
-                up: true,
-                bg: 'bg-emerald-100',
-                icon: 'text-emerald-600',
-                border: 'border-t-emerald-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'),
-                value: rejected,
-                trend: '-1%',
-                up: false,
-                bg: 'bg-red-100',
-                icon: 'text-red-500',
-                border: 'border-t-red-500',
-            },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), value: 0 },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), value: 1 },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), value: 2 },
+            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PROVISIONED'), value: 3 },
         ];
     }
 
     setTab(tab: 'all' | 'assigned'): void {
         this.activeTab = tab;
         this.currentPage = 1;
-    }
-
-    private isAssignedToMe(request: AccessRequest): boolean {
-        return (
-            !!request.requester &&
-            request.requester.toLowerCase() === this.currentUser.toLowerCase()
-        );
+        this.loadAccessRequests();
+        this.loadStatistics();
     }
 
     toggleFilter(): void {
@@ -313,10 +282,22 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
         this.startDate = '2026-02-01';
         this.endDate = '2026-02-28';
         this.currentPage = 1;
+        this.loadAccessRequests();
     }
 
     applyFilter(): void {
         this.currentPage = 1;
+        this.loadAccessRequests();
+    }
+
+    onSearchChange(): void {
+        this.currentPage = 1;
+        this.loadAccessRequests();
+    }
+
+    onStatusChange(): void {
+        this.currentPage = 1;
+        this.loadAccessRequests();
     }
 
     onPeriodChange(): void {
@@ -364,43 +345,18 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
         }
     }
 
-    get filteredRequests(): AccessRequest[] {
-        const base = this.requests.filter((r) => {
-            const q = this.searchQuery.toLowerCase().trim();
-            const matchSearch =
-                !q ||
-                r.code.toLowerCase().includes(q) ||
-                r.requester.toLowerCase().includes(q) ||
-                r.resource.toLowerCase().includes(q);
-            const matchStatus = !this.selectedStatus || r.status === this.selectedStatus;
-            return matchSearch && matchStatus;
-        });
-
-        if (this.activeTab === 'assigned') {
-            return base.filter((request) => this.isAssignedToMe(request));
-        }
-
-        return base;
-    }
-
     get countAll(): number {
-        return this.requests.length;
+        return this.totalItems;
     }
 
     get countAssigned(): number {
-        return this.requests.filter((request) => this.isAssignedToMe(request)).length;
+        return this.totalItems;
     }
 
-    get totalItems(): number {
-        return this.filteredRequests.length;
-    }
-    get totalPages(): number {
-        return Math.ceil(this.totalItems / this.itemsPerPage);
-    }
     get paginatedRequests(): AccessRequest[] {
-        const start = (this.currentPage - 1) * this.itemsPerPage;
-        return this.filteredRequests.slice(start, start + this.itemsPerPage);
+        return this.requests;
     }
+
     get rangeLabel(): string {
         const start = (this.currentPage - 1) * this.itemsPerPage + 1;
         const end = Math.min(this.currentPage * this.itemsPerPage, this.totalItems);
@@ -408,17 +364,80 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
     }
 
     goToPage(page: number): void {
-        if (page >= 1 && page <= this.totalPages) this.currentPage = page;
+        if (page >= 1 && page <= this.totalPages) {
+            this.currentPage = page;
+            this.loadAccessRequests();
+        }
     }
+
     onItemsPerPageChange(): void {
         this.currentPage = 1;
+        this.loadAccessRequests();
     }
 
     navigateToCreate(): void {
         this.router.navigate(['/access-requests/create']);
     }
 
+    deleteAccessRequest(id: string): void {
+        this._confirmDialog
+            .confirmDelete('this access request')
+            .pipe(
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        return this._accessRequestService.deleteAccessRequest(id).pipe(
+                            catchError((error) => {
+                                console.error('Error deleting access request:', error);
+                                this._snackbar.error(
+                                    error?.error?.message ||
+                                        'Failed to delete access request'
+                                );
+                                return of(null);
+                            })
+                        );
+                    }
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success('Access request deleted successfully');
+                    this.loadAccessRequests();
+                    this.loadStatistics();
+                }
+            });
+    }
+
+    getStatusBadgeClass(status: number): string {
+        const statusMap: Record<number, string> = {
+            0: 'text-orange-600 bg-orange-50 border border-orange-200',
+            1: 'text-emerald-600 bg-emerald-50 border border-emerald-200',
+            2: 'text-red-600 bg-red-50 border border-red-200',
+            3: 'text-blue-600 bg-blue-50 border border-blue-200',
+        };
+        return statusMap[status] || statusMap[0];
+    }
+
+    getInitials(name: string): string {
+        if (!name) return '?';
+        return name
+            .split(' ')
+            .map((n) => n[0])
+            .slice(0, 2)
+            .join('')
+            .toUpperCase();
+    }
+
+    formatDate(dateString: string): string {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    }
+
     onAction(request: AccessRequest): void {
-        console.log('Action:', request);
+        this.router.navigate(['/access-requests/detail', request.id]);
     }
 }
