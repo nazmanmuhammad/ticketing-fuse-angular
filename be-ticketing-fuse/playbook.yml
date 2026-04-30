@@ -1,41 +1,45 @@
-- hosts: rndfetrial
+- hosts: helpdesk-be
   vars:
-  - image: ioez1984/rndfetrial
+    image: ioez1984/helpdesk-backend:latest  # Dictionary format (no dash)
+    remote_app_path: /opt/helpdesk-backend
 
   tasks:
-    - name: install python-docker centos
-      yum:
-        name:
-          - python
-          - python-docker
-        state: present
+    - name: Ensure application directory exists
+      file:
+        path: "{{ remote_app_path }}"
+        state: directory
+        mode: '0755'
 
-    - name: pull image docker
+    - name: Deploy .env file from Jenkins to Server
+      copy:
+        src: .env
+        dest: "{{ remote_app_path }}/.env"
+        mode: '0600'
+
+    - name: pull latest backend image
       docker_image:
         name: "{{ image }}"
         source: pull
         force_source: yes
         state: present
 
-    - name: create containers
+    - name: run laravel container
       docker_container:
-        name: rndfetrial-byjenkins
+        name: helpdesk-byjenkins
         image: "{{ image }}"
         state: started
         restart_policy: always
         published_ports:
-        - 80:80
+          - "8081:80"  # Use 8081 to avoid conflict with the frontend
+        volumes:
+          - "{{ remote_app_path }}/.env:/var/www/.env" # Mount the .env file
         recreate: yes
 
     - name: cleanup dangling images
       shell: |
-        oldimage=`docker images | grep '<none>' | awk '{print $3}'`
-        if [ -z "$oldimage" ]
-        then
-        echo "There is no dangling images found!"
-        else
-        docker rmi ${oldimage} -f
+        oldimage=$(docker images -f "dangling=true" -q)
+        if [ -n "$oldimage" ]; then
+          docker rmi $oldimage -f
         fi
-
       ignore_errors: yes
       become: true
