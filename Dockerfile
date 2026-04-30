@@ -16,6 +16,9 @@ COPY . .
 # Build the application in production mode
 RUN npm run build -- --configuration production
 
+# ADD THIS LINE TEMPORARILY TO SEE THE FOLDERS
+RUN ls -R dist/
+
 # Stage 2: Serve the app with Nginx
 FROM nginx:stable-alpine
 
