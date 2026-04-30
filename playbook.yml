@@ -1,0 +1,41 @@
+- hosts: helpdesk-fe
+  vars:
+  - image: ioez1984/helpdeskfe
+
+  tasks:
+    - name: install python-docker centos
+      yum:
+        name:
+          - python
+          - python-docker
+        state: present
+
+    - name: pull image docker
+      docker_image:
+        name: "{{ image }}"
+        source: pull
+        force_source: yes
+        state: present
+
+    - name: create containers
+      docker_container:
+        name: helpdeskfe-byjenkins
+        image: "{{ image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+        - 80:80
+        recreate: yes
+
+    - name: cleanup dangling images
+      shell: |
+        oldimage=`docker images | grep '<none>' | awk '{print $3}'`
+        if [ -z "$oldimage" ]
+        then
+        echo "There is no dangling images found!"
+        else
+        docker rmi ${oldimage} -f
+        fi
+
+      ignore_errors: yes
+      become: true
