@@ -17,14 +17,14 @@ COPY . .
 RUN npm run build -- --configuration production
 
 # ADD THIS LINE TEMPORARILY TO SEE THE FOLDERS
-RUN ls -R dist/
+# RUN ls -R dist/
 
 # Stage 2: Serve the app with Nginx
 FROM nginx:stable-alpine
 
 # Copy the build output to Nginx's default public folder
 # Note: Angular 19 usually outputs to dist/[project-name]/browser
-COPY --from=build-stage /app/dist/fuse-angular/browser /usr/share/nginx/html
+COPY --from=build-stage /app/dist/fuse/browser /usr/share/nginx/html
 
 # Expose port 80
 EXPOSE 80
