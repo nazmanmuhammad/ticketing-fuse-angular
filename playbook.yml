@@ -1,6 +1,6 @@
 - hosts: helpdesk-fe
   vars:
-  - image: ioez1984/helpdeskfe
+    image: ioez1984/helpdeskfe
 
   tasks:
     - name: install python-docker centos
