@@ -12,7 +12,7 @@
 
     - name: Deploy .env file from Jenkins to Server
       copy:
-        src: be-ticketing-fuse/.env
+        src: .env
         dest: "{{ remote_app_path }}/.env"
         mode: '0600'
 
