@@ -36,12 +36,12 @@
           - "{{ remote_app_path }}/.env:/var/www/html/.env"
         recreate: yes
 
-    - name: Run Laravel optimization and storage link
-      command: "docker exec helpdesk-byjenkins {{ item }}"
-      with_items:
-        - "php artisan storage:link"
-        - "php artisan optimize:clear"
-      ignore_errors: yes
+#    - name: Run Laravel optimization and storage link
+#      command: "docker exec helpdesk-byjenkins {{ item }}"
+#      with_items:
+#        - "php artisan storage:link"
+#        - "php artisan optimize:clear"
+#      ignore_errors: yes
 
     - name: cleanup dangling images
       shell: |
