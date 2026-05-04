@@ -1,0 +1,45 @@
+- hosts: helpdesk-be
+  vars:
+    image: ioez1984/helpdeskbe:latest  # Dictionary format (no dash)
+    remote_app_path: /opt/helpdesk-backend
+
+  tasks:
+    - name: Ensure application directory exists
+      file:
+        path: "{{ remote_app_path }}"
+        state: directory
+        mode: '0755'
+
+    - name: Deploy .env file from Jenkins to Server
+      copy:
+        src: "{{ playbook_dir }}/.env"
+        dest: "{{ remote_app_path }}/.env"
+        mode: '0600'
+
+    - name: pull latest backend image
+      docker_image:
+        name: "{{ image }}"
+        source: pull
+        force_source: yes
+        state: present
+
+    - name: run laravel container
+      docker_container:
+        name: helpdesk-byjenkins
+        image: "{{ image }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:80"  # Use 8081 to avoid conflict with the frontend
+        volumes:
+          - "{{ remote_app_path }}/.env:/var/www/.env" # Mount the .env file
+        recreate: yes
+
+    - name: cleanup dangling images
+      shell: |
+        oldimage=$(docker images -f "dangling=true" -q)
+        if [ -n "$oldimage" ]; then
+          docker rmi $oldimage -f
+        fi
+      ignore_errors: yes
+      become: true
