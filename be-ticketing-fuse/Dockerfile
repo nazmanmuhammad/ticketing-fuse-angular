@@ -7,7 +7,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: PHP Environment
-FROM php:8.3-fpm-alpine
+FROM php:8.3-apache
 
 # Install system dependencies & PHP extensions
 RUN apk add --no-cache \
