@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     git \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install pdo_mysql gd zip intl
     && docker-php-ext-install pdo_mysql gd zip
 
 # 2. Enable Apache mod_rewrite (Required for Laravel/PHP Frameworks)
