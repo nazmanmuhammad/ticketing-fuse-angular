@@ -3,7 +3,7 @@
     image: ioez1984/helpdeskbe:latest
     remote_app_path: /opt/helpdesk-backend
     # This is where your uploaded images will live on the VM disk
-    storage_mount_path: "/opt/helpdesk-backend/storage_app"
+    storage_mount_path: "/opt/helpdesk-backend/storage_public"
 
   tasks:
     - name: Ensure application directory exists
@@ -42,7 +42,7 @@
         volumes:
           - "{{ remote_app_path }}/.env:/var/www/html/.env"
           # Persistence: Map the VM folder to the internal Laravel storage folder
-          - "{{ storage_mount_path }}:/var/www/html/storage/app"
+          - "{{ storage_mount_path }}:/var/www/html/storage/app/public"
         recreate: yes
 
     - name: Generate Laravel storage link
