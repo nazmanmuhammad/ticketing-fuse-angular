@@ -1,7 +1,9 @@
 - hosts: helpdesk-be
   vars:
-    image: ioez1984/helpdeskbe:latest  # Dictionary format (no dash)
+    image: ioez1984/helpdeskbe:latest
     remote_app_path: /opt/helpdesk-backend
+    # This is where your uploaded images will live on the VM disk
+    storage_mount_path: "/opt/helpdesk-backend/storage_app"
 
   tasks:
     - name: Ensure application directory exists
@@ -9,6 +11,12 @@
         path: "{{ remote_app_path }}"
         state: directory
         mode: '0755'
+
+    - name: Ensure persistent storage directory exists on VM
+      file:
+        path: "{{ storage_mount_path }}"
+        state: directory
+        mode: '0777' # Allow Laravel (www-data) to write to this folder
 
     - name: Deploy .env file from Jenkins to Server
       copy:
@@ -30,10 +38,21 @@
         state: started
         restart_policy: always
         published_ports:
-          - "80:80"  # Use 8081 to avoid conflict with the frontend
+          - "80:80"
         volumes:
-          - "{{ remote_app_path }}/.env:/var/www/.env" # Mount the .env file
+          - "{{ remote_app_path }}/.env:/var/www/html/.env"
+          # Persistence: Map the VM folder to the internal Laravel storage folder
+          - "{{ storage_mount_path }}:/var/www/html/storage/app"
         recreate: yes
+
+    - name: Generate Laravel storage link
+      command: docker exec helpdesk-byjenkins php artisan storage:link
+      register: link_cmd
+      # This prevents the task from failing if the link already exists
+      failed_when: 
+        - link_cmd.rc != 0 
+        - "'already exists' not in link_cmd.stderr"
+      ignore_errors: yes
 
     - name: cleanup dangling images
       shell: |
