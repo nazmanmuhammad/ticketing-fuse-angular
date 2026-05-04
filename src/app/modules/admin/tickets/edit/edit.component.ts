@@ -105,7 +105,8 @@ export class EditComponent implements OnInit, OnDestroy {
 
     // ── Static dropdown options ──────────────────────────────────
     priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
-    departments = ['IT', 'HR', 'Finance', 'Operations', 'Marketing'];
+    departments: Array<{ id: string; name: string }> = [];
+    isLoadingDepartments = false;
     helpTopics = ['General Inquiry', 'Technical Support', 'Billing', 'Sales', 'Other'];
 
     constructor(
@@ -172,6 +173,9 @@ export class EditComponent implements OnInit, OnDestroy {
         this._userService.user$.subscribe((user) => {
             this.currentUser = user;
         });
+
+        // Load departments from API
+        this._loadDepartments();
 
         // Load ticket data
         if (this.ticketId) {
@@ -634,6 +638,32 @@ export class EditComponent implements OnInit, OnDestroy {
             const panel = this.panelScrollElement;
             if (panel.scrollHeight <= panel.clientHeight + 2) this._loadEmployees();
         });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load departments from API
+    // ─────────────────────────────────────────────────────────────
+    private _loadDepartments(): void {
+        this.isLoadingDepartments = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/departments?per_page=100`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading departments:', error);
+                    this._snackbar.error('Failed to load departments');
+                    return of({ status: false, data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingDepartments = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.departments = response.data.map((dept: any) => ({
+                        id: dept.id,
+                        name: dept.name
+                    }));
+                }
+            });
     }
 
     // ─────────────────────────────────────────────────────────────

@@ -153,7 +153,7 @@
 
     <div class="space-y-6 px-8 pb-8">
         <!-- STAT CARDS -->
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
             <div
                 *ngFor="let stat of stats"
                 class="rounded-2xl border border-gray-100 bg-white px-5 py-4 shadow-sm transition-all dark:bg-card hover:shadow-md"
@@ -278,7 +278,7 @@
                             }}</span>
                         </div>
                         <span class="font-semibold text-gray-900 dark:text-white"
-                            >{{ donutSeries[i] }}%</span
+                            >{{ getPercentage(i) }}%</span
                         >
                     </div>
                 </div>

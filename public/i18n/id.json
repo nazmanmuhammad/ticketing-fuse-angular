@@ -306,7 +306,9 @@
             "ACCESS_REQUEST": "Permintaan Akses",
             "CREATE": "Buat Permintaan Akses",
             "CREATE_NEW": "Buat Baru",
-            "DETAIL": "Detail"
+            "DETAIL": "Detail",
+            "EDIT": "Edit Permintaan Akses",
+            "EDIT_REQUEST": "Edit Permintaan"
         },
         "TABS": {
             "ALL": "Semua Permintaan Akses",
@@ -326,13 +328,19 @@
             "UPDATE_REQUEST": "Perbarui Permintaan",
             "CANCEL": "Batal",
             "SUBMITTING": "Mengirim...",
-            "UPDATING": "Memperbarui..."
+            "UPDATING": "Memperbarui...",
+            "BACK": "Kembali",
+            "EDIT": "Edit",
+            "DELETE": "Hapus",
+            "SAVE": "Simpan Perubahan",
+            "SAVING": "Menyimpan..."
         },
         "STATS": {
             "TOTAL": "Total Permintaan",
             "PENDING": "Menunggu Persetujuan",
             "APPROVED": "Permintaan Disetujui",
             "REJECTED": "Permintaan Ditolak",
+            "PROVISIONED": "Telah Diprovisi",
             "NEW_TODAY": "Permintaan Baru (Hari Ini)",
             "PENDING_APPROVAL": "Menunggu Persetujuan",
             "REVOKED": "Dicabut",
@@ -385,6 +393,9 @@
         "FORM": {
             "TITLE": "Buat Permintaan Akses Baru",
             "SUBTITLE": "Isi informasi yang diperlukan untuk mengirim permintaan akses baru",
+            "EDIT_TITLE": "Edit Permintaan Akses",
+            "EDIT_SUBTITLE": "Perbarui informasi permintaan akses",
+            "DETAIL_TITLE": "Detail Permintaan Akses",
             "REQUESTER_INFO": "Informasi Pemohon",
             "REQUESTER_INFO_DESC": "Detail kontak pemohon",
             "EMAIL": "Alamat Email",
@@ -393,6 +404,8 @@
             "FULL_NAME_PLACEHOLDER": "Nama Lengkap*",
             "PHONE": "Nomor Telepon",
             "PHONE_PLACEHOLDER": "Nomor Telepon",
+            "EXTENSION": "Nomor Extension",
+            "EXTENSION_PLACEHOLDER": "Nomor Extension",
             "DEPARTMENT": "Departemen",
             "DEPARTMENT_PLACEHOLDER": "Pilih Departemen",
             "DEPT_IT": "IT",
@@ -480,7 +493,48 @@
             "CREATE_FAILED": "Gagal membuat permintaan akses. Silakan coba lagi.",
             "UPDATE_FAILED": "Gagal memperbarui permintaan akses. Silakan coba lagi.",
             "DELETE_FAILED": "Gagal menghapus permintaan akses",
-            "LOAD_FAILED": "Gagal memuat permintaan akses"
+            "LOAD_FAILED": "Gagal memuat permintaan akses",
+            "LOADING": "Memuat...",
+            "NO_DATA": "Tidak ada data tersedia"
+        },
+        "DETAIL": {
+            "TITLE": "Detail Permintaan Akses",
+            "CREATED_BY": "Dibuat oleh",
+            "REASON": "Alasan:",
+            "DETAILS": "DETAIL",
+            "REQUEST_TYPE": "Tipe Permintaan",
+            "ACCESS_LEVEL": "Level Akses",
+            "DURATION_TYPE": "Tipe Durasi",
+            "START_DATE": "Tanggal Mulai",
+            "END_DATE": "Tanggal Akhir",
+            "PRIORITY": "Prioritas",
+            "EMAIL": "Email",
+            "PHONE": "Telepon",
+            "DEPARTMENT": "Departemen",
+            "ASSIGNED_TO": "Ditugaskan Ke",
+            "STATUS": "Status",
+            "COMMENTS": "Komentar",
+            "COMMENTS_DESC": "Diskusi dan catatan internal",
+            "ACTIVITY_LOG": "Log Aktivitas",
+            "ACTIVITY_LOG_DESC": "Riwayat dan perubahan permintaan",
+            "ATTACHMENTS": "Lampiran",
+            "NO_COMMENTS": "Belum ada komentar",
+            "NO_ACTIVITY": "Belum ada aktivitas",
+            "ADD_COMMENT": "Tambahkan komentar...",
+            "INTERNAL_NOTE": "Catatan Internal",
+            "POST_COMMENT": "Kirim Komentar",
+            "REPLY": "Balas",
+            "EDIT_COMMENT": "Edit",
+            "DELETE_COMMENT": "Hapus"
+        },
+        "DASHBOARD": {
+            "TITLE": "Dasbor Permintaan Akses",
+            "SUBTITLE": "Ringkasan statistik permintaan akses",
+            "OVERVIEW": "Ringkasan",
+            "RECENT_REQUESTS": "Permintaan Terbaru",
+            "PENDING_APPROVALS": "Menunggu Persetujuan",
+            "MY_REQUESTS": "Permintaan Saya",
+            "VIEW_ALL": "Lihat Semua"
         }
     }
 }

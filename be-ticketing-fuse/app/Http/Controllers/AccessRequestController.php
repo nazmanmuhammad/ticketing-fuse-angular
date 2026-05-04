@@ -21,7 +21,8 @@ class AccessRequestController extends Controller
             'requester',
             'assignedUser',
             'assignedTeam',
-            'approval.items.user'
+            'approval.items.user',
+            'department'
         ]);
 
         // Filter by search
@@ -76,37 +77,6 @@ class AccessRequestController extends Controller
     }
 
     /**
-     * Get statistics
-     */
-    public function statistics(Request $request)
-    {
-        $query = AccessRequest::query();
-
-        // Filter by requester if provided
-        if ($request->has('requester_id') && $request->requester_id) {
-            $query->where('requester_id', $request->requester_id);
-        }
-
-        $total = (clone $query)->count();
-        $pending = (clone $query)->where('status', 0)->count();
-        $approved = (clone $query)->where('status', 1)->count();
-        $rejected = (clone $query)->where('status', 2)->count();
-        $provisioned = (clone $query)->where('status', 3)->count();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Statistics retrieved successfully',
-            'data' => [
-                'total' => $total,
-                'pending' => $pending,
-                'approved' => $approved,
-                'rejected' => $rejected,
-                'provisioned' => $provisioned,
-            ],
-        ]);
-    }
-
-    /**
      * Get single access request
      */
     public function show(string $id)
@@ -121,7 +91,8 @@ class AccessRequestController extends Controller
             'comments.user',
             'comments.attachments',
             'comments.replies.user',
-            'comments.replies.attachments'
+            'comments.replies.attachments',
+            'department'
         ])->find($id);
 
         if (!$accessRequest) {
@@ -150,10 +121,11 @@ class AccessRequestController extends Controller
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'phone' => 'nullable|string|max:50',
-            'department' => 'required|string|max:255',
+            'extension_number' => 'nullable|string|max:20',
+            'department_id' => 'required|exists:departments,id',
             'resource_name' => 'required|string|max:255',
-            'request_type' => 'required|in:New Access,Change Access,Revoke Access',
-            'access_level' => 'required|in:Viewer,Standard User,Editor,Admin Access',
+            'request_type' => 'required',
+            'access_level' => 'required',
             'reason' => 'required|string',
             'duration_type' => 'required|in:Temporary Access,Permanent Access',
             'start_date' => 'nullable|date',
@@ -166,6 +138,7 @@ class AccessRequestController extends Controller
             'require_manager_approval' => 'nullable|boolean',
             'approval_required' => 'nullable|in:0,1,true,false',
             'approver_ids' => 'nullable|json',
+            'created_by' => 'required|exists:users,id', 
         ]);
 
         DB::beginTransaction();
@@ -208,7 +181,7 @@ class AccessRequestController extends Controller
                 'full_name' => $request->full_name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'department' => $request->department,
+                'department_id' => $request->department_id,
                 'resource_name' => $request->resource_name,
                 'request_type' => $request->request_type,
                 'access_level' => $request->access_level,
@@ -227,12 +200,17 @@ class AccessRequestController extends Controller
                 'approver_ids' => $request->approver_ids ? json_decode($request->approver_ids, true) : null,
             ]);
 
+            // Get user who is creating this access request (logged in user from request)
+            $creatorUserId = $request->created_by;
+            $creatorUser = User::find($creatorUserId);
+            $creatorName = $creatorUser ? $creatorUser->name : 'Unknown';
+
             // Create activity track
             AccessRequestTrack::create([
                 'access_request_id' => $accessRequest->id,
-                'user_id' => $request->requester_id,
+                'user_id' => $creatorUserId,
                 'action' => 'created',
-                'description' => 'Access request created',
+                'description' => 'Access request created by ' . $creatorName,
             ]);
 
             // Handle approvals if required
@@ -252,7 +230,7 @@ class AccessRequestController extends Controller
                         'path' => $path,
                         'size' => $file->getSize(),
                         'mime' => $file->extension(),
-                        'user_id' => $request->requester_id,
+                        'user_id' => $creatorUserId,
                         'visible' => true,
                     ]);
                 }
@@ -267,7 +245,8 @@ class AccessRequestController extends Controller
                 'assignedTeam',
                 'tracks.user',
                 'approval.items.user',
-                'attachments'
+                'attachments',
+                'department'
             ]);
 
             return response()->json([
@@ -300,10 +279,14 @@ class AccessRequestController extends Controller
         }
 
         $request->validate([
+            'requester_type' => 'nullable|in:select_employee,by_input',
+            'requester_id' => 'nullable|integer',
+            'requester_photo' => 'nullable|string',
             'full_name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255',
             'phone' => 'nullable|string|max:50',
-            'department' => 'sometimes|string|max:255',
+            'extension_number' => 'nullable|string|max:20',
+            'department_id' => 'sometimes|exists:departments,id',
             'resource_name' => 'sometimes|string|max:255',
             'request_type' => 'sometimes|in:New Access,Change Access,Revoke Access',
             'access_level' => 'sometimes|in:Viewer,Standard User,Editor,Admin Access',
@@ -314,35 +297,65 @@ class AccessRequestController extends Controller
             'assign_to_user_id' => 'nullable|exists:users,id',
             'assign_to_team_id' => 'nullable|exists:teams,id',
             'priority' => 'nullable|integer|min:0|max:3',
-            'status' => 'sometimes|integer|min:0|max:3',
-            'user_id' => 'required|exists:users,id', // User performing the update
+            'status' => 'sometimes|integer|min:0|max:2',
+            'updated_by' => 'required|exists:users,id', // User performing the update
         ]);
 
         DB::beginTransaction();
         try {
             $oldStatus = $accessRequest->status;
             
+            // Handle requester user update if requester info is being changed
+            if ($request->has('requester_type') && $request->requester_type === 'select_employee' && $request->has('requester_id')) {
+                // Check if user already exists by hris_user_id or email
+                $requesterUser = User::withTrashed()->where(function($query) use ($request) {
+                    $query->where('hris_user_id', $request->requester_id)
+                          ->orWhere('email', $request->email);
+                })->first();
+
+                if (!$requesterUser) {
+                    // Only create if user doesn't exist
+                    $requesterUser = User::create([
+                        'hris_user_id' => $request->requester_id,
+                        'name' => $request->full_name,
+                        'email' => $request->email,
+                        'photo' => $request->requester_photo ?? null,
+                        'role' => UserRoleEnum::USER->value,
+                        'status' => 1, // active
+                    ]);
+                } elseif ($requesterUser->trashed()) {
+                    // Restore if soft deleted
+                    $requesterUser->restore();
+                }
+
+                // Update the requester_id in the request data
+                $request->merge(['requester_id' => $requesterUser->id]);
+            }
+            
             // Update access request
-            $accessRequest->update($request->except(['user_id', 'approver_ids', 'approval_required']));
+            $accessRequest->update($request->except(['updated_by', 'approver_ids', 'approval_required', 'requester_type', 'requester_photo']));
+
+            // Get user for activity track
+            $updaterUser = User::find($request->updated_by);
+            $updaterName = $updaterUser ? $updaterUser->name : 'Unknown';
 
             // Create activity track
             $action = 'updated';
-            $description = 'Access request updated';
+            $description = 'Access request updated by ' . $updaterName;
 
             if ($request->has('status') && $request->status != $oldStatus) {
                 $statusMap = [
                     0 => 'pending',
                     1 => 'approved',
                     2 => 'rejected',
-                    3 => 'provisioned',
                 ];
                 $action = $statusMap[$request->status] ?? 'updated';
-                $description = 'Access request ' . $action;
+                $description = 'Access request ' . $action . ' by ' . $updaterName;
             }
 
             AccessRequestTrack::create([
                 'access_request_id' => $accessRequest->id,
-                'user_id' => $request->user_id,
+                'user_id' => $request->updated_by,
                 'action' => $action,
                 'description' => $description,
             ]);
@@ -356,7 +369,8 @@ class AccessRequestController extends Controller
                 'assignedTeam',
                 'tracks.user',
                 'approval.items.user',
-                'attachments'
+                'attachments',
+                'department'
             ]);
 
             return response()->json([
@@ -458,5 +472,230 @@ class AccessRequestController extends Controller
             $approval->items()->createMany($approvalItems);
             \Log::info('Approval items created successfully');
         }
+    }
+
+    /**
+     * Get access request statistics for dashboard
+     */
+    public function statistics(Request $request)
+    {
+        $query = AccessRequest::query();
+
+        // Apply role-based filtering
+        if ($request->role === 'agent' || $request->role === 'technical') {
+            $query->where(function($q) use ($request) {
+                $q->where('assign_to_user_id', $request->user_id)
+                  ->orWhere('assign_to_team_id', $request->team_id);
+            });
+        } elseif ($request->role === 'user') {
+            $query->where('requester_id', $request->requester_id);
+        }
+
+        // Get filter parameters (default to current month/year)
+        $currentMonth = $request->month ?? date('m');
+        $currentYear = $request->year ?? date('Y');
+        $lastMonth = $currentMonth == 1 ? 12 : $currentMonth - 1;
+        $lastMonthYear = $currentMonth == 1 ? $currentYear - 1 : $currentYear;
+
+        // Helper function to calculate percentage change
+        $calculateChange = function($current, $previous) {
+            if ($previous == 0) {
+                return $current > 0 ? '+100' : '0';
+            }
+            $change = (($current - $previous) / $previous) * 100;
+            return ($change >= 0 ? '+' : '') . number_format($change, 1);
+        };
+
+        // Get counts by status - Current Month
+        $newToday = (clone $query)->where('status', 0) // Pending
+            ->whereDate('created_at', today())
+            ->count();
+
+        $pendingRequests = (clone $query)->where('status', 0)->count(); // Pending
+
+        $approvedRequests = (clone $query)->where('status', 1) // Approved
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        $rejectedRequests = (clone $query)->where('status', 2) // Rejected
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        $provisionedRequests = (clone $query)->where('status', 3) // Provisioned
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Get counts for LAST MONTH for comparison
+        $approvedLastMonth = (clone $query)->where('status', 1)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+
+        $rejectedLastMonth = (clone $query)->where('status', 2)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+
+        $provisionedLastMonth = (clone $query)->where('status', 3)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+
+        // Count requests by priority - filtered by month/year
+        $priorityStats = [
+            'critical' => (clone $query)->where('priority', 3)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'high' => (clone $query)->where('priority', 2)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'medium' => (clone $query)->where('priority', 1)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'low' => (clone $query)->where('priority', 0)
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+        ];
+
+        // Count requests by type - Current Month
+        $typeStats = [
+            'new_access' => (clone $query)->where('request_type', 'New Access')
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'change_access' => (clone $query)->where('request_type', 'Change Access')
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+            'revoke_access' => (clone $query)->where('request_type', 'Revoke Access')
+                ->whereMonth('created_at', $currentMonth)
+                ->whereYear('created_at', $currentYear)
+                ->count(),
+        ];
+
+        // Count created requests this month
+        $createdThisMonth = (clone $query)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
+            ->count();
+
+        // Count created requests last month
+        $createdLastMonth = (clone $query)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
+            ->count();
+
+        // Count total requests (all time)
+        $totalRequests = (clone $query)->count();
+
+        // Get trends data for the selected year (12 months)
+        $trendsData = $this->getAccessRequestTrends($query, $currentYear);
+
+        // Get recent requests (last 10)
+        $recentRequests = (clone $query)
+            ->with(['requester', 'assignedUser', 'assignedTeam'])
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function($request) {
+                return [
+                    'id' => $request->id,
+                    'request_number' => $request->request_number,
+                    'resource_name' => $request->resource_name,
+                    'requester' => $request->requester ? [
+                        'name' => $request->requester->name,
+                        'email' => $request->requester->email,
+                    ] : [
+                        'name' => $request->full_name,
+                        'email' => $request->email,
+                    ],
+                    'status' => $request->status,
+                    'status_name' => $request->status_name,
+                    'priority' => $request->priority,
+                    'created_at' => $request->created_at->toISOString(),
+                ];
+            });
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Access request statistics retrieved successfully',
+            'data' => [
+                'total' => $totalRequests,
+                'new_today' => $newToday,
+                'pending' => $pendingRequests,
+                'approved' => $approvedRequests,
+                'rejected' => $rejectedRequests,
+                'provisioned' => $provisionedRequests,
+                'created_this_month' => $createdThisMonth,
+                'priority' => $priorityStats,
+                'type' => $typeStats,
+                // Comparison data
+                'comparison' => [
+                    'created' => $calculateChange($createdThisMonth, $createdLastMonth),
+                    'approved' => $calculateChange($approvedRequests, $approvedLastMonth),
+                    'rejected' => $calculateChange($rejectedRequests, $rejectedLastMonth),
+                    'provisioned' => $calculateChange($provisionedRequests, $provisionedLastMonth),
+                ],
+                // Trends data
+                'trends' => $trendsData,
+                // Recent requests
+                'recent_requests' => $recentRequests,
+            ],
+        ]);
+    }
+
+    /**
+     * Get access request trends for the selected year (12 months or up to current month)
+     */
+    private function getAccessRequestTrends($query, $year)
+    {
+        $months = [];
+        $currentMonth = date('n'); // 1-12
+        $currentYear = date('Y');
+        
+        // If selected year is current year, only show up to current month
+        $maxMonth = ($year == $currentYear) ? $currentMonth : 12;
+        
+        for ($month = 1; $month <= $maxMonth; $month++) {
+            $monthName = date('M', mktime(0, 0, 0, $month, 1));
+            
+            $pending = (clone $query)->where('status', 0)
+                ->whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->count();
+            
+            $approved = (clone $query)->where('status', 1)
+                ->whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->count();
+            
+            $rejected = (clone $query)->where('status', 2)
+                ->whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->count();
+            
+            $provisioned = (clone $query)->where('status', 3)
+                ->whereMonth('created_at', $month)
+                ->whereYear('created_at', $year)
+                ->count();
+            
+            $months[] = [
+                'month' => $monthName,
+                'pending' => $pending,
+                'approved' => $approved,
+                'rejected' => $rejected,
+                'provisioned' => $provisioned,
+                'total' => $pending + $approved + $rejected + $provisioned,
+            ];
+        }
+        
+        return $months;
     }
 }

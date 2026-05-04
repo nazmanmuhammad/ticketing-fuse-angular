@@ -407,6 +407,16 @@
                                     class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800" />
                             </div>
                         </div>
+                        <!-- Department -->
+                        <div>
+                            <label class="text-secondary mb-1.5 block text-xs font-medium">Department</label>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
+                                <mat-select formControlName="department" placeholder="Department">
+                                    <mat-option value="">Department</mat-option>
+                                    <mat-option *ngFor="let d of departments" [value]="d.id">{{ d.name }}</mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
                     </div>
                 </div>
 
@@ -426,7 +436,7 @@
                             <p class="text-secondary text-xs">Provide ticket information</p>
                         </div>
                     </div>
-                    <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div class="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <!-- Ticket Source -->
                         <div class="relative">
                             <label class="text-secondary mb-1.5 block text-xs font-medium">
@@ -439,16 +449,6 @@
                                     <mat-option value="Phone">Phone</mat-option>
                                     <mat-option value="Web Portal">Web Portal</mat-option>
                                     <mat-option value="Walk-in">Walk-in</mat-option>
-                                </mat-select>
-                            </mat-form-field>
-                        </div>
-                        <!-- Department -->
-                        <div class="relative">
-                            <label class="text-secondary mb-1.5 block text-xs font-medium">Department</label>
-                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                                <mat-select formControlName="department" placeholder="Department">
-                                    <mat-option value="">Department</mat-option>
-                                    <mat-option *ngFor="let d of departments" [value]="d">{{ d }}</mat-option>
                                 </mat-select>
                             </mat-form-field>
                         </div>

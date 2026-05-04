@@ -84,10 +84,9 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
 
     // Status configuration
     statusConfig: { [key: number]: { label: string; classes: string } } = {
-        0: { label: 'Pending', classes: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-        1: { label: 'Approved', classes: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
-        2: { label: 'Rejected', classes: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-        3: { label: 'Provisioned', classes: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+        0: { label: 'Pending', classes: 'bg-yellow-50 text-yellow-600 border border-yellow-200' },
+        1: { label: 'Approved', classes: 'bg-green-50 text-green-600 border border-green-200' },
+        2: { label: 'Rejected', classes: 'bg-red-50 text-red-600 border border-red-200' },
     };
 
     periods = [
@@ -104,7 +103,6 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
         { label: 'Pending', value: 0 },
         { label: 'Approved', value: 1 },
         { label: 'Rejected', value: 2 },
-        { label: 'Provisioned', value: 3 },
     ];
 
     stats: any[] = [];
@@ -278,7 +276,6 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
             { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), value: 0 },
             { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), value: 1 },
             { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), value: 2 },
-            { label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PROVISIONED'), value: 3 },
         ];
 
         // Update status config with translations
@@ -294,10 +291,6 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
             2: { 
                 label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), 
                 classes: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' 
-            },
-            3: { 
-                label: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PROVISIONED'), 
-                classes: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' 
             },
         };
     }

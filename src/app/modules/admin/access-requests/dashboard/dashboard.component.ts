@@ -26,6 +26,9 @@ import {
     ApexXAxis,
     NgApexchartsModule,
 } from 'ng-apexcharts';
+import { Subject, takeUntil, finalize } from 'rxjs';
+import { AccessRequestService } from '../access-request.service';
+import { UserService } from 'app/core/user/user.service';
 
 @Component({
     selector: 'app-access-request-dashboard',
@@ -67,77 +70,75 @@ import {
     ],
 })
 export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
+    private destroy$ = new Subject<void>();
+    
+    // Loading state
+    isLoading = false;
+    
+    // Current user
+    currentUser: any = null;
+    
     // Filter state
     filterOpen = false;
     selectedPeriod = 'this_month';
-    startDate = '2026-02-01';
-    endDate = '2026-02-28';
+    selectedMonth = new Date().getMonth() + 1; // 1-12
+    selectedYear = new Date().getFullYear();
+    startDate = '';
+    endDate = '';
 
-    periods = [
-        { label: 'Today', value: 'today' },
-        { label: 'This Week', value: 'this_week' },
-        { label: 'This Month', value: 'this_month' },
-        { label: 'Last Month', value: 'last_month' },
-        { label: 'This Year', value: 'this_year' },
-        { label: 'Custom Range', value: 'custom' },
-    ];
+    periods = [];
 
     stats = [
         {
-            title: 'New Requests',
-            value: '124',
-            trend: '+5.2%',
+            title: 'Loading...',
+            value: '0',
+            trend: '0%',
             up: true,
             bg: 'bg-indigo-100',
             icon: 'text-indigo-500',
         },
         {
-            title: 'Pending Approval',
-            value: '45',
-            trend: '-2%',
-            up: false,
-            bg: 'bg-orange-100',
-            icon: 'text-orange-500',
-        },
-        {
-            title: 'Approved',
-            value: '890',
-            trend: '+12%',
-            up: true,
-            bg: 'bg-emerald-100',
-            icon: 'text-emerald-500',
-        },
-        {
-            title: 'Rejected',
-            value: '32',
-            trend: '-5%',
-            up: false,
-            bg: 'bg-red-100',
-            icon: 'text-red-500',
-        },
-        {
-            title: 'Revoked',
-            value: '12',
-            trend: '+1%',
-            up: true,
-            bg: 'bg-gray-100',
-            icon: 'text-gray-500',
-        },
-        {
-            title: 'Expired',
-            value: '8',
+            title: 'Loading...',
+            value: '0',
             trend: '0%',
             up: true,
-            bg: 'bg-amber-100',
-            icon: 'text-amber-500',
+            bg: 'bg-yellow-100',
+            icon: 'text-yellow-600',
+        },
+        {
+            title: 'Loading...',
+            value: '0',
+            trend: '0%',
+            up: true,
+            bg: 'bg-green-100',
+            icon: 'text-green-600',
+        },
+        {
+            title: 'Loading...',
+            value: '0',
+            trend: '0%',
+            up: true,
+            bg: 'bg-red-100',
+            icon: 'text-red-600',
+        },
+        {
+            title: 'Loading...',
+            value: '0',
+            trend: '0%',
+            up: true,
+            bg: 'bg-gray-100',
+            icon: 'text-gray-600',
         },
     ];
 
+    // Recent requests
+    recentRequests: any[] = [];
+
     // LINE CHART
     lineChartSeries: ApexAxisChartSeries = [
-        { name: 'New Requests', data: [12, 19, 15, 25, 22, 30, 35, 32, 40] },
-        { name: 'Approved', data: [10, 15, 12, 20, 18, 25, 28, 26, 35] },
-        { name: 'Rejected', data: [2, 4, 3, 5, 4, 5, 7, 6, 5] },
+        { name: 'Pending', data: [0] },
+        { name: 'Approved', data: [0] },
+        { name: 'Rejected', data: [0] },
     ];
 
     lineChartOptions: ApexChart = {
@@ -148,17 +149,7 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
     };
 
     lineChartXAxis: ApexXAxis = {
-        categories: [
-            'Aug',
-            'Sep',
-            'Oct',
-            'Nov',
-            'Dec',
-            'Jan',
-            'Feb',
-            'Mar',
-            'Apr',
-        ],
+        categories: ['Loading...'],
         labels: { style: { fontSize: '11px', colors: '#94a3b8' } },
         axisBorder: { show: false },
         axisTicks: { show: false },
@@ -190,7 +181,7 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
     lineChartTooltip: ApexTooltip = { shared: true, intersect: false };
 
     // DONUT CHART
-    donutSeries: ApexNonAxisChartSeries = [45, 30, 25];
+    donutSeries: ApexNonAxisChartSeries = [0, 0, 0];
 
     donutOptions: ApexChart = {
         type: 'donut',
@@ -198,7 +189,7 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
         toolbar: { show: false },
     };
 
-    donutColors = ['#f97316', '#10b981', '#ef4444'];
+    donutColors = ['#f59e0b', '#10b981', '#ef4444'];
 
     donutLabels = ['Pending', 'Approved', 'Rejected'];
 
@@ -224,7 +215,11 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
                         fontWeight: 600,
                         color: '#0f172a',
                         offsetY: 5,
-                        formatter: (val) => val,
+                        formatter: (val) => {
+                            // Calculate percentage
+                            const numVal = typeof val === 'string' ? parseFloat(val) : val;
+                            return numVal.toFixed(0) + '%';
+                        },
                     },
                     total: {
                         show: true,
@@ -239,23 +234,157 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
         },
     };
 
-    constructor(private _translocoService: TranslocoService) {}
+    constructor(
+        private _translocoService: TranslocoService,
+        private _accessRequestService: AccessRequestService,
+        private _userService: UserService
+    ) {}
 
     ngOnInit(): void {
+        // Get current user
+        this._userService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
+            this.currentUser = user;
+            // Load statistics after getting user
+            this.loadStatistics();
+        });
+
         // Wait for translations to load
-        this._translocoService.events$.subscribe((event) => {
+        this._translocoService.events$.pipe(takeUntil(this.destroy$)).subscribe((event) => {
             if (event.type === 'translationLoadSuccess') {
                 this.updateTranslations();
             }
         });
 
         // Update translations when language changes
-        this._translocoService.langChanges$.subscribe(() => {
+        this._translocoService.langChanges$.pipe(takeUntil(this.destroy$)).subscribe(() => {
             this.updateTranslations();
         });
     }
 
-    ngOnDestroy(): void {}
+    ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    private loadStatistics(): void {
+        if (!this.currentUser) return;
+
+        this.isLoading = true;
+
+        const params: any = {
+            month: this.selectedMonth,
+            year: this.selectedYear,
+        };
+
+        // Add role-based filtering
+        if (this.currentUser.role === 'Agent' || this.currentUser.role === 'Technical') {
+            params.role = this.currentUser.role.toLowerCase();
+            params.user_id = this.currentUser.id;
+            // Add team_id if user has teams
+        } else if (this.currentUser.role === 'User') {
+            params.role = 'user';
+            params.requester_id = this.currentUser.id;
+        }
+
+        this._accessRequestService.getStatistics(params)
+            .pipe(
+                takeUntil(this.destroy$),
+                finalize(() => {
+                    this.isLoading = false;
+                })
+            )
+            .subscribe({
+                next: (response) => {
+                    if (response.status && response.data) {
+                        this.updateDashboardData(response.data);
+                    }
+                },
+                error: (error) => {
+                    console.error('Error loading statistics:', error);
+                }
+            });
+    }
+
+    private updateDashboardData(data: any): void {
+        // Update stats cards
+        this.stats = [
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.NEW_TODAY'),
+                value: data.new_today?.toString() || '0',
+                trend: data.comparison?.created || '0%',
+                up: data.comparison?.created?.startsWith('+') || false,
+                bg: 'bg-indigo-100',
+                icon: 'text-indigo-500',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.PENDING_APPROVAL'),
+                value: data.pending?.toString() || '0',
+                trend: '0%',
+                up: true,
+                bg: 'bg-yellow-100',
+                icon: 'text-yellow-600',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'),
+                value: data.approved?.toString() || '0',
+                trend: data.comparison?.approved || '0%',
+                up: data.comparison?.approved?.startsWith('+') || false,
+                bg: 'bg-green-100',
+                icon: 'text-green-600',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'),
+                value: data.rejected?.toString() || '0',
+                trend: data.comparison?.rejected || '0%',
+                up: data.comparison?.rejected?.startsWith('+') || false,
+                bg: 'bg-red-100',
+                icon: 'text-red-600',
+            },
+            {
+                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.TOTAL'),
+                value: data.created_this_month?.toString() || '0',
+                trend: data.comparison?.created || '0%',
+                up: data.comparison?.created?.startsWith('+') || false,
+                bg: 'bg-gray-100',
+                icon: 'text-gray-600',
+            },
+        ];
+
+        // Update recent requests
+        this.recentRequests = data.recent_requests || [];
+
+        // Update line chart with trends data
+        if (data.trends && data.trends.length > 0) {
+            const months = data.trends.map((t: any) => t.month);
+            const pendingData = data.trends.map((t: any) => t.pending);
+            const approvedData = data.trends.map((t: any) => t.approved);
+            const rejectedData = data.trends.map((t: any) => t.rejected);
+
+            this.lineChartXAxis = {
+                ...this.lineChartXAxis,
+                categories: months,
+            };
+
+            this.lineChartSeries = [
+                { name: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), data: pendingData },
+                { name: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), data: approvedData },
+                { name: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), data: rejectedData },
+            ];
+        }
+
+        // Update donut chart
+        this.donutSeries = [
+            data.pending || 0,
+            data.approved || 0,
+            data.rejected || 0,
+        ];
+
+        this.donutLabels = [
+            this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'),
+            this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'),
+            this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'),
+        ];
+    }
 
     private updateTranslations(): void {
         // Update periods
@@ -268,106 +397,23 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
             { label: this._translocoService.translate('ACCESS_REQUESTS.FILTERS.PERIODS.CUSTOM'), value: 'custom' },
         ];
 
-        // Update stats - preserve existing values
-        const currentValues = this.stats.map(s => s.value);
-        this.stats = [
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.NEW_TODAY'),
-                value: currentValues[0] || '124',
-                trend: '+5.2%',
-                up: true,
-                bg: 'bg-indigo-100',
-                icon: 'text-indigo-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.PENDING_APPROVAL'),
-                value: currentValues[1] || '45',
-                trend: '-2%',
-                up: false,
-                bg: 'bg-orange-100',
-                icon: 'text-orange-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'),
-                value: currentValues[2] || '890',
-                trend: '+12%',
-                up: true,
-                bg: 'bg-emerald-100',
-                icon: 'text-emerald-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'),
-                value: currentValues[3] || '32',
-                trend: '-5%',
-                up: false,
-                bg: 'bg-red-100',
-                icon: 'text-red-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.REVOKED'),
-                value: currentValues[4] || '12',
-                trend: '+1%',
-                up: true,
-                bg: 'bg-gray-100',
-                icon: 'text-gray-500',
-            },
-            {
-                title: this._translocoService.translate('ACCESS_REQUESTS.STATS.EXPIRED'),
-                value: currentValues[5] || '8',
-                trend: '0%',
-                up: true,
-                bg: 'bg-amber-100',
-                icon: 'text-amber-500',
-            },
-        ];
-
-        // Update line chart series
+        // Update initial chart labels
         this.lineChartSeries = [
-            { name: this._translocoService.translate('ACCESS_REQUESTS.STATS.NEW_TODAY'), data: [12, 19, 15, 25, 22, 30, 35, 32, 40] },
-            { name: this._translocoService.translate('ACCESS_REQUESTS.STATS.APPROVED'), data: [10, 15, 12, 20, 18, 25, 28, 26, 35] },
-            { name: this._translocoService.translate('ACCESS_REQUESTS.STATS.REJECTED'), data: [2, 4, 3, 5, 4, 5, 7, 6, 5] },
+            { name: this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'), data: this.lineChartSeries[0]?.data || [0] },
+            { name: this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'), data: this.lineChartSeries[1]?.data || [0] },
+            { name: this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'), data: this.lineChartSeries[2]?.data || [0] },
         ];
 
-        // Update donut labels
         this.donutLabels = [
             this._translocoService.translate('ACCESS_REQUESTS.STATUS.PENDING'),
             this._translocoService.translate('ACCESS_REQUESTS.STATUS.APPROVED'),
             this._translocoService.translate('ACCESS_REQUESTS.STATUS.REJECTED'),
         ];
 
-        // Update donut plot options for Total label
-        this.donutPlotOptions = {
-            pie: {
-                donut: {
-                    size: '75%',
-                    labels: {
-                        show: true,
-                        name: {
-                            show: true,
-                            fontSize: '12px',
-                            color: '#64748b',
-                            offsetY: -5,
-                        },
-                        value: {
-                            show: true,
-                            fontSize: '24px',
-                            fontWeight: 600,
-                            color: '#0f172a',
-                            offsetY: 5,
-                            formatter: (val) => val,
-                        },
-                        total: {
-                            show: true,
-                            label: this._translocoService.translate('DASHBOARD.CHARTS.TOTAL'),
-                            color: '#64748b',
-                            formatter: (w) => {
-                                return w.globals.seriesTotals.reduce((a: any, b: any) => a + b, 0);
-                            },
-                        },
-                    },
-                },
-            },
-        };
+        // Reload statistics only if user is already loaded
+        if (this.currentUser && this.stats[0].title !== 'Loading...') {
+            this.loadStatistics();
+        }
     }
 
     toggleFilter() {
@@ -376,20 +422,79 @@ export class AccessRequestDashboardComponent implements OnInit, OnDestroy {
 
     resetFilter() {
         this.selectedPeriod = 'this_month';
-        this.startDate = '2026-02-01';
-        this.endDate = '2026-02-28';
+        this.selectedMonth = new Date().getMonth() + 1;
+        this.selectedYear = new Date().getFullYear();
+        this.loadStatistics();
     }
 
     applyFilter() {
-        console.log(
-            'Filter:',
-            this.selectedPeriod,
-            this.startDate,
-            this.endDate
-        );
+        this.loadStatistics();
     }
 
     onPeriodChange() {
-        console.log('Period changed:', this.selectedPeriod);
+        // Calculate month/year based on selected period
+        const now = new Date();
+        
+        switch (this.selectedPeriod) {
+            case 'today':
+            case 'this_week':
+            case 'this_month':
+                this.selectedMonth = now.getMonth() + 1;
+                this.selectedYear = now.getFullYear();
+                break;
+            case 'last_month':
+                const lastMonth = now.getMonth() === 0 ? 12 : now.getMonth();
+                const lastMonthYear = now.getMonth() === 0 ? now.getFullYear() - 1 : now.getFullYear();
+                this.selectedMonth = lastMonth;
+                this.selectedYear = lastMonthYear;
+                break;
+            case 'this_year':
+                this.selectedMonth = now.getMonth() + 1;
+                this.selectedYear = now.getFullYear();
+                break;
+        }
+        
+        this.loadStatistics();
+    }
+
+    getStatusBadgeClass(status: number): string {
+        const statusMap: Record<number, string> = {
+            0: 'bg-yellow-50 text-yellow-600 border border-yellow-200',
+            1: 'bg-green-50 text-green-600 border border-green-200',
+            2: 'bg-red-50 text-red-600 border border-red-200',
+            3: 'bg-blue-50 text-blue-600 border border-blue-200',
+        };
+        return statusMap[status] || statusMap[0];
+    }
+
+    getPriorityBadgeClass(priority: number | null): string {
+        if (priority === null || priority === undefined) {
+            return 'bg-gray-50 text-gray-500 border border-gray-200';
+        }
+        const colorMap: Record<number, string> = {
+            0: 'bg-gray-100 text-gray-700 border border-gray-300',
+            1: 'bg-blue-100 text-blue-700 border border-blue-300',
+            2: 'bg-orange-100 text-orange-700 border border-orange-300',
+            3: 'bg-red-100 text-red-700 border border-red-300',
+        };
+        return colorMap[priority] || colorMap[0];
+    }
+
+    formatDate(dateString: string): string {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    }
+
+    getPercentage(index: number): string {
+        const total = this.donutSeries.reduce((sum, val) => sum + val, 0);
+        if (total === 0) {
+            return '0';
+        }
+        const percentage = (this.donutSeries[index] / total) * 100;
+        return percentage.toFixed(0);
     }
 }

@@ -212,7 +212,7 @@
                         </div>
                         <div class="flex justify-between">
                             <span class="text-secondary">Department</span>
-                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.department }}</span>
+                            <span class="font-medium text-gray-800 dark:text-gray-200">{{ accessRequest.department?.name || 'N/A' }}</span>
                         </div>
                     </div>
                 </div>

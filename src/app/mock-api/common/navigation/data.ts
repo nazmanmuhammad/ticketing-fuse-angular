@@ -135,6 +135,24 @@ export const defaultNavigation: FuseNavigationItem[] = [
                 icon: 'heroicons_outline:plus-circle',
                 link: '/access-requests/create',
             },
+            {
+                id: 'access_requests.detail',
+                title: 'Access Request Detail',
+                type: 'basic',
+                link: '/access-requests/detail',
+                classes: {
+                    wrapper: 'hidden-nav-item',
+                },
+            },
+            {
+                id: 'access_requests.edit',
+                title: 'Edit Access Request',
+                type: 'basic',
+                link: '/access-requests/edit',
+                classes: {
+                    wrapper: 'hidden-nav-item',
+                },
+            },
         ],
     },
     {

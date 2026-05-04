@@ -407,7 +407,7 @@ class TicketController extends Controller
             // Check if user already exists by hris_user_id or email
             $requesterUser = User::withTrashed()->where(function($query) use ($request) {
                 $query->where('hris_user_id', $request->requester_id)
-                      ->orWhere('email', $request->email);
+                    ->orWhere('email', $request->email);
             })->first();
             
             if (!$requesterUser) {
@@ -420,7 +420,12 @@ class TicketController extends Controller
                     'role' => UserRoleEnum::USER->value,
                     'status' => 1, // active
                 ]);
+            } elseif ($requesterUser->trashed()) {
+                // Restore if soft deleted
+                $requesterUser->restore();
             }
+
+            $data['requester_id'] = $requesterUser->id;
         }
 
         // Generate ticket number
@@ -616,7 +621,8 @@ class TicketController extends Controller
             'requester', 
             'pic_technical', 
             'pic_helpdesk', 
-            'team', 
+            'team',
+            'department',
             'ticketTrack.user',
             'attachments.user',
             'comments.user',

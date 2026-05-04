@@ -124,4 +124,9 @@ class Ticket extends Model
         // Format with leading zeros (5 digits)
         return 'TN' . str_pad($newNumber, 5, '0', STR_PAD_LEFT);
     }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
 }

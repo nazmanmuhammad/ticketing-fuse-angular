@@ -75,7 +75,8 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
     isLoadingAssignment = false;
 
     priorities: any[] = [];
-    departments: any[] = [];
+    departments: Array<{ id: string; name: string }> = [];
+    isLoadingDepartments = false;
     requestTypes: any[] = [];
     accessLevels: any[] = [];
     durationTypes: any[] = [];
@@ -143,6 +144,7 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             email: ['', [Validators.required, Validators.email]],
             fullName: ['', Validators.required],
             phone: [''],
+            extensionNumber: [''],
             department: ['', Validators.required],
 
             resourceName: ['', Validators.required],
@@ -210,6 +212,9 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
                 }
             });
 
+        // Load departments from API
+        this._loadDepartments();
+
         // Load access request data
         if (this.accessRequestId) {
             this.loadAccessRequestData();
@@ -266,7 +271,7 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             email: this.accessRequestData.email || '',
             fullName: this.accessRequestData.full_name || '',
             phone: this.accessRequestData.phone || '',
-            department: this.accessRequestData.department || '',
+            department: this.accessRequestData.department_id || '',
             resourceName: this.accessRequestData.resource_name || '',
             requestType: this.accessRequestData.request_type || '',
             accessLevel: this.accessRequestData.access_level || '',
@@ -759,14 +764,6 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             { value: 'Critical', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_CRITICAL') }
         ];
 
-        this.departments = [
-            { value: 'IT', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_IT') },
-            { value: 'HR', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_HR') },
-            { value: 'Finance', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_FINANCE') },
-            { value: 'Operations', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_OPERATIONS') },
-            { value: 'Marketing', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_MARKETING') }
-        ];
-
         this.requestTypes = [
             { value: 'New Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_NEW') },
             { value: 'Change Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_CHANGE') },
@@ -784,6 +781,32 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             { value: 'Temporary Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_TEMPORARY') },
             { value: 'Permanent Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_PERMANENT') }
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load departments from API
+    // ─────────────────────────────────────────────────────────────
+    private _loadDepartments(): void {
+        this.isLoadingDepartments = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/departments?per_page=100`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading departments:', error);
+                    this._snackbar.error('Failed to load departments');
+                    return of({ status: false, data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingDepartments = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.departments = response.data.map((dept: any) => ({
+                        id: dept.id,
+                        name: dept.name
+                    }));
+                }
+            });
     }
 
     updateAssignOptions() {
@@ -920,12 +943,14 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             const priorityValue = priorityMap[formValue.priority] ?? 1;
 
             const payload: any = {
+                updated_by: this.currentUser.id, // User who is updating
                 requester_type: requesterType,
                 requester_id: requesterId,
                 full_name: formValue.fullName,
                 email: formValue.email,
                 phone: formValue.phone,
-                department: formValue.department,
+                extension_number: formValue.extensionNumber,
+                department_id: formValue.department,
                 resource_name: formValue.resourceName,
                 request_type: formValue.requestType,
                 access_level: formValue.accessLevel,
@@ -937,7 +962,6 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
                 assign_to_user_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
                 assign_to_team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
                 priority: priorityValue,
-                user_id: this.currentUser.id, // Add user_id for tracking
             };
 
             // Add requester_photo if available

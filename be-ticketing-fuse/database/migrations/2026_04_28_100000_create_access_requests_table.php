@@ -20,7 +20,8 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('email');
             $table->string('phone')->nullable();
-            $table->string('department');
+            $table->foreignUuid('department_id')->nullable();
+            $table->string('extension_number')->nullable();
             
             // Access Request Details
             $table->string('resource_name'); // System/Resource name

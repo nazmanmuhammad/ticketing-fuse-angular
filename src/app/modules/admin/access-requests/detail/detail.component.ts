@@ -319,7 +319,7 @@ export class AccessRequestDetailComponent implements OnInit, AfterViewInit {
     }
 
     getStatusLabel(status: number): string {
-        const labels = ['Pending', 'Approved', 'Rejected', 'Provisioned'];
+        const labels = ['Pending', 'Approved', 'Rejected'];
         return labels[status] || 'Pending';
     }
 
@@ -734,8 +734,6 @@ export class AccessRequestDetailComponent implements OnInit, AfterViewInit {
                 return `${baseClasses} bg-green-500`;
             case 'rejected':
                 return `${baseClasses} bg-red-500`;
-            case 'provisioned':
-                return `${baseClasses} bg-purple-500`;
             default:
                 return `${baseClasses} bg-gray-400`;
         }
@@ -749,8 +747,6 @@ export class AccessRequestDetailComponent implements OnInit, AfterViewInit {
                 return 'check_circle';
             case 'rejected':
                 return 'cancel';
-            case 'provisioned':
-                return 'vpn_key';
             case 'updated':
                 return 'edit';
             default:

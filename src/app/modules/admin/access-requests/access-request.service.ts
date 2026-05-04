@@ -150,7 +150,7 @@ export class AccessRequestService {
      * Get status label
      */
     getStatusLabel(status: number): string {
-        const labels = ['Pending', 'Approved', 'Rejected', 'Provisioned'];
+        const labels = ['Pending', 'Approved', 'Rejected'];
         return labels[status] || 'Pending';
     }
 }

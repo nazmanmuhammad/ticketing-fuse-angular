@@ -19,7 +19,8 @@ class AccessRequest extends Model
         'full_name',
         'email',
         'phone',
-        'department',
+        'department_id',
+        'extension_number',
         'resource_name',
         'request_type',
         'access_level',
@@ -177,5 +178,10 @@ class AccessRequest extends Model
             ->whereNull('parent_id')
             ->with(['user', 'attachments', 'replies.user', 'replies.attachments'])
             ->orderBy('created_at', 'desc');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 }

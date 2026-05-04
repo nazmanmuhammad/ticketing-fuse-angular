@@ -306,7 +306,9 @@
             "ACCESS_REQUEST": "Access Request",
             "CREATE": "Create Access Request",
             "CREATE_NEW": "Create New",
-            "DETAIL": "Detail"
+            "DETAIL": "Detail",
+            "EDIT": "Edit Access Request",
+            "EDIT_REQUEST": "Edit Request"
         },
         "TABS": {
             "ALL": "All Access Requests",
@@ -326,13 +328,19 @@
             "UPDATE_REQUEST": "Update Request",
             "CANCEL": "Cancel",
             "SUBMITTING": "Submitting...",
-            "UPDATING": "Updating..."
+            "UPDATING": "Updating...",
+            "BACK": "Back",
+            "EDIT": "Edit",
+            "DELETE": "Delete",
+            "SAVE": "Save Changes",
+            "SAVING": "Saving..."
         },
         "STATS": {
             "TOTAL": "Total Requests",
             "PENDING": "Pending Approval",
             "APPROVED": "Approved Requests",
             "REJECTED": "Rejected Requests",
+            "PROVISIONED": "Provisioned",
             "NEW_TODAY": "New Requests (Today)",
             "PENDING_APPROVAL": "Pending Approval",
             "REVOKED": "Revoked",
@@ -385,6 +393,9 @@
         "FORM": {
             "TITLE": "Create New Access Request",
             "SUBTITLE": "Fill in the required information to submit a new access request",
+            "EDIT_TITLE": "Edit Access Request",
+            "EDIT_SUBTITLE": "Update the access request information",
+            "DETAIL_TITLE": "Access Request Detail",
             "REQUESTER_INFO": "Requester Information",
             "REQUESTER_INFO_DESC": "Contact details of the requester",
             "EMAIL": "Email Address",
@@ -393,6 +404,8 @@
             "FULL_NAME_PLACEHOLDER": "Full Name*",
             "PHONE": "Phone Number",
             "PHONE_PLACEHOLDER": "Phone Number",
+            "EXTENSION": "Extension Number",
+            "EXTENSION_PLACEHOLDER": "Extension Number",
             "DEPARTMENT": "Department",
             "DEPARTMENT_PLACEHOLDER": "Select Department",
             "DEPT_IT": "IT",
@@ -480,7 +493,48 @@
             "CREATE_FAILED": "Failed to create access request. Please try again.",
             "UPDATE_FAILED": "Failed to update access request. Please try again.",
             "DELETE_FAILED": "Failed to delete access request",
-            "LOAD_FAILED": "Failed to load access requests"
+            "LOAD_FAILED": "Failed to load access requests",
+            "LOADING": "Loading...",
+            "NO_DATA": "No data available"
+        },
+        "DETAIL": {
+            "TITLE": "Access Request Detail",
+            "CREATED_BY": "Created by",
+            "REASON": "Reason:",
+            "DETAILS": "DETAILS",
+            "REQUEST_TYPE": "Request Type",
+            "ACCESS_LEVEL": "Access Level",
+            "DURATION_TYPE": "Duration Type",
+            "START_DATE": "Start Date",
+            "END_DATE": "End Date",
+            "PRIORITY": "Priority",
+            "EMAIL": "Email",
+            "PHONE": "Phone",
+            "DEPARTMENT": "Department",
+            "ASSIGNED_TO": "Assigned To",
+            "STATUS": "Status",
+            "COMMENTS": "Comments",
+            "COMMENTS_DESC": "Discussion and internal notes",
+            "ACTIVITY_LOG": "Activity Log",
+            "ACTIVITY_LOG_DESC": "Request history and changes",
+            "ATTACHMENTS": "Attachments",
+            "NO_COMMENTS": "No comments yet",
+            "NO_ACTIVITY": "No activity yet",
+            "ADD_COMMENT": "Add a comment...",
+            "INTERNAL_NOTE": "Internal Note",
+            "POST_COMMENT": "Post Comment",
+            "REPLY": "Reply",
+            "EDIT_COMMENT": "Edit",
+            "DELETE_COMMENT": "Delete"
+        },
+        "DASHBOARD": {
+            "TITLE": "Access Requests Dashboard",
+            "SUBTITLE": "Overview of access request statistics",
+            "OVERVIEW": "Overview",
+            "RECENT_REQUESTS": "Recent Requests",
+            "PENDING_APPROVALS": "Pending Approvals",
+            "MY_REQUESTS": "My Requests",
+            "VIEW_ALL": "View All"
         }
     }
 }

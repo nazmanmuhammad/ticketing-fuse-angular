@@ -277,6 +277,7 @@
                             </div>
                         </div>
 
+                        <!-- Phone -->
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
@@ -307,6 +308,7 @@
                             </div>
                         </div>
 
+                        <!-- Department -->
                         <div>
                             <label
                                 class="text-secondary mb-1.5 block text-xs font-medium"
@@ -322,12 +324,41 @@
                                         <mat-option [value]="" disabled>
                                             {{ 'ACCESS_REQUESTS.FORM.DEPARTMENT_PLACEHOLDER' | transloco }}
                                         </mat-option>
-                                        <mat-option *ngFor="let d of departments" [value]="d.value">
-                                            {{ d.label }}
+                                        <mat-option *ngFor="let d of departments" [value]="d.id">
+                                            {{ d.name }}
                                         </mat-option>
                                     </mat-select>
                                 </mat-form-field>
                                 
+                            </div>
+                        </div>
+
+                        <!-- Extension -->
+                        <div>
+                            <label
+                                class="text-secondary mb-1.5 block text-xs font-medium"
+                                >{{ 'ACCESS_REQUESTS.FORM.EXTENSION' | transloco }}</label
+                            >
+                            <div class="relative">
+                                <svg
+                                    class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+                                    />
+                                </svg>
+                                <input
+                                    type="text"
+                                    formControlName="extensionNumber"
+                                    [placeholder]="'ACCESS_REQUESTS.FORM.EXTENSION_PLACEHOLDER' | transloco"
+                                    class="h-12 w-full rounded-xl border border-gray-200 bg-gray-50 py-0 pl-10 pr-3 text-sm leading-[48px] focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:bg-gray-800"
+                                />
                             </div>
                         </div>
                     </div>

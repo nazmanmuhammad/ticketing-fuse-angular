@@ -456,7 +456,7 @@
                         <span class="text-secondary">Department</span>
                         <span
                             class="font-medium text-gray-800 dark:text-gray-200"
-                            >{{ ticket.department_id }}</span
+                            >{{ ticket.department?.name || 'N/A' }}</span
                         >
                     </div>
                     <div class="flex justify-between">

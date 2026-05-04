@@ -72,7 +72,8 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
     isLoadingAssignment = false;
 
     priorities: any[] = [];
-    departments: any[] = [];
+    departments: Array<{ id: string; name: string }> = [];
+    isLoadingDepartments = false;
     requestTypes: any[] = [];
     accessLevels: any[] = [];
     durationTypes: any[] = [];
@@ -139,6 +140,7 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
             email: ['', [Validators.required, Validators.email]],
             fullName: ['', Validators.required],
             phone: [''],
+            extensionNumber: [''],
             department: ['', Validators.required],
 
             resourceName: ['', Validators.required],
@@ -209,6 +211,9 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     this.updateTranslations();
                 }
             });
+
+        // Load departments from API
+        this._loadDepartments();
     }
 
     ngOnDestroy(): void {
@@ -646,14 +651,6 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
             { value: 'Critical', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_CRITICAL') }
         ];
 
-        this.departments = [
-            { value: 'IT', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_IT') },
-            { value: 'HR', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_HR') },
-            { value: 'Finance', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_FINANCE') },
-            { value: 'Operations', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_OPERATIONS') },
-            { value: 'Marketing', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DEPT_MARKETING') }
-        ];
-
         this.requestTypes = [
             { value: 'New Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_NEW') },
             { value: 'Change Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_CHANGE') },
@@ -671,6 +668,32 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
             { value: 'Temporary Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_TEMPORARY') },
             { value: 'Permanent Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_PERMANENT') }
         ];
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load departments from API
+    // ─────────────────────────────────────────────────────────────
+    private _loadDepartments(): void {
+        this.isLoadingDepartments = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/departments?per_page=100`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading departments:', error);
+                    this._snackbar.error('Failed to load departments');
+                    return of({ status: false, data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingDepartments = false;
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status && response.data) {
+                    this.departments = response.data.map((dept: any) => ({
+                        id: dept.id,
+                        name: dept.name
+                    }));
+                }
+            });
     }
 
     updateAssignOptions() {
@@ -807,6 +830,9 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 // Use FormData for file upload
                 const formData = new FormData();
                 
+                // Add logged in user ID as created_by
+                formData.append('created_by', this.currentUser.id);
+                
                 // Add requester info
                 formData.append('requester_type', requesterType);
                 formData.append('requester_id', requesterId);
@@ -816,7 +842,8 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 formData.append('full_name', formValue.fullName);
                 formData.append('email', formValue.email);
                 if (formValue.phone) formData.append('phone', formValue.phone);
-                formData.append('department', formValue.department);
+                if (formValue.extensionNumber) formData.append('extension_number', formValue.extensionNumber);
+                formData.append('department_id', formValue.department);
                 formData.append('resource_name', formValue.resourceName);
                 formData.append('request_type', formValue.requestType);
                 formData.append('access_level', formValue.accessLevel);
@@ -874,12 +901,14 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 const requesterPhoto = this.selectedEmployee?.photo || null;
 
                 const payload: any = {
+                    created_by: this.currentUser.id, // Logged in user ID
                     requester_type: requesterType,
                     requester_id: requesterId,
                     full_name: formValue.fullName,
                     email: formValue.email,
                     phone: formValue.phone,
-                    department: formValue.department,
+                    extension_number: formValue.extensionNumber,
+                    department_id: formValue.department,
                     resource_name: formValue.resourceName,
                     request_type: formValue.requestType,
                     access_level: formValue.accessLevel,
