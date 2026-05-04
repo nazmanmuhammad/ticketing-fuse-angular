@@ -2,7 +2,6 @@
   vars:
     image: ioez1984/helpdeskbe:latest
     remote_app_path: /opt/helpdesk-backend
-    storage_mount_path: "/opt/helpdesk-backend/storage_public"
 
   tasks:
     - name: Ensure application directory exists
@@ -11,13 +10,7 @@
         state: directory
         mode: '0755'
 
-    - name: Ensure persistent storage directory exists on VM
-      file:
-        path: "{{ storage_mount_path }}"
-        state: directory
-        mode: '0777'
-
-    - name: Deploy .env file
+    - name: Deploy .env file from Jenkins to Server
       copy:
         src: "{{ playbook_dir }}/.env"
         dest: "{{ remote_app_path }}/.env"
@@ -39,23 +32,16 @@
         published_ports:
           - "80:80"
         volumes:
+          # Only mount the .env file, no storage volumes
           - "{{ remote_app_path }}/.env:/var/www/html/.env"
-          - "{{ storage_mount_path }}:/var/www/html/storage/app/public"
         recreate: yes
 
-    - name: Fix ownership inside container
-      command: docker exec -u root helpdesk-byjenkins chown -R www-data:www-data storage bootstrap/cache
-
-    - name: Generate Laravel storage link
-      command: docker exec helpdesk-byjenkins php artisan storage:link
-      register: link_cmd
-      failed_when: 
-        - link_cmd.rc != 0 
-        - "'already exists' not in link_cmd.stderr"
+    - name: Run Laravel optimization and storage link
+      command: "docker exec helpdesk-byjenkins {{ item }}"
+      with_items:
+        - "php artisan storage:link"
+        - "php artisan optimize:clear"
       ignore_errors: yes
-
-    - name: Clear Laravel Cache
-      command: docker exec helpdesk-byjenkins php artisan optimize:clear
 
     - name: cleanup dangling images
       shell: |
@@ -64,3 +50,4 @@
           docker rmi $oldimage -f
         fi
       ignore_errors: yes
+      become: true
