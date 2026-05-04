@@ -1,6 +1,6 @@
 - hosts: helpdesk-be
   vars:
-    image: ioez1984/helpdesk-backend:latest  # Dictionary format (no dash)
+    image: ioez1984/helpdeskbe:latest  # Dictionary format (no dash)
     remote_app_path: /opt/helpdesk-backend
 
   tasks:
