@@ -30,7 +30,7 @@
         state: started
         restart_policy: always
         published_ports:
-          - "8081:80"  # Use 8081 to avoid conflict with the frontend
+          - "80:80"  # Use 8081 to avoid conflict with the frontend
         volumes:
           - "{{ remote_app_path }}/.env:/var/www/.env" # Mount the .env file
         recreate: yes
