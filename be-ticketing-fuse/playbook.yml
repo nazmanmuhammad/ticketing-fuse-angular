@@ -1,6 +1,6 @@
 - hosts: helpdesk-be
   vars:
-    image: ioez1984/helpdeskbe:latest  # Dictionary format (no dash)
+    image: ioez1984/helpdeskbe:latest
     remote_app_path: /opt/helpdesk-backend
 
   tasks:
@@ -30,10 +30,18 @@
         state: started
         restart_policy: always
         published_ports:
-          - "80:80"  # Use 8081 to avoid conflict with the frontend
+          - "80:80"
         volumes:
-          - "{{ remote_app_path }}/.env:/var/www/.env" # Mount the .env file
+          # Only mount the .env file, no storage volumes
+          - "{{ remote_app_path }}/.env:/var/www/html/.env"
         recreate: yes
+
+#    - name: Run Laravel optimization and storage link
+#      command: "docker exec helpdesk-byjenkins {{ item }}"
+#      with_items:
+#        - "php artisan storage:link"
+#        - "php artisan optimize:clear"
+#      ignore_errors: yes
 
     - name: cleanup dangling images
       shell: |

@@ -13,10 +13,12 @@ FROM php:8.3-apache
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
+    libicu-dev \
     zip \
     unzip \
     git \
-    && docker-php-ext-install pdo_mysql gd zip
+    && docker-php-ext-configure intl \
+    && docker-php-ext-install pdo_mysql gd zip intl
 
 # 2. Enable Apache mod_rewrite (Required for Laravel/PHP Frameworks)
 RUN a2enmod rewrite
