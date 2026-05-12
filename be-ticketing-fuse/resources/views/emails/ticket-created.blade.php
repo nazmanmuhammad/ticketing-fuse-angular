@@ -1,259 +1,140 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Created</title>
+    <title>Tiket Baru Dibuat</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f7fa;
-            padding: 20px;
-            line-height: 1.6;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .header {
-            background: linear-gradient(135deg, #0E0F6B 0%, #1a1d8f 100%);
-            padding: 40px 30px;
-            text-align: center;
-            color: #ffffff;
-        }
-        .header-icon {
-            width: 64px;
-            height: 64px;
-            background-color: rgba(255, 255, 255, 0.2);
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .header p {
-            font-size: 16px;
-            opacity: 0.95;
-        }
-        .content {
-            padding: 40px 30px;
-        }
-        .greeting {
-            font-size: 18px;
-            color: #2d3748;
-            margin-bottom: 20px;
-        }
-        .message {
-            font-size: 15px;
-            color: #4a5568;
-            margin-bottom: 30px;
-            line-height: 1.8;
-        }
-        .ticket-card {
-            background-color: #f7fafc;
-            border-left: 4px solid #0E0F6B;
-            border-radius: 8px;
-            padding: 24px;
-            margin-bottom: 30px;
-        }
-        .ticket-number {
-            font-size: 24px;
-            font-weight: 700;
-            color: #0E0F6B;
-            margin-bottom: 16px;
-        }
-        .ticket-details {
-            display: table;
-            width: 100%;
-        }
-        .detail-row {
-            display: table-row;
-        }
-        .detail-label {
-            display: table-cell;
-            padding: 8px 0;
-            font-weight: 600;
-            color: #4a5568;
-            width: 140px;
-        }
-        .detail-value {
-            display: table-cell;
-            padding: 8px 0;
-            color: #2d3748;
-        }
-        .priority-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .priority-low { background-color: #c6f6d5; color: #22543d; }
-        .priority-medium { background-color: #feebc8; color: #7c2d12; }
-        .priority-high { background-color: #fed7d7; color: #742a2a; }
-        .priority-critical { background-color: #feb2b2; color: #742a2a; }
-        .priority-emergency { background-color: #fc8181; color: #742a2a; }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-            background-color: #bee3f8;
-            color: #2c5282;
-        }
-        .button-container {
-            text-align: center;
-            margin: 30px 0;
-        }
-        .button {
-            display: inline-block;
-            padding: 14px 32px;
-            background: linear-gradient(135deg, #0E0F6B 0%, #1a1d8f 100%);
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 16px;
-            transition: transform 0.2s;
-        }
-        .button:hover {
-            transform: translateY(-2px);
-        }
-        .info-box {
-            background-color: #ebf4ff;
-            border-left: 4px solid #0E0F6B;
-            padding: 16px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-        }
-        .info-box p {
-            color: #1a365d;
-            font-size: 14px;
-            margin: 0;
-        }
-        .footer {
-            background-color: #f7fafc;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #e2e8f0;
-        }
-        .footer p {
-            color: #718096;
-            font-size: 14px;
-            margin-bottom: 8px;
-        }
-        .footer-links {
-            margin-top: 16px;
-        }
-        .footer-links a {
-            color: #0E0F6B;
-            text-decoration: none;
-            margin: 0 10px;
-            font-size: 13px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 40px 30px; color: #fff; }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .logo-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+        .title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .subtitle { font-size: 14px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .greeting { font-size: 15px; color: #4b5563; margin-bottom: 25px; line-height: 1.6; }
+        .greeting strong { color: #1f2937; font-weight: 600; }
+        .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 25px; }
+        .info-header { background: #1e3a8a; color: #fff; padding: 12px 20px; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+        .info-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .info-content { padding: 20px; }
+        .info-row { display: flex; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { flex: 0 0 140px; font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
+        .info-value { flex: 1; font-size: 14px; color: #1f2937; font-weight: 500; }
+        .highlight { color: #1e3a8a; font-weight: 600; }
+        .user-badge { display: inline-flex; align-items: center; gap: 8px; }
+        .avatar { width: 28px; height: 28px; background: #3b82f6; color: #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+        .user-name { font-weight: 600; color: #1f2937; }
+        .user-dept { font-size: 12px; color: #6b7280; display: block; }
+        .priority { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .priority-high { background: #fef3c7; color: #92400e; }
+        .priority-critical { background: #fee2e2; color: #991b1b; }
+        .priority-medium { background: #dbeafe; color: #1e40af; }
+        .priority-low { background: #f3f4f6; color: #4b5563; }
+        .deadline { color: #dc2626; font-weight: 600; }
+        .desc-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 25px; }
+        .desc-title { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px; font-weight: 600; }
+        .desc-text { font-size: 14px; color: #4b5563; line-height: 1.7; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 10px 0 25px 0; box-shadow: 0 4px 6px rgba(30,58,138,0.2); }
+        .footer { background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb; }
+        .footer-text { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+        .footer-link { color: #3b82f6; text-decoration: none; font-weight: 500; }
+        .footer-brand { margin-top: 15px; font-size: 12px; color: #9ca3af; }
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <!-- Header -->
+    <div class="container">
         <div class="header">
-            <div class="header-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
+            <div class="logo">
+                <div class="logo-icon">✚</div>
+                <div class="logo-text">Ticketing System</div>
             </div>
-            <h1>Ticket Created Successfully!</h1>
-            <p>Your support ticket has been created</p>
+            <div class="title">Anda mendapat tugas baru</div>
+            <div class="subtitle">{{ \Carbon\Carbon::parse($ticket->created_at)->locale('id')->isoFormat('dddd, D MMMM YYYY') }} - dikirim otomatis oleh sistem</div>
         </div>
 
-        <!-- Content -->
         <div class="content">
-            <div class="greeting">
-                Hello {{ $ticket->name }},
-            </div>
+            <p class="greeting">
+                Halo <strong>{{ $recipientName }}</strong>, sebuah tiket telah ditetapkan kepada Anda. Mohon segera tinjau dan tindaklanjuti sesuai prioritas yang tertera.
+            </p>
 
-            <div class="message">
-                Thank you for contacting our support team. Your ticket has been successfully created and our team will review it shortly.
-            </div>
-
-            <!-- Ticket Card -->
-            <div class="ticket-card">
-                <div class="ticket-number">#{{ $ticket->ticket_number }}</div>
-                
-                <div class="ticket-details">
-                    <div class="detail-row">
-                        <div class="detail-label">Subject:</div>
-                        <div class="detail-value">{{ $ticket->subject_issue }}</div>
+            <div class="info-box">
+                <div class="info-header">
+                    <span>INFORMASI TIKET</span>
+                    <span class="info-badge">OPEN</span>
+                </div>
+                <div class="info-content">
+                    <div class="info-row">
+                        <div class="info-label">NO. TIKET</div>
+                        <div class="info-value highlight">#{{ $ticket->ticket_number }}</div>
                     </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Priority:</div>
-                        <div class="detail-value">
-                            <span class="priority-badge priority-{{ ['low', 'medium', 'high', 'critical', 'emergency'][$ticket->priority] ?? 'medium' }}">
-                                {{ ['Low', 'Medium', 'High', 'Critical', 'Emergency'][$ticket->priority] ?? 'Medium' }}
-                            </span>
+                    <div class="info-row">
+                        <div class="info-label">NAMA TUGAS</div>
+                        <div class="info-value">{{ $ticket->subject_issue }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">REQUESTER</div>
+                        <div class="info-value">
+                            <div class="user-badge">
+                                <div class="avatar">{{ strtoupper(substr($ticket->name, 0, 2)) }}</div>
+                                <div>
+                                    <span class="user-name">{{ $ticket->name }}</span>
+                                    <span class="user-dept">{{ $ticket->requester->division ?? 'N/A' }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Status:</div>
-                        <div class="detail-value">
-                            <span class="status-badge">{{ $ticket->status_name }}</span>
+                    <div class="info-row">
+                        <div class="info-label">PRIORITAS</div>
+                        <div class="info-value">
+                            @php
+                                $priorityClass = 'priority-low';
+                                $priorityText = 'Low';
+                                if($ticket->priority == 5) { $priorityClass = 'priority-critical'; $priorityText = 'Emergency'; }
+                                elseif($ticket->priority == 4) { $priorityClass = 'priority-critical'; $priorityText = 'Critical'; }
+                                elseif($ticket->priority == 3) { $priorityClass = 'priority-high'; $priorityText = 'High'; }
+                                elseif($ticket->priority == 2) { $priorityClass = 'priority-medium'; $priorityText = 'Medium'; }
+                            @endphp
+                            <span class="priority {{ $priorityClass }}">{{ $priorityText }}</span>
                         </div>
                     </div>
-                    <div class="detail-row">
-                        <div class="detail-label">Created:</div>
-                        <div class="detail-value">{{ $ticket->created_at->format('F d, Y H:i') }}</div>
+                    <div class="info-row">
+                        <div class="info-label">KATEGORI</div>
+                        <div class="info-value">{{ $ticket->help_topic ?? 'General' }}</div>
                     </div>
-                    @if($ticket->issue_detail)
-                    <div class="detail-row">
-                        <div class="detail-label">Description:</div>
-                        <div class="detail-value">{{ Str::limit($ticket->issue_detail, 150) }}</div>
+                    <div class="info-row">
+                        <div class="info-label">DIBUAT</div>
+                        <div class="info-value">{{ \Carbon\Carbon::parse($ticket->created_at)->locale('id')->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
+                    </div>
+                    @if($ticket->end_date)
+                    <div class="info-row">
+                        <div class="info-label">BATAS WAKTU</div>
+                        <div class="info-value deadline">{{ \Carbon\Carbon::parse($ticket->end_date)->locale('id')->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
                     </div>
                     @endif
                 </div>
             </div>
 
-            <!-- Info Box -->
-            <div class="info-box">
-                <p><strong>What happens next?</strong> Our support team will review your ticket and respond as soon as possible. You will receive email notifications for any updates.</p>
+            @if($ticket->issue_detail)
+            <div class="desc-box">
+                <div class="desc-title">DESKRIPSI</div>
+                <div class="desc-text">{{ $ticket->issue_detail }}</div>
             </div>
+            @endif
 
-            <!-- Button -->
-            <div class="button-container">
-                <a href="{{ config('app.frontend_url') }}/tickets/{{ $ticket->id }}" class="button">
-                    View Ticket Details
-                </a>
-            </div>
-
-            <div class="message">
-                If you have any questions or need immediate assistance, please don't hesitate to contact us.
-            </div>
+            <center>
+                <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" class="btn">Buka Tiket Sekarang →</a>
+            </center>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
-            <p><strong>SIG Helpdesk Support</strong></p>
-            <p>This is an automated message, please do not reply to this email.</p>
-            <div class="footer-links">
-                <a href="{{ config('app.frontend_url') }}">Visit Portal</a>
-                <a href="{{ config('app.frontend_url') }}/help">Help Center</a>
-                <a href="{{ config('app.frontend_url') }}/contact">Contact Us</a>
-            </div>
+            <p class="footer-text">Email ini dikirim otomatis oleh sistem. Tidak membalas langsung.</p>
+            <p class="footer-text">Butuh bantuan? Hubungi <a href="mailto:support@ticketing.id" class="footer-link">support@ticketing.id</a></p>
+            <p class="footer-brand">© {{ date('Y') }} Ticketing System</p>
         </div>
     </div>
 </body>

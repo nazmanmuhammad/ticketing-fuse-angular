@@ -1,187 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ticket Assigned to Team</title>
+    <title>Tiket Ditugaskan ke Tim</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 10px 10px 0 0;
-            text-align: center;
-        }
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
-        }
-        .content {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 0 0 10px 10px;
-        }
-        .ticket-info {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #667eea;
-        }
-        .ticket-info h2 {
-            margin-top: 0;
-            color: #667eea;
-            font-size: 18px;
-        }
-        .info-row {
-            display: flex;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .info-row:last-child {
-            border-bottom: none;
-        }
-        .info-label {
-            font-weight: bold;
-            width: 140px;
-            color: #6c757d;
-        }
-        .info-value {
-            flex: 1;
-            color: #333;
-        }
-        .priority {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .priority-0 { background: #d1ecf1; color: #0c5460; }
-        .priority-1 { background: #fff3cd; color: #856404; }
-        .priority-2 { background: #f8d7da; color: #721c24; }
-        .priority-3 { background: #f5c6cb; color: #721c24; }
-        .priority-4 { background: #dc3545; color: white; }
-        .cta-button {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 5px;
-            margin: 20px 0;
-            font-weight: bold;
-        }
-        .cta-button:hover {
-            background: #5568d3;
-        }
-        .team-notice {
-            background: #e7f3ff;
-            border-left: 4px solid #2196F3;
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 4px;
-        }
-        .team-notice strong {
-            color: #1976D2;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
-            color: #6c757d;
-            font-size: 12px;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; padding: 20px; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); padding: 40px 30px; color: #fff; }
+        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .logo-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
+        .title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+        .subtitle { font-size: 14px; opacity: 0.9; }
+        .content { padding: 30px; }
+        .greeting { font-size: 15px; color: #4b5563; margin-bottom: 25px; line-height: 1.6; }
+        .greeting strong { color: #1f2937; font-weight: 600; }
+        .team-badge { background: #f3e8ff; border: 2px solid #a78bfa; border-radius: 8px; padding: 16px; margin-bottom: 25px; text-align: center; }
+        .team-icon { font-size: 32px; margin-bottom: 8px; }
+        .team-name { font-size: 18px; font-weight: 700; color: #7c3aed; }
+        .team-desc { font-size: 13px; color: #6b7280; margin-top: 4px; }
+        .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 25px; }
+        .info-header { background: #7c3aed; color: #fff; padding: 12px 20px; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
+        .info-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .info-content { padding: 20px; }
+        .info-row { display: flex; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { flex: 0 0 140px; font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
+        .info-value { flex: 1; font-size: 14px; color: #1f2937; font-weight: 500; }
+        .highlight { color: #7c3aed; font-weight: 600; }
+        .user-badge { display: inline-flex; align-items: center; gap: 8px; }
+        .avatar { width: 28px; height: 28px; background: #a78bfa; color: #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+        .user-name { font-weight: 600; color: #1f2937; }
+        .user-dept { font-size: 12px; color: #6b7280; display: block; }
+        .priority { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+        .priority-high { background: #fef3c7; color: #92400e; }
+        .priority-critical { background: #fee2e2; color: #991b1b; }
+        .priority-medium { background: #dbeafe; color: #1e40af; }
+        .priority-low { background: #f3f4f6; color: #4b5563; }
+        .deadline { color: #dc2626; font-weight: 600; }
+        .desc-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 25px; }
+        .desc-title { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px; font-weight: 600; }
+        .desc-text { font-size: 14px; color: #4b5563; line-height: 1.7; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 10px 0 25px 0; box-shadow: 0 4px 6px rgba(124,58,237,0.2); }
+        .footer { background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb; }
+        .footer-text { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
+        .footer-link { color: #7c3aed; text-decoration: none; font-weight: 500; }
+        .footer-brand { margin-top: 15px; font-size: 12px; color: #9ca3af; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎯 New Ticket Available for Your Team</h1>
-    </div>
-    
-    <div class="content">
-        <p>Hi <strong>{{ $teamMember->name }}</strong>,</p>
-        
-        <div class="team-notice">
-            <strong>📢 Team Assignment</strong><br>
-            A new ticket has been assigned to your team <strong>{{ $ticket->team->name ?? 'N/A' }}</strong>. 
-            This ticket is now available in the team pool and can be claimed by any team member.
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <div class="logo-icon">✚</div>
+                <div class="logo-text">Ticketing System</div>
+            </div>
+            <div class="title">Tiket baru untuk tim Anda</div>
+            <div class="subtitle">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }} - dikirim otomatis oleh sistem</div>
         </div>
 
-        <div class="ticket-info">
-            <h2>Ticket Details</h2>
-            
-            <div class="info-row">
-                <div class="info-label">Ticket Number:</div>
-                <div class="info-value"><strong>{{ $ticket->ticket_number }}</strong></div>
+        <div class="content">
+            <p class="greeting">
+                Halo <strong>{{ $recipientName }}</strong>, sebuah tiket telah ditugaskan ke tim Anda. Anggota tim dapat mengklaim tiket ini untuk mengerjakannya.
+            </p>
+
+            <div class="team-badge">
+                <div class="team-icon">👥</div>
+                <div class="team-name">{{ $ticket->team->name ?? 'Tim' }}</div>
+                <div class="team-desc">Tiket tersedia untuk diklaim oleh anggota tim</div>
             </div>
-            
-            <div class="info-row">
-                <div class="info-label">Subject:</div>
-                <div class="info-value">{{ $ticket->subject_issue }}</div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">Requester:</div>
-                <div class="info-value">{{ $ticket->name }} ({{ $ticket->email }})</div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">Department:</div>
-                <div class="info-value">{{ $ticket->department->name ?? 'N/A' }}</div>
-            </div>
-            
-            <div class="info-row">
-                <div class="info-label">Priority:</div>
-                <div class="info-value">
-                    @php
-                        $priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
-                        $priority = $ticket->priority ?? 1;
-                    @endphp
-                    <span class="priority priority-{{ $priority }}">
-                        {{ $priorities[$priority] ?? 'Medium' }}
-                    </span>
+
+            <div class="info-box">
+                <div class="info-header">
+                    <span>INFORMASI TIKET</span>
+                    <span class="info-badge">TEAM</span>
+                </div>
+                <div class="info-content">
+                    <div class="info-row">
+                        <div class="info-label">NO. TIKET</div>
+                        <div class="info-value highlight">#{{ $ticket->ticket_number }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">NAMA TUGAS</div>
+                        <div class="info-value">{{ $ticket->subject_issue }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">REQUESTER</div>
+                        <div class="info-value">
+                            <div class="user-badge">
+                                <div class="avatar">{{ strtoupper(substr($ticket->name, 0, 2)) }}</div>
+                                <div>
+                                    <span class="user-name">{{ $ticket->name }}</span>
+                                    <span class="user-dept">{{ $ticket->requester->division ?? 'N/A' }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">PRIORITAS</div>
+                        <div class="info-value">
+                            @php
+                                $priorityClass = 'priority-low';
+                                $priorityText = 'Low';
+                                if($ticket->priority == 5) { $priorityClass = 'priority-critical'; $priorityText = 'Emergency'; }
+                                elseif($ticket->priority == 4) { $priorityClass = 'priority-critical'; $priorityText = 'Critical'; }
+                                elseif($ticket->priority == 3) { $priorityClass = 'priority-high'; $priorityText = 'High'; }
+                                elseif($ticket->priority == 2) { $priorityClass = 'priority-medium'; $priorityText = 'Medium'; }
+                            @endphp
+                            <span class="priority {{ $priorityClass }}">{{ $priorityText }}</span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">KATEGORI</div>
+                        <div class="info-value">{{ $ticket->help_topic ?? 'General' }}</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">DIBUAT</div>
+                        <div class="info-value">{{ \Carbon\Carbon::parse($ticket->created_at)->locale('id')->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
+                    </div>
+                    @if($ticket->end_date)
+                    <div class="info-row">
+                        <div class="info-label">BATAS WAKTU</div>
+                        <div class="info-value deadline">{{ \Carbon\Carbon::parse($ticket->end_date)->locale('id')->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
+                    </div>
+                    @endif
                 </div>
             </div>
-            
-            <div class="info-row">
-                <div class="info-label">Help Topic:</div>
-                <div class="info-value">{{ $ticket->help_topic }}</div>
+
+            @if($ticket->issue_detail)
+            <div class="desc-box">
+                <div class="desc-title">DESKRIPSI</div>
+                <div class="desc-text">{{ $ticket->issue_detail }}</div>
             </div>
-            
-            <div class="info-row">
-                <div class="info-label">Team:</div>
-                <div class="info-value"><strong>{{ $ticket->team->name ?? 'N/A' }}</strong></div>
-            </div>
-        </div>
+            @endif
 
-        <div style="background: #fff; padding: 15px; border-radius: 8px; margin: 20px 0;">
-            <strong>Issue Description:</strong>
-            <p style="margin: 10px 0 0 0; color: #555;">{{ $ticket->issue_detail }}</p>
+            <center>
+                <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" class="btn">Lihat & Klaim Tiket →</a>
+            </center>
         </div>
-
-        <div style="text-align: center;">
-            <a href="{{ env('FRONTEND_URL', 'http://localhost:4200') }}/tickets/detail/{{ $ticket->id }}" class="cta-button">
-                👀 View Ticket & Claim
-            </a>
-        </div>
-
-        <p style="margin-top: 20px; font-size: 14px; color: #6c757d;">
-            <strong>💡 Quick Action:</strong> Click "Assign to Me" in the ticket list or detail page to claim this ticket and start working on it.
-        </p>
 
         <div class="footer">
-            <p>This is an automated notification from the Ticketing System.</p>
-            <p>Please do not reply to this email.</p>
+            <p class="footer-text">Email ini dikirim otomatis oleh sistem. Tidak membalas langsung.</p>
+            <p class="footer-text">Butuh bantuan? Hubungi <a href="mailto:support@ticketing.id" class="footer-link">support@ticketing.id</a></p>
+            <p class="footer-brand">© {{ date('Y') }} Ticketing System</p>
         </div>
     </div>
 </body>
