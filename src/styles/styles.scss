@@ -198,3 +198,26 @@
     padding: 0 !important;
     overflow: hidden;
 }
+
+/* Technical Select Panel Styling */
+.technical-select-panel {
+    max-height: 400px !important;
+    
+    .search-option {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+        padding: 0 !important;
+        height: auto !important;
+        min-height: auto !important;
+        
+        &:hover {
+            background: white !important;
+        }
+    }
+    
+    .mat-mdc-option {
+        min-height: 60px;
+    }
+}

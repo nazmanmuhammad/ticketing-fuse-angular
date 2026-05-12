@@ -56,7 +56,7 @@ export class AccessRequestService {
         this.apiUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
     }
 
     /**
@@ -152,5 +152,29 @@ export class AccessRequestService {
     getStatusLabel(status: number): string {
         const labels = ['Pending', 'Approved', 'Rejected'];
         return labels[status] || 'Pending';
+    }
+
+    /**
+     * Get access request counts for mini sidebar badges
+     */
+    getCounts(params?: {
+        role?: string;
+        user_id?: string;
+        team_id?: string;
+        requester_id?: string | number;
+    }): Observable<any> {
+        const url = `${this.apiUrl}/access-requests/counts`;
+        let httpParams = new HttpParams();
+
+        if (params) {
+            Object.keys(params).forEach((key) => {
+                const value = params[key];
+                if (value !== undefined && value !== null) {
+                    httpParams = httpParams.set(key, value.toString());
+                }
+            });
+        }
+
+        return this._httpClient.get<any>(url, { params: httpParams });
     }
 }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,8 +25,20 @@ import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
         MatCheckboxModule,
     ],
     templateUrl: './assign-technical-dialog.component.html',
+        styles: [
+    `
+        ::ng-deep .mat-mdc-dialog-surface {
+            padding: 0 !important;
+        }
+        `,
+    ],
 })
-export class AssignTechnicalDialogComponent implements OnInit {
+export class AssignTechnicalDialogComponent implements OnInit, OnDestroy {
+    @ViewChild('toggleButton', { read: ElementRef }) toggleButton!: ElementRef;
+    @ViewChild('dropdownContainer', { read: ElementRef }) dropdownContainer!: ElementRef;
+    @ViewChild('dropdownPanel', { read: ElementRef }) dropdownPanel!: ElementRef;
+    @ViewChild('searchInput', { read: ElementRef }) searchInput!: ElementRef;
+    
     form: FormGroup;
     isSubmitting = false;
     
@@ -37,6 +49,9 @@ export class AssignTechnicalDialogComponent implements OnInit {
     technicalDropdownOpen = false;
     selectedTechnical: any = null;
     private technicalSearch$ = new Subject<string>();
+    
+    // Dropdown position
+    dropdownPosition = { top: 0, left: 0, width: 0 };
     
     // Show full form or simple form
     showFullForm = false;
@@ -62,7 +77,7 @@ export class AssignTechnicalDialogComponent implements OnInit {
             (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
 
         this.hrisApiUrl =
             (globalThis as any)?.__env?.HRIS_API_URL ||
@@ -97,7 +112,28 @@ export class AssignTechnicalDialogComponent implements OnInit {
 
     ngOnInit(): void {
         this.loadTechnicalUsers('');
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', this.closeDropdownOnClickOutside);
     }
+
+    ngOnDestroy(): void {
+        document.removeEventListener('click', this.closeDropdownOnClickOutside);
+    }
+
+    private closeDropdownOnClickOutside = (event: MouseEvent): void => {
+        const target = event.target as HTMLElement;
+        
+        // Check if click is inside dropdown container or dropdown panel
+        const isInsideContainer = this.dropdownContainer?.nativeElement?.contains(target);
+        const isInsidePanel = target.closest('.technical-dropdown-panel');
+        
+        if (!isInsideContainer && !isInsidePanel && this.technicalDropdownOpen) {
+            this.technicalDropdownOpen = false;
+            // Trigger change detection
+            setTimeout(() => {}, 0);
+        }
+    };
 
     loadTechnicalUsers(query: string = ''): void {
         this.isLoadingTechnical = true;
@@ -126,28 +162,61 @@ export class AssignTechnicalDialogComponent implements OnInit {
         });
     }
 
-    onTechnicalSearchChange(query: string): void {
-        this.technicalSearchQuery = query;
-        this.technicalSearch$.next(query);
+    onTechnicalSearchInput(): void {
+        this.technicalSearch$.next(this.technicalSearchQuery);
     }
 
     toggleTechnicalDropdown(): void {
         this.technicalDropdownOpen = !this.technicalDropdownOpen;
-        if (this.technicalDropdownOpen && this.technicalUsers.length === 0) {
-            this.loadTechnicalUsers('');
+        
+        if (this.technicalDropdownOpen) {
+            if (this.technicalUsers.length === 0) {
+                this.loadTechnicalUsers('');
+            }
+            
+            // Calculate dropdown position and focus search input
+            setTimeout(() => {
+                this.calculateDropdownPosition();
+                if (this.searchInput) {
+                    this.searchInput.nativeElement.focus();
+                }
+            }, 0);
         }
     }
 
-    selectTechnical(user: any): void {
+    private calculateDropdownPosition(): void {
+        if (!this.toggleButton) return;
+        
+        const buttonElement = this.toggleButton.nativeElement;
+        const rect = buttonElement.getBoundingClientRect();
+        
+        this.dropdownPosition = {
+            top: rect.bottom + 4,
+            left: rect.left,
+            width: rect.width
+        };
+    }
+
+    selectTechnicalUser(user: any): void {
         this.selectedTechnical = user;
         this.form.patchValue({ technical_user: user.id });
         this.technicalDropdownOpen = false;
         this.technicalSearchQuery = '';
+        this.loadTechnicalUsers(''); // Reset list
     }
 
-    clearTechnicalSelection(): void {
-        this.selectedTechnical = null;
-        this.form.patchValue({ technical_user: null });
+    getAvatarColor(index: number): string {
+        const colors = [
+            'bg-blue-500',
+            'bg-green-500',
+            'bg-yellow-500',
+            'bg-red-500',
+            'bg-indigo-500',
+            'bg-purple-500',
+            'bg-pink-500',
+            'bg-teal-500',
+        ];
+        return colors[index % colors.length];
     }
 
     getAvatarUrl(photo: string | null | undefined): string {

@@ -1,4 +1,4 @@
-import { Component, Inject, ViewEncapsulation } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -25,7 +25,13 @@ import { User } from '../../users/user.types';
         MatIconModule
     ],
     templateUrl: './department-dialog.component.html',
-    encapsulation: ViewEncapsulation.None
+    styles: [
+        `
+        ::ng-deep .mat-mdc-dialog-surface {
+            padding: 0 !important;
+        }
+        `,
+    ],
 })
 export class DepartmentDialogComponent {
     departmentForm: FormGroup;

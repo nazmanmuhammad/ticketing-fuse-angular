@@ -15,6 +15,13 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed departments first
+        $this->call([
+            DepartmentSeeder::class,
+            TicketSourceSeeder::class,
+            HelpTopicSeeder::class,
+        ]);
+
         // User::factory(10)->create();
 
         User::factory()->create([

@@ -244,6 +244,34 @@ export const appRoutes: Route[] = [
                     ),
             },
             {
+                path: 'master-data/ticket-sources',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/ticket-sources/ticket-sources.routes'
+                    ),
+            },
+            {
+                path: 'master-data/help-topics',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/help-topics/help-topics.routes'
+                    ),
+            },
+            {
+                path: 'master-data/request-types',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/request-types/request-types.routes'
+                    ),
+            },
+            {
+                path: 'master-data/access-levels',
+                loadChildren: () =>
+                    import(
+                        'app/modules/admin/master-data/access-levels/access-levels.routes'
+                    ),
+            },
+            {
                 path: 'settings',
                 loadChildren: () =>
                     import('app/modules/admin/settings/settings.routes'),

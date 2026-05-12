@@ -98,7 +98,7 @@ export class CreateComponent implements OnInit, OnDestroy {
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
         (globalThis as any)?.API_URL ||
-        'https://ticket-api.siglab.site/api';
+        'http://127.0.0.1:9010/api';
 
     private readonly hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
@@ -113,7 +113,18 @@ export class CreateComponent implements OnInit, OnDestroy {
     priorities = ['Low', 'Medium', 'High', 'Critical', 'Emergency'];
     departments: Array<{ id: string; name: string }> = [];
     isLoadingDepartments = false;
-    helpTopics = ['General Inquiry', 'Technical Support', 'Billing', 'Sales', 'Other'];
+    
+    // ── Ticket Source & Help Topic from master data ──────────────
+    ticketSources: Array<{ id: string; name: string }> = [];
+    helpTopics: Array<{ id: string; name: string }> = [];
+    isLoadingTicketSources = false;
+    isLoadingHelpTopics = false;
+    
+    // Custom input for ticket source and help topic
+    ticketSourceInput: FormControl<string | null> = new FormControl('');
+    helpTopicInput: FormControl<string | null> = new FormControl('');
+    filteredTicketSources: Array<{ id: string; name: string }> = [];
+    filteredHelpTopics: Array<{ id: string; name: string }> = [];
 
     constructor(
         private fb: FormBuilder,
@@ -164,6 +175,23 @@ export class CreateComponent implements OnInit, OnDestroy {
                     (u.email || '').toLowerCase().includes(q)
             );
         });
+        
+        // Filter ticket sources as user types
+        this.ticketSourceInput.valueChanges.subscribe((val) => {
+            const q = (val || '').toString().toLowerCase();
+            this.filteredTicketSources = this.ticketSources.filter(
+                (s) => (s.name || '').toLowerCase().includes(q)
+            );
+        });
+        
+        // Filter help topics as user types
+        this.helpTopicInput.valueChanges.subscribe((val) => {
+            const q = (val || '').toString().toLowerCase();
+            this.filteredHelpTopics = this.helpTopics.filter(
+                (t) => (t.name || '').toLowerCase().includes(q)
+            );
+        });
+        
         // Debounced search for assign dropdown
         this.assignSearch$
             .pipe(debounceTime(400), distinctUntilChanged())
@@ -186,6 +214,9 @@ export class CreateComponent implements OnInit, OnDestroy {
         });
         // Load departments from API
         this._loadDepartments();
+        // Load ticket sources and help topics from master data
+        this._loadTicketSources();
+        this._loadHelpTopics();
         // Assignment data is lazy-loaded when dropdown opens
     }
 
@@ -742,6 +773,8 @@ export class CreateComponent implements OnInit, OnDestroy {
         // Add pic_helpdesk_id (current user if agent role)
         if (this.currentUser?.id) {
             ticketData.pic_helpdesk_id = this.currentUser.id;
+            // Add created_by (user who is creating this ticket)
+            (ticketData as any).created_by = this.currentUser.id;
         }
 
         // Add role from user context (lowercase role_name)
@@ -869,6 +902,140 @@ export class CreateComponent implements OnInit, OnDestroy {
                     console.log('Departments loaded:', this.departments);
                 }
             });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load ticket sources from master data
+    // ─────────────────────────────────────────────────────────────
+    private _loadTicketSources(): void {
+        this.isLoadingTicketSources = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/ticket-sources?per_page=100&status=1`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading ticket sources:', error);
+                    return of({ data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingTicketSources = false;
+                })
+            )
+            .subscribe((response) => {
+                const data = Array.isArray(response?.data) ? response.data : [];
+                this.ticketSources = data.map((item: any) => ({
+                    id: item.id,
+                    name: item.name
+                }));
+                this.filteredTicketSources = [...this.ticketSources];
+            });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load help topics from master data
+    // ─────────────────────────────────────────────────────────────
+    private _loadHelpTopics(): void {
+        this.isLoadingHelpTopics = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/help-topics?per_page=100&status=1`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading help topics:', error);
+                    return of({ data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingHelpTopics = false;
+                })
+            )
+            .subscribe((response) => {
+                const data = Array.isArray(response?.data) ? response.data : [];
+                this.helpTopics = data.map((item: any) => ({
+                    id: item.id,
+                    name: item.name
+                }));
+                this.filteredHelpTopics = [...this.helpTopics];
+            });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Ticket Source autocomplete handlers
+    // ─────────────────────────────────────────────────────────────
+    onTicketSourceSelected(value: string): void {
+        // Check if it's "Add new" option
+        if (value && value.startsWith('__ADD_NEW__:')) {
+            const newName = value.replace('__ADD_NEW__:', '').trim();
+            if (newName) {
+                this.form.patchValue({ ticketSource: newName });
+                this.ticketSourceInput.setValue(newName, { emitEvent: false });
+            }
+        } else {
+            this.form.patchValue({ ticketSource: value });
+        }
+    }
+
+    getFilteredTicketSources(): Array<{ id: string; name: string; isAddNew?: boolean }> {
+        const query = (this.ticketSourceInput.value || '').toString().trim().toLowerCase();
+        
+        if (!query) {
+            return this.ticketSources;
+        }
+        
+        const filtered = this.ticketSources.filter(s => 
+            s.name.toLowerCase().includes(query)
+        );
+        
+        // If no exact match found, add "Add new" option
+        const exactMatch = this.ticketSources.find(s => 
+            s.name.toLowerCase() === query
+        );
+        
+        if (!exactMatch && query.length > 0) {
+            return [
+                ...filtered,
+                { id: `__ADD_NEW__:${query}`, name: `Add "${query}"`, isAddNew: true }
+            ];
+        }
+        
+        return filtered;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Help Topic autocomplete handlers
+    // ─────────────────────────────────────────────────────────────
+    onHelpTopicSelected(value: string): void {
+        // Check if it's "Add new" option
+        if (value && value.startsWith('__ADD_NEW__:')) {
+            const newName = value.replace('__ADD_NEW__:', '').trim();
+            if (newName) {
+                this.form.patchValue({ helpTopic: newName });
+                this.helpTopicInput.setValue(newName, { emitEvent: false });
+            }
+        } else {
+            this.form.patchValue({ helpTopic: value });
+        }
+    }
+
+    getFilteredHelpTopics(): Array<{ id: string; name: string; isAddNew?: boolean }> {
+        const query = (this.helpTopicInput.value || '').toString().trim().toLowerCase();
+        
+        if (!query) {
+            return this.helpTopics;
+        }
+        
+        const filtered = this.helpTopics.filter(t => 
+            t.name.toLowerCase().includes(query)
+        );
+        
+        // If no exact match found, add "Add new" option
+        const exactMatch = this.helpTopics.find(t => 
+            t.name.toLowerCase() === query
+        );
+        
+        if (!exactMatch && query.length > 0) {
+            return [
+                ...filtered,
+                { id: `__ADD_NEW__:${query}`, name: `Add "${query}"`, isAddNew: true }
+            ];
+        }
+        
+        return filtered;
     }
 
     ngOnDestroy(): void {

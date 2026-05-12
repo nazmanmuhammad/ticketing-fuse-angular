@@ -92,7 +92,7 @@ export class EditComponent implements OnInit, OnDestroy {
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
         (globalThis as any)?.API_URL ||
-        'https://ticket-api.siglab.site/api';
+        'http://127.0.0.1:9010/api';
 
     private readonly hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
@@ -721,6 +721,7 @@ export class EditComponent implements OnInit, OnDestroy {
             issue_detail: formValue.issueDetail,
             priority: PRIORITY_MAP[formValue.priority] ?? 0, // Convert string to number
             assign_status: this.assignType,
+            updated_by: this.currentUser.id, // Add updated_by for activity tracking
         };
 
         // Add requester_id if employee is selected

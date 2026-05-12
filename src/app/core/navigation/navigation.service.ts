@@ -5,6 +5,7 @@ import { Navigation } from 'app/core/navigation/navigation.types';
 import { UserService } from 'app/core/user/user.service';
 import { User } from 'app/core/user/user.types';
 import { TicketService } from 'app/modules/admin/tickets/ticket.service';
+import { AccessRequestService } from 'app/modules/admin/access-requests/access-request.service';
 import { Observable, ReplaySubject, switchMap, take, tap } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -12,6 +13,7 @@ export class NavigationService {
     private _httpClient = inject(HttpClient);
     private _userService = inject(UserService);
     private _ticketService = inject(TicketService);
+    private _accessRequestService = inject(AccessRequestService);
     private _navigation: ReplaySubject<Navigation> =
         new ReplaySubject<Navigation>(1);
     private _requestCounts = {
@@ -56,8 +58,9 @@ export class NavigationService {
                                 );
                             this._navigation.next(filteredNavigation);
                             
-                            // Load ticket counts after navigation is set
+                            // Load counts after navigation is set
                             this.loadTicketCounts(user);
+                            this.loadAccessRequestCounts(user);
                         })
                     )
             )
@@ -189,6 +192,132 @@ export class NavigationService {
             }
         });
     }
+
+    /**
+     * Load access request counts from API
+     */
+    loadAccessRequestCounts(user: User): void {
+        if (!user) {
+            console.log('[NavigationService] No user provided for access request counts');
+            return;
+        }
+        
+        const params: any = {
+            role: user.role_name?.toLowerCase()
+        };
+        
+        // Add role-specific params
+        if (params.role === 'agent' || params.role === 'technical') {
+            params.user_id = user.id;
+            // TODO: Add team_id if user belongs to a team
+        } else if (params.role === 'user') {
+            params.requester_id = user.id;
+        }
+        
+        console.log('[NavigationService] Loading access request counts with params:', params);
+        
+        this._accessRequestService.getCounts(params).subscribe({
+            next: (response: any) => {
+                console.log('[NavigationService] Access request counts response:', response);
+                
+                if (response.status && typeof response.data === 'number') {
+                    // Update access request count with pending count
+                    this._requestCounts.access = response.data;
+                    console.log('[NavigationService] Updated access request count to:', response.data);
+                    
+                    // Get current navigation and update badge
+                    this._navigation.pipe(take(1)).subscribe((currentNav) => {
+                        if (currentNav) {
+                            console.log('[NavigationService] Current navigation before access request update:', currentNav);
+                            
+                            // Create a deep clone to trigger change detection
+                            const updatedNav = {
+                                default: this._updateAccessRequestBadgeInArray([...currentNav.default], response.data),
+                                compact: this._updateAccessRequestBadgeInArray([...currentNav.compact], response.data),
+                                futuristic: this._updateAccessRequestBadgeInArray([...currentNav.futuristic], response.data),
+                                horizontal: this._updateAccessRequestBadgeInArray([...currentNav.horizontal], response.data),
+                            };
+                            
+                            console.log('[NavigationService] Updated navigation with access requests:', updatedNav);
+                            
+                            // Emit updated navigation
+                            this._navigation.next(updatedNav);
+                        }
+                    });
+                } else {
+                    console.warn('[NavigationService] Invalid access request response format:', response);
+                }
+            },
+            error: (error) => {
+                console.error('[NavigationService] Error loading access request counts:', error);
+            }
+        });
+    }
+
+    /**
+     * Update access request badge in navigation items array (returns new array)
+     */
+    private _updateAccessRequestBadgeInArray(items: FuseNavigationItem[], count: number): FuseNavigationItem[] {
+        if (!items) return items;
+        
+        return items.map(item => {
+            const updatedItem = { ...item };
+            
+            if (updatedItem.id === 'access_requests' && updatedItem.badge) {
+                updatedItem.badge = {
+                    ...updatedItem.badge,
+                    title: count.toString()
+                };
+                console.log('[NavigationService] Updated access_requests badge to:', count);
+            }
+            
+            // Also check for user_requests.access_requests for user role
+            if (updatedItem.id === 'user_requests' && updatedItem.children) {
+                updatedItem.children = updatedItem.children.map(child => {
+                    const updatedChild = { ...child };
+                    if (updatedChild.id === 'user_requests.access_requests' && updatedChild.badge) {
+                        updatedChild.badge = {
+                            ...updatedChild.badge,
+                            title: count.toString()
+                        };
+                        console.log('[NavigationService] Updated user_requests.access_requests badge to:', count);
+                    }
+                    return updatedChild;
+                });
+                
+                // Update parent badge total
+                if (updatedItem.badge) {
+                    const totalCount = this._requestCounts.tickets + 
+                                     this._requestCounts.access + 
+                                     this._requestCounts.change + 
+                                     this._requestCounts.job;
+                    updatedItem.badge = {
+                        ...updatedItem.badge,
+                        title: totalCount.toString()
+                    };
+                }
+            }
+            
+            // Recursively update children
+            if (updatedItem.children) {
+                updatedItem.children = this._updateAccessRequestBadgeInArray(updatedItem.children, count);
+            }
+            
+            return updatedItem;
+        });
+    }
+
+    /**
+     * Refresh access request counts
+     */
+    refreshAccessRequestCounts(): void {
+        this._userService.user$.pipe(take(1)).subscribe((user) => {
+            if (user) {
+                this.loadAccessRequestCounts(user);
+            }
+        });
+    }
+
 
     private _filterNavigationByRole(
         navigation: Navigation,

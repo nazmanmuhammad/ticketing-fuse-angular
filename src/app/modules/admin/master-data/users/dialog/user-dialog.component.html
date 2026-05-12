@@ -1,97 +1,123 @@
-<div class="flex flex-col w-full md:w-[600px] overflow-hidden bg-white dark:bg-card rounded-2xl">
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+            {{ mode === 'create' ? 'Create User' : 'Edit User' }}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ mode === 'create' ? 'Add a new user to the system' : 'Update user information' }}
+        </p>
+    </div>
+</div>
+
+<!-- Form -->
+<form [formGroup]="userForm" class="px-6 py-4 pb-4">
     
-    <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ mode === 'create' ? 'Create User' : 'Edit User' }}</h2>
-    </div>
-
-    <!-- Form -->
-    <form [formGroup]="userForm" class="flex flex-col flex-auto px-8 pb-8">
-        
-        <!-- Select Employee -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Select Employee<span class="text-red-500">*</span></label>
-            <mat-form-field appearance="outline" class="w-full fuse-mat-small" subscriptSizing="dynamic">
-                <input 
-                    type="text"
-                    matInput
-                    placeholder="Search and select employee"
-                    [formControl]="employeeInput"
-                    [matAutocomplete]="auto"
-                    [matAutocompleteDisabled]="!employeeAutocompleteEnabled"
-                    (click)="enableEmployeeAutocomplete(employeeTrigger)"
-                    #employeeTrigger="matAutocompleteTrigger">
-                <mat-autocomplete #auto="matAutocomplete" (opened)="onEmployeePanelOpened(employeeTrigger)" (optionSelected)="onEmployeeSelected($event.option.value)" (closed)="onEmployeePanelClosed()">
-                    <mat-option *ngFor="let u of filteredEmployeesList" [value]="u">
-                        <div class="flex items-center gap-3 py-1">
-                            <img [src]="u.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
-                            <div class="flex flex-col">
-                                <span class="font-medium leading-none">{{ u.fullName }}</span>
-                                <span class="text-xs text-gray-500 mt-1">{{ u.email }}</span>
-                            </div>
+    <!-- Select Employee -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Select Employee <span class="text-red-500">*</span>
+        </label>
+        <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+            <input 
+                type="text"
+                matInput
+                placeholder="Search and select employee"
+                [formControl]="employeeInput"
+                [matAutocomplete]="auto"
+                [matAutocompleteDisabled]="!employeeAutocompleteEnabled"
+                (click)="enableEmployeeAutocomplete(employeeTrigger)"
+                #employeeTrigger="matAutocompleteTrigger">
+            <mat-autocomplete #auto="matAutocomplete" (opened)="onEmployeePanelOpened(employeeTrigger)" (optionSelected)="onEmployeeSelected($event.option.value)" (closed)="onEmployeePanelClosed()">
+                <mat-option *ngFor="let u of filteredEmployeesList" [value]="u">
+                    <div class="flex items-center gap-3 py-1">
+                        <img [src]="u.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
+                        <div class="flex flex-col">
+                            <span class="font-medium leading-none">{{ u.fullName }}</span>
+                            <span class="text-xs text-gray-500 mt-1">{{ u.email }}</span>
                         </div>
-                    </mat-option>
-                    <mat-option *ngIf="isLoadingEmployees" disabled>
-                        Loading employees...
-                    </mat-option>
-                    <mat-option *ngIf="!isLoadingEmployees && !filteredEmployeesList.length" disabled>
-                        No employee found
-                    </mat-option>
-                </mat-autocomplete>
-            </mat-form-field>
-            <div *ngIf="userForm.get('employee')?.touched && userForm.get('employee')?.invalid" class="mt-1 text-xs text-red-500">
+                    </div>
+                </mat-option>
+                <mat-option *ngIf="isLoadingEmployees" disabled>
+                    Loading employees...
+                </mat-option>
+                <mat-option *ngIf="!isLoadingEmployees && !filteredEmployeesList.length" disabled>
+                    No employee found
+                </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="userForm.get('employee')?.hasError('required')">
                 Employee is required
-            </div>
-        </div>
-
-        <!-- Role -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Role</label>
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                <mat-select formControlName="role" placeholder="Role">
-                    <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-        <!-- Department -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Department</label>
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                <mat-select formControlName="department" placeholder="Department">
-                    <mat-option [value]="''">-</mat-option>
-                    <mat-option *ngFor="let d of departments" [value]="d">{{ d }}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-        <!-- Status -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Status</label>
-            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                <mat-select formControlName="status" placeholder="Status">
-                    <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
-                </mat-select>
-            </mat-form-field>
-        </div>
-
-    </form>
-
-    <!-- Footer Actions -->
-    <div class="flex items-center justify-end gap-3 px-8 pb-8">
-        <button 
-            mat-stroked-button 
-            (click)="matDialogRef.close()"
-            class="px-6 h-10 rounded-full border-blue-900 text-blue-900 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400">
-            Cancel
-        </button>
-        <button 
-            mat-flat-button 
-            [disabled]="userForm.invalid"
-            (click)="save()"
-            class="px-6 h-10 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-200">
-            {{ mode === 'create' ? 'Create' : 'Update' }}
-        </button>
+            </mat-error>
+        </mat-form-field>
     </div>
 
+    <!-- Role -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Role <span class="text-red-500">*</span>
+        </label>
+        <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+            <mat-select formControlName="role" placeholder="Select role">
+                <mat-option *ngFor="let r of roles" [value]="r">{{ r }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.get('role')?.hasError('required')">
+                Role is required
+            </mat-error>
+        </mat-form-field>
+    </div>
+
+    <!-- Department -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+            <span>Department</span>
+            <span class="text-xs font-normal text-gray-400 ml-1.5">(Optional)</span>
+        </label>
+        <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+            <mat-select formControlName="department" placeholder="Select department">
+                <mat-option *ngIf="isLoadingDepartments" disabled>
+                    Loading departments...
+                </mat-option>
+                <mat-option *ngIf="!isLoadingDepartments && departments.length === 0" disabled>
+                    No departments available
+                </mat-option>
+                <mat-option *ngFor="let dept of departments" [value]="dept.id">
+                    {{ dept.name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+
+    <!-- Status -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Status <span class="text-red-500">*</span>
+        </label>
+        <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+            <mat-select formControlName="status" placeholder="Select status">
+                <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="userForm.get('status')?.hasError('required')">
+                Status is required
+            </mat-error>
+        </mat-form-field>
+    </div>
+
+</form>
+
+<!-- Footer Actions -->
+<div class="flex items-center justify-end gap-3 px-6 pb-6 pt-2 border-t border-gray-200 dark:border-gray-700">
+    <button 
+        mat-stroked-button 
+        (click)="matDialogRef.close()"
+        class="px-6 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors">
+        Cancel
+    </button>
+    <button 
+        mat-flat-button 
+        [disabled]="userForm.invalid"
+        (click)="save()"
+        class="px-6 py-2.5 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        [ngClass]="userForm.invalid ? 'bg-gray-400' : 'bg-blue-900 hover:bg-blue-950 dark:bg-blue-800 dark:hover:bg-blue-900'">
+        {{ mode === 'create' ? 'Create' : 'Update' }}
+    </button>
 </div>

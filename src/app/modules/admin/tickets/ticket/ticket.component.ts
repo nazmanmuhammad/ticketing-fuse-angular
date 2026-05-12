@@ -14,6 +14,9 @@ import { MatOptionModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { TicketService } from '../ticket.service';
 import { UserService } from 'app/core/user/user.service';
@@ -95,6 +98,9 @@ interface Ticket {
         MatFormFieldModule,
         MatInputModule,
         MatTooltipModule,
+        MatMenuModule,
+        MatButtonModule,
+        MatIconModule,
         TranslocoModule
     ],
     templateUrl: './ticket.component.html',
@@ -732,6 +738,33 @@ toggleFilter(): void {
         return null; 
     }
 
+    getPicHelpdeskName(ticket: Ticket): string {
+        if (ticket.pic_helpdesk?.name) {
+            return ticket.pic_helpdesk.name;
+        }
+        return '-';
+    }
+
+    getPicHelpdeskEmail(ticket: Ticket): string {
+        if (ticket.pic_helpdesk?.email) {
+            return ticket.pic_helpdesk.email;
+        }
+        return '';
+    }
+
+    getPicHelpdeskInitial(ticket: Ticket): string {
+        const name = this.getPicHelpdeskName(ticket);
+        return this.getInitial(name);
+    }
+
+    getPicHelpdeskAvatar(ticket: Ticket): string | null {
+        if (ticket.pic_helpdesk?.photo) {
+            const photoBase = this.getPhotoBaseUrl();
+            return `${photoBase}/assets/img/user/${ticket.pic_helpdesk.photo}`;
+        }
+        return null;
+    }
+
     getAssignedAvatar(ticket: Ticket): string | null {
         if (ticket.pic_technical?.photo) {
             const photoBase = this.getPhotoBaseUrl();
@@ -822,5 +855,133 @@ toggleFilter(): void {
 
         // Show cancel button if user is Agent OR ticket has pic_helpdesk_id
         return isAgent || hasPicHelpdesk;
+    }
+
+    // Check if user can claim a team ticket
+    canClaimTicket(ticket: Ticket): boolean {
+        if (!this.currentUser || !ticket) {
+            console.log('canClaimTicket: No user or ticket', { currentUser: this.currentUser, ticket });
+            return false;
+        }
+
+        // Debug log
+        console.log('canClaimTicket check:', {
+            ticket_id: ticket.id,
+            assign_status: ticket.assign_status,
+            pic_technical_id: ticket.pic_technical_id,
+            team_id: ticket.team_id,
+            status: ticket.status,
+            currentUser: this.currentUser
+        });
+
+        // Can only claim if:
+        // 1. Ticket is assigned to a team (assign_status === 'team')
+        // 2. No technical is assigned yet (pic_technical_id === null)
+        // 3. Ticket has a team_id
+        // 4. Ticket is not closed or cancelled
+        // 5. User is Technical role (backend will validate team membership)
+        const canClaim = (
+            ticket.assign_status === 'team' &&
+            !ticket.pic_technical_id &&
+            !!ticket.team_id &&
+            ticket.status !== 3 &&
+            ticket.status !== 4 &&
+            this.isUserTechnical()
+        );
+
+        console.log('canClaimTicket result:', canClaim);
+        return canClaim;
+    }
+
+    // Check if current user is Technical role
+    isUserTechnical(): boolean {
+        return this.currentUser?.role_name?.toLowerCase() === 'technical';
+    }
+
+    // Check if current user is a member of the ticket's team
+    isUserTeamMember(ticket: Ticket): boolean {
+        // This will be checked on backend, but we can add client-side check if needed
+        // For now, we'll show the button and let backend validate
+        return !!ticket.team_id;
+    }
+
+    // Claim a team ticket
+    claimTicket(ticket: Ticket): void {
+        if (!this.currentUser || !this.currentUser.id) {
+            this._snackbar.error('User not authenticated');
+            return;
+        }
+
+        this._confirmDialog
+            .confirm({
+                title: 'Claim Ticket',
+                message: `Are you sure you want to claim ticket "${ticket.subject_issue}"? You will become the technical person responsible for this ticket.`,
+                confirmText: 'Yes, Claim It',
+                cancelText: 'Cancel',
+                type: 'info'
+            })
+            .pipe(
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        return this._ticketService.claimTicket(ticket.id, this.currentUser.id).pipe(
+                            catchError((error) => {
+                                console.error('Error claiming ticket:', error);
+                                const errorMessage = error?.error?.message || 'Failed to claim ticket';
+                                this._snackbar.error(errorMessage);
+                                return of(null);
+                            }),
+                            finalize(() => {
+                                // No loading state needed for individual ticket
+                            })
+                        );
+                    }
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success('Ticket claimed successfully! You are now the technical person for this ticket.');
+                    this.loadTickets();
+                    this.loadStatistics();
+                }
+            });
+    }
+
+    reopenTicket(ticket: Ticket): void {
+        if (!this.currentUser || !this.currentUser.id) {
+            this._snackbar.error('User not authenticated');
+            return;
+        }
+
+        this._confirmDialog
+            .confirm({
+                title: this._translocoService.translate('TICKETS.MESSAGES.REOPEN_CONFIRM_TITLE'),
+                message: this._translocoService.translate('TICKETS.MESSAGES.REOPEN_CONFIRM_MESSAGE', { subject: ticket.subject_issue }),
+                confirmText: this._translocoService.translate('TICKETS.BUTTONS.REOPEN'),
+                cancelText: this._translocoService.translate('TICKETS.BUTTONS.CANCEL'),
+                type: 'info'
+            })
+            .pipe(
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        return this._ticketService.reopenTicket(ticket.id, this.currentUser.id).pipe(
+                            catchError((error) => {
+                                console.error('Error reopening ticket:', error);
+                                const errorMessage = error?.error?.message || this._translocoService.translate('TICKETS.MESSAGES.REOPEN_FAILED');
+                                this._snackbar.error(errorMessage);
+                                return of(null);
+                            })
+                        );
+                    }
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success(this._translocoService.translate('TICKETS.MESSAGES.REOPENED_SUCCESS'));
+                    this.loadTickets();
+                    this.loadStatistics();
+                }
+            });
     }
 }

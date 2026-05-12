@@ -260,12 +260,12 @@
                         <span>Cancel Ticket</span>
                     </button>
 
-                    <!-- Divider - Only show if pic_technical -->
-                    <mat-divider *ngIf="isPicTechnical()"></mat-divider>
+                    <!-- Divider - Only show if pic_technical and approval_required -->
+                    <mat-divider *ngIf="isPicTechnical() && ticket?.approval_required"></mat-divider>
 
-                    <!-- Edit Approval - Only for pic_technical -->
+                    <!-- Edit Approval - Only for pic_technical and when approval_required is true -->
                     <button 
-                        *ngIf="isPicTechnical()"
+                        *ngIf="isPicTechnical() && ticket?.approval_required"
                         mat-menu-item
                         (click)="editApproval()"
                         [disabled]="!canEditApproval()"
@@ -1054,6 +1054,32 @@
                 </div>
             </div>
 
+            <!-- Process Dates Card -->
+            <div
+                *ngIf="ticket.start_date"
+                class="rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card"
+            >
+                <h3
+                    class="mb-4 text-sm font-bold uppercase tracking-wide text-gray-500"
+                >
+                    Process Timeline
+                </h3>
+                <div class="space-y-3">
+                    <div>
+                        <div class="text-secondary mb-1 text-xs">Start Date</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                            {{ formatSimpleDate(ticket.start_date) }}
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-secondary mb-1 text-xs">Expected Completion Date</div>
+                        <div class="text-sm font-medium text-gray-900 dark:text-white">
+                            {{ formatSimpleDate(ticket.end_date) }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Requester Card (Separate Card Above Assigned To) -->
             <div
                 *ngIf="ticket.requester"
@@ -1089,8 +1115,8 @@
                         <div class="text-secondary text-xs truncate">
                             {{ ticket.requester.email }}
                         </div>
-                        <div class="text-secondary text-xs truncate mt-0.5">
-                            {{ ticket.requester.department_id }}
+                        <div class="text-secondary text-xs truncate mt-0.5" *ngIf="ticket.requester.division">
+                            {{ ticket.requester.division }}
                         </div>
                     </div>
                 </div>
@@ -1133,6 +1159,9 @@
                                 </div>
                                 <div class="text-secondary text-xs">
                                     {{ ticket.pic_helpdesk.email }}
+                                </div>
+                                <div class="text-secondary text-xs mt-0.5" *ngIf="ticket.pic_helpdesk.division">
+                                    {{ ticket.pic_helpdesk.division }}
                                 </div>
                             </div>
                         </div>
@@ -1177,6 +1206,9 @@
                                 </div>
                                 <div class="text-secondary text-xs">
                                     {{ ticket.pic_technical.email }}
+                                </div>
+                                <div class="text-secondary text-xs mt-0.5" *ngIf="ticket.pic_technical.division">
+                                    {{ ticket.pic_technical.division }}
                                 </div>
                             </div>
                         </div>

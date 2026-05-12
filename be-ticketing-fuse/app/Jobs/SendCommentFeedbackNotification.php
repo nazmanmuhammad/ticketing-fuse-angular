@@ -65,34 +65,40 @@ class SendCommentFeedbackNotification implements ShouldQueue
             }
 
             // Collect all involved users (no duplicates)
-            $recipients = collect();
+            $requesterEmail = null;
+            $requesterName = null;
+            $otherRecipients = collect();
             
-            // Add requester
+            // Add requester as primary recipient (TO)
             if ($ticketData->requester && $ticketData->requester->email) {
-                $recipients->push([
-                    'email' => $ticketData->requester->email,
-                    'name' => $ticketData->requester->name
-                ]);
+                $requesterEmail = $ticketData->requester->email;
+                $requesterName = $ticketData->requester->name;
             }
             
-            // Add pic_technical
+            // Add pic_technical to other recipients (CC/BCC)
             if ($ticketData->pic_technical && $ticketData->pic_technical->email) {
-                $recipients->push([
-                    'email' => $ticketData->pic_technical->email,
-                    'name' => $ticketData->pic_technical->name
-                ]);
+                // Don't add if same as requester
+                if ($ticketData->pic_technical->email !== $requesterEmail) {
+                    $otherRecipients->push([
+                        'email' => $ticketData->pic_technical->email,
+                        'name' => $ticketData->pic_technical->name
+                    ]);
+                }
             }
             
-            // Add pic_helpdesk
+            // Add pic_helpdesk to other recipients (CC/BCC)
             if ($ticketData->pic_helpdesk && $ticketData->pic_helpdesk->email) {
-                $recipients->push([
-                    'email' => $ticketData->pic_helpdesk->email,
-                    'name' => $ticketData->pic_helpdesk->name
-                ]);
+                // Don't add if same as requester
+                if ($ticketData->pic_helpdesk->email !== $requesterEmail) {
+                    $otherRecipients->push([
+                        'email' => $ticketData->pic_helpdesk->email,
+                        'name' => $ticketData->pic_helpdesk->name
+                    ]);
+                }
             }
 
-            // Remove duplicates based on email
-            $recipients = $recipients->unique('email');
+            // Remove duplicates based on email from other recipients
+            $otherRecipients = $otherRecipients->unique('email');
 
             // Prepare ticket data for email
             $ticketArray = [
@@ -160,15 +166,29 @@ class SendCommentFeedbackNotification implements ShouldQueue
                 ];
             })->toArray();
 
-            // Send email to all recipients
-            foreach ($recipients as $recipient) {
-                Mail::to($recipient['email'], $recipient['name'])
-                    ->send(new CommentFeedbackMail(
-                        $ticketArray,
-                        $commentArray,
-                        $commenterArray,
-                        $allCommentsArray
-                    ));
+            // Send email to requester (TO) and others (BCC)
+            // Only send if requester email exists
+            if ($requesterEmail) {
+                // Get other recipients emails for BCC
+                $bccRecipients = $otherRecipients->map(function($recipient) {
+                    return $recipient['email'];
+                })->toArray();
+
+                // Create mail instance to requester
+                $mail = Mail::to($requesterEmail, $requesterName);
+                
+                // Add BCC recipients (PIC Technical & PIC Helpdesk) if any
+                if (!empty($bccRecipients)) {
+                    $mail->bcc($bccRecipients);
+                }
+                
+                // Send the email
+                $mail->send(new CommentFeedbackMail(
+                    $ticketArray,
+                    $commentArray,
+                    $commenterArray,
+                    $allCommentsArray
+                ));
             }
 
         } catch (\Exception $e) {

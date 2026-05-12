@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, Inject, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { Component, Inject, OnDestroy } from '@angular/core';
 import {
     FormBuilder,
     FormControl,
@@ -44,14 +44,21 @@ import { User } from '../user.types';
         MatOptionModule,
     ],
     templateUrl: './user-dialog.component.html',
-    encapsulation: ViewEncapsulation.None,
+    styles: [
+        `
+        ::ng-deep .mat-mdc-dialog-surface {
+            padding: 0 !important;
+        }
+        `,
+    ],
 })
 export class UserDialogComponent implements OnDestroy {
     userForm: FormGroup;
     mode: 'create' | 'update' = 'create';
 
     roles = ['User', 'Agent', 'Technical', 'Admin'];
-    departments = ['IT', 'Support', 'Sales', 'Operations', 'Finance', 'HR'];
+    departments: Array<{ id: string; name: string }> = [];
+    isLoadingDepartments = false;
     statuses = ['Active', 'Inactive'];
     users: User[] = [];
     employeeInput: FormControl<string | null> = new FormControl('');
@@ -69,6 +76,11 @@ export class UserDialogComponent implements OnDestroy {
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
         (globalThis as any)?.HRIS_API_URL ||
         'https://back.siglab.co.id';
+    private readonly backendApiUrl: string =
+        (globalThis as any)?.__env?.API_URL ||
+        (globalThis as any)?.process?.env?.API_URL ||
+        (globalThis as any)?.API_URL ||
+        'http://127.0.0.1:9010/api';
     private readonly employeeApiUrl: string = this._buildEmployeeApiUrl();
     private readonly employeePhotoBaseUrl: string =
         this._buildEmployeePhotoBaseUrl();
@@ -83,10 +95,14 @@ export class UserDialogComponent implements OnDestroy {
         const prefilledEmployee = this._prefillEmployee(data.user);
         this.users = prefilledEmployee ? [prefilledEmployee] : [];
         this.filteredEmployeesList = this.users;
+        
+        // Use departmentId if available, otherwise use department (for backward compatibility)
+        const departmentValue = data.user?.departmentId || data.user?.department || '';
+        
         this.userForm = this._formBuilder.group({
             employee: [prefilledEmployee || null, Validators.required],
             role: [data.user?.role || 'Agent', Validators.required],
-            department: [data.user?.department || ''],
+            department: [departmentValue],
             status: [data.user?.status || 'Active', Validators.required],
         });
 
@@ -104,6 +120,9 @@ export class UserDialogComponent implements OnDestroy {
                     (u.email || '').toLowerCase().includes(q)
             );
         });
+
+        // Load departments from API
+        this._loadDepartments();
     }
 
     save(): void {
@@ -115,6 +134,10 @@ export class UserDialogComponent implements OnDestroy {
         if (!emp) {
             return;
         }
+        
+        // Find department name from ID
+        const selectedDept = this.departments.find(d => d.id === value.department);
+        
         this.matDialogRef.close({
             fullName: emp?.fullName,
             email: emp?.email,
@@ -124,9 +147,13 @@ export class UserDialogComponent implements OnDestroy {
             photo: emp?.photo,
             avatar: emp?.avatar,
             role: value.role,
-            departmentId: value.department,
-            department: value.department,
+            departmentId: value.department || null,
+            department: selectedDept?.name || value.department || null,
             status: value.status,
+            // Add new fields from HRIS
+            phone_number: (emp as any)?.phone || (emp as any)?.phone_number || null,
+            division: (emp as any)?.division || (emp as any)?.division_name || null,
+            position: (emp as any)?.position || (emp as any)?.position_name || null,
         });
     }
 
@@ -277,6 +304,15 @@ export class UserDialogComponent implements OnDestroy {
         const emailKantor = item?.selfupdate?.email_kantor ?? '';
         const email = emailKantor && emailKantor.includes('@') ? emailKantor : '';
         
+        // Get phone number from root level or selfupdate
+        const phone = item?.phone ?? item?.selfupdate?.phone ?? item?.employee?.phone ?? '';
+        
+        // Get division name from bagian object
+        const divisionName = item?.bagian?.division_name ?? item?.division_name ?? item?.division?.name ?? '';
+        
+        // Get position name from position object
+        const positionName = item?.position?.position_name ?? item?.position_name ?? '';
+        
         return {
             id: Number(item?.employee_id ?? item?.user_id ?? item?.id ?? 0),
             employeeId: Number(item?.employee_id ?? item?.id ?? 0),
@@ -294,7 +330,14 @@ export class UserDialogComponent implements OnDestroy {
                 ? `${this.employeePhotoBaseUrl}/assets/img/user/${photo}`
                 : 'assets/images/avatars/male-01.jpg',
             photo,
-        };
+            // Add new fields from HRIS
+            phone: phone,
+            phone_number: phone,
+            division: divisionName,
+            division_name: divisionName,
+            position: positionName,
+            position_name: positionName,
+        } as any;
     }
 
     private _userKey(user: User): string {
@@ -391,6 +434,37 @@ export class UserDialogComponent implements OnDestroy {
         if (!user) return '';
         return `${user.fullName} (${user.email})`;
     };
+
+    /**
+     * Load departments from API
+     */
+    private _loadDepartments(): void {
+        this.isLoadingDepartments = true;
+        console.log('[UserDialog] Loading departments from:', `${this.backendApiUrl}/departments`);
+        
+        this._httpClient
+            .get<any>(`${this.backendApiUrl}/departments?per_page=100`)
+            .pipe(
+                catchError((error) => {
+                    console.error('[UserDialog] Error loading departments:', error);
+                    return of({ status: false, data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingDepartments = false;
+                    console.log('[UserDialog] Departments loaded:', this.departments);
+                })
+            )
+            .subscribe((response) => {
+                console.log('[UserDialog] Departments API response:', response);
+                if (response && response.status && response.data) {
+                    this.departments = response.data.map((dept: any) => ({
+                        id: dept.id,
+                        name: dept.name,
+                    }));
+                    console.log('[UserDialog] Mapped departments:', this.departments);
+                }
+            });
+    }
 
     ngOnDestroy(): void {
         this._stopPanelWatcher();

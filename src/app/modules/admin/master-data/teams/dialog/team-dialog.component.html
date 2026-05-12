@@ -1,85 +1,98 @@
-<div class="flex flex-col w-full md:w-[600px] overflow-hidden bg-white dark:bg-card rounded-2xl">
-    
-    <!-- Header -->
-    <div class="flex items-center justify-between px-8 py-6">
-        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ mode === 'create' ? 'Create Team' : 'Edit Team' }}</h2>
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+            {{ mode === 'create' ? 'Create Team' : 'Edit Team' }}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ mode === 'create' ? 'Add a new team to the system' : 'Update team information' }}
+        </p>
     </div>
+</div>
 
-    <!-- Form -->
-    <form [formGroup]="teamForm" class="flex flex-col flex-auto px-8 pb-8">
-        
-        <!-- Team Name -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Team Name<span class="text-red-500">*</span></label>
+<!-- Form -->
+<form [formGroup]="teamForm" class="px-6 py-4 pb-4">
+    
+    <!-- Team Name -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Team Name <span class="text-red-500">*</span>
+        </label>
+        <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
             <input 
+                matInput
                 type="text" 
                 formControlName="name"
-                class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all dark:bg-gray-800 dark:border-gray-700"
                 placeholder="Enter team name">
-            <div *ngIf="teamForm.get('name')?.touched && teamForm.get('name')?.invalid" class="mt-1 text-xs text-red-500">
-                Team Name is required
-            </div>
-        </div>
-
-        <!-- Description -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Description</label>
-            <textarea 
-                formControlName="description"
-                rows="3"
-                class="w-full px-4 py-3 rounded-xl border border-gray-300 bg-white focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all dark:bg-gray-800 dark:border-gray-700"
-                placeholder="Enter description"></textarea>
-        </div>
-
-        <!-- Members -->
-        <div class="flex flex-col mb-5">
-            <label class="mb-2 font-medium text-gray-700 dark:text-gray-300">Members<span class="text-red-500">*</span></label>
-            <mat-form-field appearance="outline" class="w-full rounded-xl fuse-mat-small">
-                <input
-                    matInput
-                    placeholder="Search members..."
-                    [formControl]="triggerInput"
-                    (focus)="onTriggerFocus()"
-                    (blur)="onTriggerBlur()"
-                    (click)="autoTrigger.openPanel()"
-                    [matAutocomplete]="membersAuto"
-                    #autoTrigger="matAutocompleteTrigger"
-                />
-                <mat-autocomplete #membersAuto="matAutocomplete" [autoActiveFirstOption]="false" (optionSelected)="onMemberSelected($event.option.value, autoTrigger)">
-                    <mat-option *ngFor="let user of filteredUsersList" [value]="user">
-                        <div class="flex items-center gap-3 py-1">
-                            <mat-checkbox [checked]="isSelected(user)" (click)="toggleMember(user, $event)"></mat-checkbox>
-                            <img [src]="user.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
-                            <div class="flex flex-col">
-                                <span class="font-medium leading-none">{{ user.fullName }}</span>
-                                <span class="text-xs text-gray-500 mt-1">{{ user.email }}</span>
-                            </div>
-                        </div>
-                    </mat-option>
-                </mat-autocomplete>
-            </mat-form-field>
-            <div *ngIf="teamForm.get('members')?.touched && teamForm.get('members')?.invalid" class="mt-1 text-xs text-red-500">
-                At least one member is required
-            </div>
-        </div>
-
-    </form>
-
-    <!-- Footer Actions -->
-    <div class="flex items-center justify-end gap-3 px-8 pb-8">
-        <button 
-            mat-stroked-button 
-            (click)="matDialogRef.close()"
-            class="px-6 h-10 rounded-full border-blue-900 text-blue-900 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400">
-            Cancel
-        </button>
-        <button 
-            mat-flat-button 
-            [disabled]="teamForm.invalid"
-            (click)="save()"
-            class="px-6 h-10 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-700 dark:text-gray-200">
-            {{ mode === 'create' ? 'Create' : 'Update' }}
-        </button>
+            <mat-error *ngIf="teamForm.get('name')?.hasError('required')">
+                Team name is required
+            </mat-error>
+        </mat-form-field>
     </div>
 
+    <!-- Description -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+            <span>Description</span>
+            <span class="text-xs font-normal text-gray-400 ml-1.5">(Optional)</span>
+        </label>
+        <textarea 
+            formControlName="description"
+            rows="3"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"
+            placeholder="Enter description"></textarea>
+    </div>
+
+    <!-- Members -->
+    <div class="flex flex-col mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Members <span class="text-red-500">*</span>
+        </label>
+        <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+            <input
+                matInput
+                placeholder="Search members..."
+                [formControl]="triggerInput"
+                (focus)="onTriggerFocus()"
+                (blur)="onTriggerBlur()"
+                (click)="autoTrigger.openPanel()"
+                [matAutocomplete]="membersAuto"
+                #autoTrigger="matAutocompleteTrigger"
+            />
+            <mat-autocomplete #membersAuto="matAutocomplete" [autoActiveFirstOption]="false" (optionSelected)="onMemberSelected($event.option.value, autoTrigger)">
+                <mat-option *ngFor="let user of filteredUsersList" [value]="user">
+                    <div class="flex items-center gap-3 py-1">
+                        <mat-checkbox [checked]="isSelected(user)" (click)="toggleMember(user, $event)"></mat-checkbox>
+                        <img [src]="user.avatar || 'assets/images/avatars/male-01.jpg'" class="w-8 h-8 rounded-full object-cover">
+                        <div class="flex flex-col">
+                            <span class="font-medium leading-none">{{ user.fullName }}</span>
+                            <span class="text-xs text-gray-500 mt-1">{{ user.email }}</span>
+                        </div>
+                    </div>
+                </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="teamForm.get('members')?.hasError('required')">
+                At least one member is required
+            </mat-error>
+        </mat-form-field>
+    </div>
+
+</form>
+
+<!-- Footer Actions -->
+<div class="flex items-center justify-end gap-3 px-6 pb-6 pt-2 border-t border-gray-200 dark:border-gray-700">
+    <button 
+        mat-stroked-button 
+        (click)="matDialogRef.close()"
+        class="px-6 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors">
+        Cancel
+    </button>
+    <button 
+        mat-flat-button 
+        [disabled]="teamForm.invalid"
+        (click)="save()"
+        class="px-6 py-2.5 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        [ngClass]="teamForm.invalid ? 'bg-gray-400' : 'bg-blue-900 hover:bg-blue-950 dark:bg-blue-800 dark:hover:bg-blue-900'">
+        {{ mode === 'create' ? 'Create' : 'Update' }}
+    </button>
 </div>

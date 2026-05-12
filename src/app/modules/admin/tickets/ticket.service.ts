@@ -61,7 +61,7 @@ export class TicketService {
             (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
     }
 
     /**
@@ -219,5 +219,21 @@ export class TicketService {
         }
 
         return this._httpClient.get<any>(url, { params: httpParams });
+    }
+
+    /**
+     * Claim a team ticket
+     */
+    claimTicket(ticketId: string, userId: string): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/tickets/${ticketId}/claim`;
+        return this._httpClient.post<TicketResponse>(url, { user_id: userId });
+    }
+
+    /**
+     * Reopen a cancelled ticket
+     */
+    reopenTicket(ticketId: string, userId: string): Observable<TicketResponse> {
+        const url = `${this.apiUrl}/tickets/${ticketId}/reopen`;
+        return this._httpClient.post<TicketResponse>(url, { user_id: userId });
     }
 }

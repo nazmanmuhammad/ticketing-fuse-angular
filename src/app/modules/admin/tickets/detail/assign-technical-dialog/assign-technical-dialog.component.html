@@ -1,210 +1,196 @@
-<div class="flex flex-col max-h-[90vh] bg-white dark:bg-gray-900 rounded-lg overflow-hidden">
-    <!-- Header -->
-    <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-gray-900">
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div>
         <h2 class="text-xl font-bold text-gray-900 dark:text-white">
             {{ showFullForm ? 'Assign Technical & Set Priority' : 'Assign Technical' }}
         </h2>
-        <button
-            type="button"
-            (click)="onCancel()"
-            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition"
-        >
-            <mat-icon>close</mat-icon>
-        </button>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Select a technical user to assign this ticket
+        </p>
     </div>
+</div>
 
-    <!-- Content -->
-    <div class="flex-1 overflow-y-auto px-6 py-6 bg-white dark:bg-gray-900">
-        <form [formGroup]="form" class="space-y-6">
-            <!-- Technical User Selection -->
-            <div>
-                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Select Technical User <span class="text-red-500">*</span>
-                </label>
-                
-                <!-- Selected Technical (if exists) -->
-                <div *ngIf="selectedTechnical" class="mb-3 flex items-center justify-between rounded-lg border border-indigo-200 bg-indigo-50 p-3">
-                    <div class="flex items-center gap-3">
-                        <div class="relative h-10 w-10 flex-shrink-0">
-                            <img
-                                *ngIf="selectedTechnical.photo"
-                                [src]="getAvatarUrl(selectedTechnical.photo)"
-                                [alt]="selectedTechnical.name"
-                                class="h-full w-full rounded-full object-cover"
-                                (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'"
-                            />
-                            <div
-                                *ngIf="!selectedTechnical.photo"
-                                class="flex h-full w-full items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white"
-                            >
-                                {{ getInitials(selectedTechnical.name) }}
-                            </div>
+<!-- Form -->
+<form [formGroup]="form" class="px-6 py-4 pb-4">
+    <!-- Technical User Selection -->
+    <div class="mb-4">
+        <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 block">
+            Select Technical User <span class="text-red-500">*</span>
+        </label>
+        
+        <!-- Custom Dropdown with Search -->
+        <div class="relative technical-dropdown-container" #dropdownContainer>
+            <!-- Toggle button -->
+            <button type="button" 
+                #toggleButton
+                (click)="toggleTechnicalDropdown(); $event.stopPropagation()"
+                class="flex w-full items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-left text-sm transition hover:border-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200">
+                <!-- Avatar prefix -->
+                <ng-container *ngIf="selectedTechnical; else defaultIcon">
+                    <ng-container *ngIf="selectedTechnical.photo; else toggleInit">
+                        <img [src]="getAvatarUrl(selectedTechnical.photo)"
+                            class="h-5 w-5 flex-shrink-0 rounded-full object-cover"
+                            (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'">
+                    </ng-container>
+                    <ng-template #toggleInit>
+                        <div class="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-[9px] font-bold text-white bg-indigo-600">
+                            {{ getInitials(selectedTechnical.name) }}
                         </div>
-                        <div>
-                            <div class="text-sm font-semibold text-gray-900 dark:text-white">
-                                {{ selectedTechnical.name }}
-                            </div>
-                            <div class="text-xs text-gray-500">
-                                {{ selectedTechnical.email }}
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        (click)="clearTechnicalSelection()"
-                        class="text-gray-400 hover:text-red-500 transition"
-                    >
-                        <mat-icon class="text-lg">close</mat-icon>
-                    </button>
-                </div>
+                    </ng-template>
+                    <span class="flex-1 truncate">{{ selectedTechnical.name }}</span>
+                </ng-container>
+                <ng-template #defaultIcon>
+                    <svg class="h-4 w-4 flex-shrink-0 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                    <span class="flex-1 text-gray-400">Select technical user...</span>
+                </ng-template>
+                <!-- Chevron -->
+                <svg class="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform"
+                    [class.rotate-180]="technicalDropdownOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
 
-                <!-- Dropdown to select technical -->
-                <div *ngIf="!selectedTechnical" class="relative">
-                    <button
-                        type="button"
-                        (click)="toggleTechnicalDropdown(); $event.stopPropagation()"
-                        class="flex w-full items-center justify-between rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-left text-sm transition hover:border-indigo-300 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"
-                    >
-                        <span class="text-gray-500">Select technical user...</span>
-                        <mat-icon class="text-gray-400">expand_more</mat-icon>
-                    </button>
-
-                    <!-- Dropdown menu -->
-                    <div
-                        *ngIf="technicalDropdownOpen"
-                        class="absolute z-50 mt-2 w-full rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
-                    >
-                        <!-- Search input -->
-                        <div class="border-b border-gray-200 p-3 dark:border-gray-700">
-                            <input
-                                type="text"
-                                [(ngModel)]="technicalSearchQuery"
-                                [ngModelOptions]="{ standalone: true }"
-                                (ngModelChange)="onTechnicalSearchChange($event)"
-                                placeholder="Search technical user..."
-                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-700"
-                                (click)="$event.stopPropagation()"
-                            />
-                        </div>
-
-                        <!-- User list -->
-                        <div class="max-h-64 overflow-y-auto">
-                            <div *ngIf="isLoadingTechnical" class="p-4 text-center text-sm text-gray-500">
-                                Loading...
-                            </div>
-                            <div *ngIf="!isLoadingTechnical && technicalUsers.length === 0" class="p-4 text-center text-sm text-gray-500">
-                                No technical users found
-                            </div>
-                            <button
-                                *ngFor="let user of technicalUsers"
-                                type="button"
-                                (click)="selectTechnical(user); $event.stopPropagation()"
-                                class="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-gray-50 dark:hover:bg-gray-700"
-                            >
-                                <div class="relative h-10 w-10 flex-shrink-0">
-                                    <img
-                                        *ngIf="user.photo"
-                                        [src]="getAvatarUrl(user.photo)"
-                                        [alt]="user.name"
-                                        class="h-full w-full rounded-full object-cover"
-                                        (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'"
-                                    />
-                                    <div
-                                        *ngIf="!user.photo"
-                                        class="flex h-full w-full items-center justify-center rounded-full bg-indigo-600 text-xs font-bold text-white"
-                                    >
-                                        {{ getInitials(user.name) }}
-                                    </div>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                                        {{ user.name }}
-                                    </div>
-                                    <div class="text-xs text-gray-500 truncate">
-                                        {{ user.email }}
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div *ngIf="form.get('technical_user')?.invalid && form.get('technical_user')?.touched" class="mt-1 text-xs text-red-500">
-                    Technical user is required
-                </div>
+        <!-- Dropdown panel (Portal to body with fixed positioning) -->
+        <div *ngIf="technicalDropdownOpen"
+            #dropdownPanel
+            class="fixed rounded-xl border border-gray-200 bg-white shadow-xl technical-dropdown-panel"
+            [style.top.px]="dropdownPosition.top"
+            [style.left.px]="dropdownPosition.left"
+            [style.width.px]="dropdownPosition.width"
+            [style.z-index]="10000"
+            (click)="$event.stopPropagation()">
+            <!-- Search input -->
+            <div class="flex items-center gap-2 border-b border-gray-100 px-3 py-2">
+                <svg class="h-3.5 w-3.5 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" 
+                    #searchInput
+                    [(ngModel)]="technicalSearchQuery"
+                    [ngModelOptions]="{ standalone: true }" 
+                    (input)="onTechnicalSearchInput()"
+                    (click)="$event.stopPropagation()"
+                    placeholder="Search technical user..."
+                    class="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400" />
+                <button *ngIf="technicalSearchQuery" type="button"
+                    (click)="technicalSearchQuery = ''; onTechnicalSearchInput(); $event.stopPropagation()"
+                    class="flex-shrink-0 text-gray-300 hover:text-red-400">
+                    <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
-
-            <!-- Full Form Fields (only if pic_technical and pic_helpdesk are empty) -->
-            <div *ngIf="showFullForm" class="space-y-6">
-                <!-- Priority Selection -->
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Priority <span class="text-red-500">*</span>
-                    </label>
-                    <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                        <mat-select formControlName="priority" placeholder="Select priority">
-                            <mat-option *ngFor="let priority of priorities" [value]="priority.value">
-                                {{ priority.label }}
-                            </mat-option>
-                        </mat-select>
-                    </mat-form-field>
-                    <div *ngIf="form.get('priority')?.invalid && form.get('priority')?.touched" class="mt-1 text-xs text-red-500">
-                        Priority is required
+            <!-- Options list -->
+            <div class="max-h-48 overflow-y-auto py-1">
+                <!-- Loading state -->
+                <div *ngIf="isLoadingTechnical && technicalUsers.length === 0"
+                    class="flex items-center justify-center gap-2 px-3 py-4">
+                    <svg class="h-4 w-4 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                    </svg>
+                    <span class="text-xs text-gray-400">Loading...</span>
+                </div>
+                <!-- Empty state -->
+                <div *ngIf="!isLoadingTechnical && technicalUsers.length === 0"
+                    class="px-3 py-3 text-center text-xs text-gray-400">
+                    No technical users found
+                </div>
+                <!-- User options -->
+                <button *ngFor="let user of technicalUsers; let i = index" type="button"
+                    (click)="selectTechnicalUser(user); $event.stopPropagation()"
+                    class="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-indigo-50">
+                    <ng-container *ngIf="user.photo; else userInit">
+                        <img [src]="getAvatarUrl(user.photo)" 
+                            class="h-6 w-6 flex-shrink-0 rounded-full object-cover"
+                            (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'">
+                    </ng-container>
+                    <ng-template #userInit>
+                        <div class="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                            [ngClass]="getAvatarColor(i)">{{ getInitials(user.name) }}</div>
+                    </ng-template>
+                    <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-medium text-gray-800">{{ user.name }}</p>
+                        <p class="truncate text-xs text-gray-400">{{ user.email }}</p>
                     </div>
-                </div>
-
-                <!-- Response -->
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Response (Optional)
-                    </label>
-                    <textarea
-                        formControlName="response"
-                        rows="4"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"
-                        placeholder="Write your response here..."
-                    ></textarea>
-                </div>
-
-                <!-- Mark as Internal Note -->
-                <div class="flex items-center gap-2">
-                    <mat-checkbox formControlName="mark_as_internal" color="primary">
-                        <span class="text-sm text-gray-700 dark:text-gray-300">Mark as internal note (visible to staff only)</span>
-                    </mat-checkbox>
-                </div>
-
-                <!-- Internal Note -->
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Internal Note (Optional)
-                    </label>
-                    <textarea
-                        formControlName="internal_note"
-                        rows="3"
-                        class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"
-                        placeholder="Internal notes here..."
-                    ></textarea>
-                </div>
+                </button>
             </div>
-        </form>
+        </div>
     </div>
 
-    <!-- Footer -->
-    <div class="flex items-center justify-end gap-3 border-t border-gray-200 dark:border-gray-700 px-6 py-4 bg-white dark:bg-gray-900">
-        <button
-            type="button"
-            (click)="onCancel()"
-            class="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800"
-        >
-            Cancel
-        </button>
-        <button
-            type="button"
-            (click)="onSubmit()"
-            [disabled]="form.invalid || !selectedTechnical || isSubmitting"
-            class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-            {{ isSubmitting ? 'Assigning...' : 'Assign Technical' }}
-        </button>
+    <!-- Full Form Fields (only if pic_technical and pic_helpdesk are empty) -->
+    <div *ngIf="showFullForm" class="space-y-4">
+        <!-- Priority Selection -->
+        <div>
+            <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 block">
+                Priority <span class="text-red-500">*</span>
+            </label>
+            <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+                <mat-select formControlName="priority" placeholder="Select priority">
+                    <mat-option *ngFor="let priority of priorities" [value]="priority.value">
+                        {{ priority.label }}
+                    </mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.get('priority')?.hasError('required')">
+                    Priority is required
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <!-- Response -->
+        <div>
+            <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                <span>Response</span>
+                <span class="text-xs font-normal text-gray-400 ml-1.5">(Optional)</span>
+            </label>
+            <textarea
+                formControlName="response"
+                rows="4"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"
+                placeholder="Write your response here..."
+            ></textarea>
+        </div>
+
+        <!-- Mark as Internal Note -->
+        <div class="flex items-center gap-2">
+            <mat-checkbox formControlName="mark_as_internal" color="primary">
+                <span class="text-sm text-gray-700 dark:text-gray-300">Mark as internal note (visible to staff only)</span>
+            </mat-checkbox>
+        </div>
+
+        <!-- Internal Note -->
+        <div>
+            <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+                <span>Internal Note</span>
+                <span class="text-xs font-normal text-gray-400 ml-1.5">(Optional)</span>
+            </label>
+            <textarea
+                formControlName="internal_note"
+                rows="3"
+                class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 dark:border-gray-600 dark:bg-gray-800"
+                placeholder="Internal notes here..."
+            ></textarea>
+        </div>
     </div>
+</form>
+
+<!-- Footer Actions -->
+<div class="flex items-center justify-end gap-3 px-6 pb-6 pt-2 border-t border-gray-200 dark:border-gray-700">
+    <button 
+        mat-stroked-button 
+        (click)="onCancel()"
+        class="px-6 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors">
+        Cancel
+    </button>
+    <button 
+        mat-flat-button 
+        [disabled]="form.invalid || !selectedTechnical || isSubmitting"
+        (click)="onSubmit()"
+        class="px-6 py-2.5 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        [ngClass]="(form.invalid || !selectedTechnical) ? 'bg-gray-400' : 'bg-blue-900 hover:bg-blue-950 dark:bg-blue-800 dark:hover:bg-blue-900'">
+        {{ isSubmitting ? 'Assigning...' : 'Assign Technical' }}
+    </button>
 </div>

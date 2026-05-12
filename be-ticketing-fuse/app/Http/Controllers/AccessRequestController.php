@@ -698,4 +698,31 @@ class AccessRequestController extends Controller
         
         return $months;
     }
+
+    /**
+     * Get access request counts for mini sidebar badges
+     */
+    public function counts(Request $request)
+    {
+        $query = AccessRequest::query();
+
+        // Apply role-based filtering
+        if ($request->role === 'agent' || $request->role === 'technical') {
+            $query->where(function($q) use ($request) {
+                $q->where('assign_to_user_id', $request->user_id)
+                  ->orWhere('assign_to_team_id', $request->team_id);
+            });
+        } elseif ($request->role === 'user') {
+            $query->where('requester_id', $request->requester_id);
+        }
+
+        // Count only pending access requests for mini sidebar badge
+        $pendingCount = $query->where('status', 0)->count();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Access request count retrieved successfully',
+            'data' => $pendingCount,
+        ]);
+    }
 }

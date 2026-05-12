@@ -48,7 +48,27 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
-        $item = User::create($request->all());
+        // Prepare data with extracted fields from HRIS payload
+        $data = $request->all();
+        
+        // Extract phone_number from 'phone' field if exists
+        if (isset($data['phone']) && !isset($data['phone_number'])) {
+            $data['phone_number'] = $data['phone'];
+            unset($data['phone']);
+        }
+        
+        // Extract division from 'division_name' if exists
+        if (isset($data['division_name']) && !isset($data['division'])) {
+            $data['division'] = $data['division_name'];
+        }
+        
+        // Extract position from 'position.position_name' if exists
+        if (isset($data['position']) && is_array($data['position']) && isset($data['position']['position_name'])) {
+            $data['position'] = $data['position']['position_name'];
+        }
+        
+        $item = User::create($data);
+        \Log::info('User created with data:', $data);
 
         return response()->json([
             'status'  => true,
@@ -69,7 +89,28 @@ class UserController extends Controller
     public function update(Request $request, string $id)
     {
         $item = User::findOrFail($id);
-        $item->update($request->all());
+        
+        // Prepare data with extracted fields from HRIS payload
+        $data = $request->all();
+        
+        // Extract phone_number from 'phone' field if exists
+        if (isset($data['phone']) && !isset($data['phone_number'])) {
+            $data['phone_number'] = $data['phone'];
+            unset($data['phone']);
+        }
+        
+        // Extract division from 'division_name' if exists
+        if (isset($data['division_name']) && !isset($data['division'])) {
+            $data['division'] = $data['division_name'];
+        }
+        
+        // Extract position from 'position.position_name' if exists
+        if (isset($data['position']) && is_array($data['position']) && isset($data['position']['position_name'])) {
+            $data['position'] = $data['position']['position_name'];
+        }
+        
+        $item->update($data);
+        \Log::info('User updated with data:', $data);
 
         return response()->json([
             'status'  => true,
@@ -87,6 +128,144 @@ class UserController extends Controller
             'message' => 'User berhasil dihapus',
             'data'    => null,
         ]);
+    }
+
+    public function syncFromHris(Request $request)
+    {
+        try {
+            // Get HRIS token from request
+            $hrisToken = $request->input('hris_token');
+            
+            if (!$hrisToken) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'HRIS token tidak ditemukan. Silakan login ulang.',
+                ], 400);
+            }
+            
+            $hrisApiUrl = env('HRIS_API_URL', 'https://back.siglab.co.id');
+            $hrisApiUrl = rtrim($hrisApiUrl, '/');
+            
+            // Check if it ends with /api, if not add it
+            if (!str_ends_with($hrisApiUrl, '/api')) {
+                $hrisApiUrl .= '/api';
+            }
+            
+            $employeeApiUrl = $hrisApiUrl . '/hris/employee';
+            
+            $updatedCount = 0;
+            $page = 1;
+            $hasMorePages = true;
+            
+            while ($hasMorePages) {
+                // Fetch employees from HRIS API with Bearer token
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $hrisToken,
+                ])->post($employeeApiUrl . '?page=' . $page . '&company=1', []);
+                
+                \Log::info('HRIS API Response', [
+                    'page' => $page,
+                    'status' => $response->status(),
+                    'successful' => $response->successful(),
+                ]);
+                
+                if (!$response->successful()) {
+                    \Log::error('HRIS API request failed', [
+                        'status' => $response->status(),
+                        'body' => $response->body(),
+                    ]);
+                    
+                    if ($response->status() === 401) {
+                        return response()->json([
+                            'status' => false,
+                            'message' => 'Token HRIS tidak valid atau sudah expired. Silakan login ulang.',
+                        ], 401);
+                    }
+                    
+                    break;
+                }
+                
+                $data = $response->json();
+                $employees = $data['data'] ?? [];
+                
+                \Log::info('HRIS API Data', [
+                    'page' => $page,
+                    'employees_count' => count($employees),
+                    'current_page' => $data['current_page'] ?? null,
+                    'last_page' => $data['last_page'] ?? null,
+                ]);
+                
+                if (empty($employees)) {
+                    \Log::info('No employees found on page ' . $page);
+                    break;
+                }
+                
+                foreach ($employees as $employee) {
+                    $hrisUserId = $employee['user_id'] ?? null;
+                    
+                    if (!$hrisUserId) {
+                        continue;
+                    }
+                    
+                    // Find user by hris_user_id (which matches user_id from HRIS)
+                    $user = User::where('hris_user_id', $hrisUserId)->first();
+                    
+                    if ($user) {
+                        // Extract data from HRIS
+                        $name = $employee['employee_name'] ?? $user->name;
+                        $email = $employee['selfupdate']['email_kantor'] ?? $employee['user']['email'] ?? $user->email;
+                        $phone = $employee['phone'] ?? null;
+                        $division = $employee['bagian']['division_name'] ?? null;
+                        $position = $employee['position']['position_name'] ?? null;
+                        
+                        \Log::info('Updating user', [
+                            'hris_user_id' => $hrisUserId,
+                            'user_id' => $user->id,
+                            'name' => $name,
+                            'email' => $email,
+                            'phone' => $phone,
+                            'division' => $division,
+                            'position' => $position,
+                        ]);
+                        
+                        // Update user
+                        $user->update([
+                            'name' => $name,
+                            'email' => $email,
+                            'phone_number' => $phone,
+                            'division' => $division,
+                            'position' => $position,
+                        ]);
+                        
+                        $updatedCount++;
+                    } else {
+                        \Log::info('User not found for hris_user_id: ' . $hrisUserId);
+                    }
+                }
+                
+                // Check if there are more pages
+                $currentPage = $data['current_page'] ?? $page;
+                $lastPage = $data['last_page'] ?? $page;
+                $hasMorePages = $currentPage < $lastPage;
+                $page++;
+            }
+            
+            return response()->json([
+                'status' => true,
+                'message' => "Berhasil sync {$updatedCount} user dari HRIS",
+                'data' => [
+                    'updated_count' => $updatedCount,
+                ],
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error syncing users from HRIS: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => false,
+                'message' => 'Gagal sync data dari HRIS: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     private function applyFilters($query, Request $request): void

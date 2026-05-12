@@ -1,0 +1,79 @@
+<!-- Header -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+    <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">
+            {{ 'TICKETS.DIALOGS.START_PROCESS.TITLE' | transloco }}
+        </h2>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ 'TICKETS.DIALOGS.START_PROCESS.DESCRIPTION' | transloco }}
+        </p>
+    </div>
+</div>
+
+<!-- Form -->
+<form [formGroup]="form" class="px-6 py-4 pb-4">
+
+    <!-- Date Fields Row -->
+    <div class="grid grid-cols-2 gap-4 mb-2">
+        <!-- Start Date -->
+        <div class="flex flex-col">
+            <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 h-5">
+                {{ 'TICKETS.DIALOGS.START_PROCESS.START_DATE' | transloco }}
+                <span class="text-red-500 ml-0.5">*</span>
+            </label>
+            <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+                <input 
+                    matInput 
+                    type="date" 
+                    formControlName="start_date"
+                    [min]="minDate"
+                    class="text-base"
+                >
+                <mat-error *ngIf="form.get('start_date')?.hasError('required')">
+                    {{ 'TICKETS.DIALOGS.START_PROCESS.START_DATE_REQUIRED' | transloco }}
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <!-- End Date (Optional) -->
+        <div class="flex flex-col">
+            <label class="mb-2 text-sm font-semibold text-gray-700 dark:text-gray-300 h-5 flex items-center">
+                <span>{{ 'TICKETS.DIALOGS.START_PROCESS.END_DATE' | transloco }}</span>
+                <span class="text-xs font-normal text-gray-400 ml-1.5">({{ 'TICKETS.DIALOGS.START_PROCESS.OPTIONAL' | transloco }})</span>
+            </label>
+            <mat-form-field appearance="outline" class="w-full fuse-mat-dense" subscriptSizing="dynamic">
+                <input 
+                    matInput 
+                    type="date" 
+                    formControlName="end_date"
+                    [min]="form.get('start_date')?.value || minDate"
+                    class="text-base"
+                >
+            </mat-form-field>
+        </div>
+    </div>
+
+    <!-- Hint Text -->
+    <p class="text-xs text-gray-500 dark:text-gray-400 -mt-2 mb-2">
+        {{ 'TICKETS.DIALOGS.START_PROCESS.END_DATE_HINT' | transloco }}
+    </p>
+
+</form>
+
+<!-- Footer Actions -->
+<div class="flex items-center justify-end gap-3 px-6 pb-6 pt-2 border-t border-gray-200 dark:border-gray-700">
+    <button 
+        mat-stroked-button 
+        (click)="onCancel()"
+        class="px-6 py-2.5 rounded-lg border-2 border-gray-300 text-gray-700 font-medium hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800 transition-colors">
+        {{ 'TICKETS.DIALOGS.START_PROCESS.CANCEL' | transloco }}
+    </button>
+    <button 
+        mat-flat-button 
+        [disabled]="form.invalid"
+        (click)="onSubmit()"
+        class="px-6 py-2.5 rounded-lg font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        [ngClass]="form.invalid ? 'bg-gray-400' : 'bg-blue-900 hover:bg-blue-950 dark:bg-blue-800 dark:hover:bg-blue-900'">
+        {{ 'TICKETS.DIALOGS.START_PROCESS.START' | transloco }}
+    </button>
+</div>

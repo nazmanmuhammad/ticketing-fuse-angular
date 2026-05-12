@@ -21,6 +21,7 @@ import { EditApprovalDialogComponent } from './edit-approval-dialog/edit-approva
 import { ApprovalNotesDialogComponent } from './approval-notes-dialog/approval-notes-dialog.component';
 import { ApprovalNotesViewDialogComponent } from './approval-notes-view-dialog/approval-notes-view-dialog.component';
 import { AssignTechnicalDialogComponent } from './assign-technical-dialog/assign-technical-dialog.component';
+import { StartProcessDialogComponent } from './start-process-dialog/start-process-dialog.component';
 
 interface Comment {
     id: string;
@@ -123,7 +124,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
             (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
 
         this.hrisApiUrl =
             (globalThis as any)?.__env?.HRIS_API_URL ||
@@ -475,6 +476,26 @@ export class DetailComponent implements OnInit, AfterViewInit {
         return labels[status] || 'Pending';
     }
 
+    formatSimpleDate(dateString: string | null | undefined): string {
+        if (!dateString) return '-';
+        
+        try {
+            const date = new Date(dateString);
+            // Check if date is valid
+            if (isNaN(date.getTime())) return '-';
+            
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short',
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric'
+            });
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return '-';
+        }
+    }
+
     getInitials(name: string): string {
         return name
             .split(' ')
@@ -505,7 +526,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
         
         const baseUrl = backendUrl.replace(/\/api$/, '');
         return `${baseUrl}/storage/${cleanPath}`;
@@ -519,7 +540,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
         
         // For preview, use storage URL
         const baseUrl = backendUrl.replace(/\/api$/, '');
@@ -530,7 +551,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
         
         return `${backendUrl}/attachments/${attachmentId}/view`;
     }
@@ -539,7 +560,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            'http://127.0.0.1:9010/api';
         
         return `${backendUrl}/attachments/${attachmentId}/download`;
     }
@@ -555,6 +576,13 @@ export class DetailComponent implements OnInit, AfterViewInit {
     canStartProcess(): boolean {
         if (!this.ticket || !this.currentUser) {
             return false;
+        }
+        
+        // Check if approval is required and not yet approved
+        if (this.ticket.approval_required && this.ticket.approval) {
+            if (this.ticket.approval.status !== 'approved') {
+                return false;
+            }
         }
         
         // Check if current user's hris_user_id matches pic_technical's hris_user_id
@@ -881,25 +909,41 @@ export class DetailComponent implements OnInit, AfterViewInit {
             return;
         }
 
-        const payload = {
-            start_process: true,
-            user_id: this.currentUser.id
-        };
+        // Open dialog to get start and end dates
+        const dialogRef = this._dialog.open(StartProcessDialogComponent, {
+            width: '500px',
+            disableClose: true,
+            data: {
+                ticketId: this.ticket.id
+            }
+        });
 
-        this._ticketService.updateTicket(this.ticket.id, payload)
-            .pipe(
-                catchError((error) => {
-                    console.error('Error starting process:', error);
-                    this._snackbar.error('Failed to start process');
-                    return of(null);
-                })
-            )
-            .subscribe((response) => {
-                if (response && response.status) {
-                    this._snackbar.success('Process started successfully');
-                    this.loadTicketDetail();
-                }
-            });
+        dialogRef.afterClosed().subscribe((result) => {
+            if (result) {
+                // User confirmed with dates
+                const payload = {
+                    start_process: true,
+                    updated_by: this.currentUser.id,
+                    start_date: result.start_date,
+                    end_date: result.end_date || null
+                };
+
+                this._ticketService.updateTicket(this.ticket.id, payload)
+                    .pipe(
+                        catchError((error) => {
+                            console.error('Error starting process:', error);
+                            this._snackbar.error('Failed to start process');
+                            return of(null);
+                        })
+                    )
+                    .subscribe((response) => {
+                        if (response && response.status) {
+                            this._snackbar.success('Process started successfully');
+                            this.loadTicketDetail();
+                        }
+                    });
+            }
+        });
     }
 
     resolveTicket(): void {
@@ -1067,14 +1111,12 @@ export class DetailComponent implements OnInit, AfterViewInit {
     toggleAssignTechnical(): void {
         // Open dialog instead of inline form
         const dialogRef = this._dialog.open(AssignTechnicalDialogComponent, {
-            width: '600px',
-            maxWidth: '90vw',
-            panelClass: 'custom-dialog-container',
+            width: '500px',
+            disableClose: true,
             data: {
                 ticket: this.ticket,
                 currentUser: this.currentUser,
             },
-            disableClose: false,
         });
 
         dialogRef.afterClosed().subscribe((result) => {

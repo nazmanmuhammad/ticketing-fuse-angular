@@ -29,7 +29,7 @@ class TicketController extends Controller
         if ($request->role === 'agent') {
             $query->where('pic_helpdesk_id', $request->pic_helpdesk_id);
         } elseif ($request->role === 'technical') {
-            $query->where('pic_technical_id', $request->pic_id);
+            $query->where('pic_technical_id', $request->pic_id)->orWhere('pic_helpdesk_id', $request->pic_id);
         } elseif ($request->role === 'user') {
             $query->where('requester_id', $request->requester_id);
         }
@@ -148,25 +148,27 @@ class TicketController extends Controller
             ->count('ticket_id');
         
         // Count overdue tickets - Current Month
-        $overdueCount = (clone $query)->whereIn('status', [
+        // Overdue = end_date sudah lewat DAN status masih belum selesai (bukan RESOLVED/CLOSED)
+        $today = now()->startOfDay();
+        $overdueCount = (clone $query)->whereNotIn('status', [
                 TicketStatusEnum::RESOLVED->value,
                 TicketStatusEnum::CLOSED->value
             ])
             ->whereNotNull('end_date')
-            ->whereRaw('updated_at > end_date')
-            ->whereMonth('updated_at', $currentMonth)
-            ->whereYear('updated_at', $currentYear)
+            ->whereDate('end_date', '<', $today)
+            ->whereMonth('created_at', $currentMonth)
+            ->whereYear('created_at', $currentYear)
             ->count();
         
         // Count overdue tickets - Last Month
-        $overdueCountLastMonth = (clone $query)->whereIn('status', [
+        $overdueCountLastMonth = (clone $query)->whereNotIn('status', [
                 TicketStatusEnum::RESOLVED->value,
                 TicketStatusEnum::CLOSED->value
             ])
             ->whereNotNull('end_date')
-            ->whereRaw('updated_at > end_date')
-            ->whereMonth('updated_at', $lastMonth)
-            ->whereYear('updated_at', $lastMonthYear)
+            ->whereDate('end_date', '<', $today)
+            ->whereMonth('created_at', $lastMonth)
+            ->whereYear('created_at', $lastMonthYear)
             ->count();
         
         // Count created tickets this month
@@ -336,7 +338,7 @@ class TicketController extends Controller
             // This is already handled by requester_id filter below
         }
         
-        $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk']);
+        $data = $query->with(['requester', 'pic_technical', 'pic_helpdesk', 'team']);
 
         if ($request->pic_id) {
             $data = $data
@@ -344,7 +346,7 @@ class TicketController extends Controller
                     $q->where('pic_helpdesk_id', $request->pic_id);
                 })
                 ->when($request->role === 'technical', function($q) use($request) {
-                    $q->where('pic_technical_id', $request->pic_id);
+                    $q->where('pic_technical_id', $request->pic_id)->orWhere('pic_helpdesk_id', $request->pic_id);
                 })
                 ->when($request->role === 'user', function($q) use($request) {
                     $q->where('requester_id', $request->pic_id);
@@ -399,6 +401,11 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
+        // Validate created_by
+        $request->validate([
+            'created_by' => 'required|exists:users,id',
+        ]);
+
         $data = $request->all();
 
         // Check and create user if not exists (for requester)
@@ -411,6 +418,9 @@ class TicketController extends Controller
             })->first();
             
             if (!$requesterUser) {
+                // Fetch additional data from HRIS API if token is provided
+                $hrisData = $this->fetchHrisUserData($request->requester_id, $request->header('Authorization'));
+                
                 // Only create if user doesn't exist
                 $requesterUser = User::create([
                     'hris_user_id' => $request->requester_id,
@@ -419,6 +429,9 @@ class TicketController extends Controller
                     'photo' => $request->requester_photo ?? null,
                     'role' => UserRoleEnum::USER->value,
                     'status' => 1, // active
+                    'phone_number' => $hrisData['phone'] ?? null,
+                    'division' => $hrisData['division'] ?? null,
+                    'position' => $hrisData['position'] ?? null,
                 ]);
             } elseif ($requesterUser->trashed()) {
                 // Restore if soft deleted
@@ -466,8 +479,8 @@ class TicketController extends Controller
 
         $ticket = Ticket::create($data);
         
-        // Get user for ticket track - use the actual User UUID
-        $creatorUserId = $request->role === 'agent' ? $request->pic_helpdesk_id : ($requesterUser ? $requesterUser->id : null);
+        // Get user who is creating this ticket (logged in user from request)
+        $creatorUserId = $request->created_by;
         $creatorUser = User::find($creatorUserId);
         $creatorName = $creatorUser ? $creatorUser->name : 'Unknown';
         
@@ -501,6 +514,11 @@ class TicketController extends Controller
             if ($ticket->pic_technical && $ticket->pic_technical->email && filter_var($ticket->pic_technical->email, FILTER_VALIDATE_EMAIL)) {
                 SendTicketNotification::dispatch($ticket, 'assigned', $ticket->pic_technical->email);
             }
+
+            // Send notification to team members if assigned to team
+            if ($ticket->assign_status === 'team' && $ticket->team_id && !$ticket->pic_technical_id) {
+                \App\Jobs\SendTeamAssignmentNotification::dispatch($ticket);
+            }
         }
 
         // Handle file attachments
@@ -515,7 +533,7 @@ class TicketController extends Controller
                     'path' => $path,
                     'size' => $file->getSize(),
                     'mime' => $file->extension(),
-                    'user_id' => $creatorUserId, // Use the correct User UUID
+                    'user_id' => $creatorUserId, // Use created_by user ID
                     'visible' => true,
                 ]);
             }
@@ -686,6 +704,11 @@ class TicketController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        // Validate updated_by
+        $request->validate([
+            'updated_by' => 'nullable|exists:users,id',
+        ]);
+
         $ticket = Ticket::find($id);
         
         if (!$ticket) {
@@ -709,6 +732,9 @@ class TicketController extends Controller
                 })->first();
                 
                 if (!$updatedRequesterUser) {
+                    // Fetch additional data from HRIS API if token is provided
+                    $hrisData = $this->fetchHrisUserData($request->requester_id, $request->header('Authorization'));
+                    
                     // Only create if user doesn't exist
                     $updatedRequesterUser = User::create([
                         'hris_user_id' => $request->requester_id,
@@ -717,6 +743,9 @@ class TicketController extends Controller
                         'photo' => $request->requester_photo ?? null,
                         'role' => UserRoleEnum::USER->value,
                         'status' => 1, // active
+                        'phone_number' => $hrisData['phone'] ?? null,
+                        'division' => $hrisData['division'] ?? null,
+                        'position' => $hrisData['position'] ?? null,
                     ]);
                 }
                 
@@ -769,12 +798,12 @@ class TicketController extends Controller
             // Create ticket track for assignment
             if ($request->assign_technical && $request->pic_technical_id) {
                 $newTechnical = User::find($request->pic_technical_id);
-                $currentUser = $request->user_id ? User::find($request->user_id) : null;
+                $currentUser = $request->updated_by ? User::find($request->updated_by) : null;
                 
-                // Get user_id for ticket track (current user who did the assignment)
+                // Get updated_by for ticket track (current user who did the assignment)
                 $userId = null;
-                if ($request->user_id) {
-                    $userId = $request->user_id;
+                if ($request->updated_by) {
+                    $userId = $request->updated_by;
                 } elseif ($request->role === 'agent' && $request->pic_helpdesk_id) {
                     $userId = $request->pic_helpdesk_id;
                 } elseif ($request->requester_id) {
@@ -826,7 +855,7 @@ class TicketController extends Controller
             $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
             
             // Create ticket track for reopen
-            $userId = $request->user_id ?? null;
+            $userId = $request->updated_by ?? null;
             if ($userId) {
                 TicketTrack::create([
                     'ticket_id' => $ticket->id,
@@ -839,10 +868,40 @@ class TicketController extends Controller
 
         if($request->start_process)
         {
-            $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
+            // Check if ticket requires approval and if all approvals are approved
+            if ($ticket->approval_required) {
+                $approval = $ticket->approval;
+                
+                if (!$approval) {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'This ticket requires approval but no approval record found'
+                    ], 422);
+                }
+                
+                // Check if approval status is approved
+                if ($approval->status !== 'approved') {
+                    return response()->json([
+                        'status' => false,
+                        'message' => 'Cannot start process. Ticket approval is still ' . $approval->status
+                    ], 422);
+                }
+            }
+            
+            $updateData = ['status' => TicketStatusEnum::PROCESS->value];
+            
+            // Add start_date and end_date if provided
+            if ($request->has('start_date')) {
+                $updateData['start_date'] = $request->start_date;
+            }
+            if ($request->has('end_date') && $request->end_date) {
+                $updateData['end_date'] = $request->end_date;
+            }
+            
+            $ticket->update($updateData);
             
             // Create ticket track for start process
-            $userId = $request->user_id ?? null;
+            $userId = $request->updated_by ?? null;
             if ($userId) {
                 TicketTrack::create([
                     'ticket_id' => $ticket->id,
@@ -858,7 +917,7 @@ class TicketController extends Controller
             $ticket->update(['status' => TicketStatusEnum::RESOLVED->value]);
             
             // Create ticket track for resolve
-            $userId = $request->user_id ?? null;
+            $userId = $request->updated_by ?? null;
             if ($userId) {
                 TicketTrack::create([
                     'ticket_id' => $ticket->id,
@@ -880,7 +939,7 @@ class TicketController extends Controller
             $ticket->update(['status' => TicketStatusEnum::CLOSED->value]);
             
             // Create ticket track for close
-            $userId = $request->user_id ?? null;
+            $userId = $request->updated_by ?? null;
             if ($userId) {
                 TicketTrack::create([
                     'ticket_id' => $ticket->id,
@@ -896,7 +955,7 @@ class TicketController extends Controller
             $ticket->update(['status' => TicketStatusEnum::CANCELLED->value]);
             
             // Create ticket track for cancel
-            $userId = $request->user_id ?? null;
+            $userId = $request->updated_by ?? null;
             if ($userId) {
                 $user = User::find($userId);
                 $userName = $user ? $user->name : 'Unknown';
@@ -915,7 +974,7 @@ class TicketController extends Controller
         {
             $ticket->update(['status' => TicketStatusEnum::PROCESS->value]);
             
-            $userId = $request->user_id ?? null;
+            $userId = $request->updated_by ?? null;
             if ($userId) {
                 TicketTrack::create([
                     'ticket_id' => $ticket->id,
@@ -953,7 +1012,7 @@ class TicketController extends Controller
                     'path' => $path,
                     'size' => $file->getSize(),
                     'mime' => $file->extension(),
-                    'user_id' => $request->user_id ?? $request->requester_id ?? $request->pic_helpdesk_id ?? null,
+                    'user_id' => $request->updated_by ?? $request->requester_id ?? $request->pic_helpdesk_id ?? null,
                     'visible' => true,
                 ]);
             }
@@ -994,10 +1053,10 @@ class TicketController extends Controller
             $action = 'updated';
             $description = 'Ticket updated';
             
-            // Get user_id for ticket track
+            // Get updated_by for ticket track
             $userId = null;
-            if ($request->user_id) {
-                $userId = $request->user_id;
+            if ($request->updated_by) {
+                $userId = $request->updated_by;
             } elseif ($request->role === 'agent' && $request->pic_helpdesk_id) {
                 $userId = $request->pic_helpdesk_id;
             } elseif ($request->requester_id) {
@@ -1065,7 +1124,7 @@ class TicketController extends Controller
                             'approvable_id' => $ticket->id,
                             'approvable_type' => \App\Models\Ticket::class,
                             'status' => 'pending',
-                            'requested_by' => $request->user_id ?? null,
+                            'requested_by' => $request->updated_by ?? null,
                         ]);
 
                         // Create approval items
@@ -1168,5 +1227,213 @@ class TicketController extends Controller
             'message' => 'Ticket count retrieved successfully',
             'data' => $pendingCount,
         ]);
+    }
+
+    /**
+     * Fetch user data from HRIS API
+     */
+    private function fetchHrisUserData($hrisUserId, $authHeader = null)
+    {
+        try {
+            // Extract token from Authorization header
+            $token = null;
+            if ($authHeader && str_starts_with($authHeader, 'Bearer ')) {
+                $token = substr($authHeader, 7);
+            }
+            
+            if (!$token) {
+                \Log::info('No HRIS token provided for user data fetch');
+                return [];
+            }
+            
+            $hrisApiUrl = env('HRIS_API_URL', 'https://back.siglab.co.id');
+            $hrisApiUrl = rtrim($hrisApiUrl, '/');
+            
+            if (!str_ends_with($hrisApiUrl, '/api')) {
+                $hrisApiUrl .= '/api';
+            }
+            
+            $employeeApiUrl = $hrisApiUrl . '/hris/employee';
+            
+            // Search for the specific user across pages
+            $page = 1;
+            $maxPages = 10; // Limit to prevent infinite loop
+            
+            while ($page <= $maxPages) {
+                $response = \Illuminate\Support\Facades\Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $token,
+                ])->post($employeeApiUrl . '?page=' . $page . '&company=1', []);
+                
+                if (!$response->successful()) {
+                    \Log::warning('HRIS API request failed', [
+                        'status' => $response->status(),
+                        'page' => $page,
+                    ]);
+                    break;
+                }
+                
+                $data = $response->json();
+                $employees = $data['data'] ?? [];
+                
+                // Search for the user in current page
+                foreach ($employees as $employee) {
+                    if (($employee['user_id'] ?? null) == $hrisUserId) {
+                        // Found the user, extract data
+                        return [
+                            'phone' => $employee['phone'] ?? null,
+                            'division' => $employee['bagian']['division_name'] ?? null,
+                            'position' => $employee['position']['position_name'] ?? null,
+                        ];
+                    }
+                }
+                
+                // Check if there are more pages
+                $currentPage = $data['current_page'] ?? $page;
+                $lastPage = $data['last_page'] ?? $page;
+                
+                if ($currentPage >= $lastPage) {
+                    break;
+                }
+                
+                $page++;
+            }
+            
+            \Log::info('User not found in HRIS API', ['hris_user_id' => $hrisUserId]);
+            return [];
+            
+        } catch (\Exception $e) {
+            \Log::error('Error fetching HRIS user data: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Claim a team ticket
+     */
+    public function claimTicket(Request $request, $id)
+    {
+        try {
+            $ticket = Ticket::with(['team', 'requester', 'pic_helpdesk'])->findOrFail($id);
+            
+            // Validate that ticket is assigned to a team
+            if ($ticket->assign_status !== 'team' || !$ticket->team_id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'This ticket is not assigned to a team'
+                ], 400);
+            }
+            
+            // Validate that ticket is not already claimed
+            if ($ticket->pic_technical_id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'This ticket has already been claimed by another team member'
+                ], 400);
+            }
+            
+            // Get current user
+            $userId = $request->user_id ?? $request->input('user_id');
+            if (!$userId) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'User ID is required'
+                ], 400);
+            }
+            
+            // Check if user is a member of the team
+            $isTeamMember = \App\Models\TeamUser::where('team_id', $ticket->team_id)
+                ->where('user_id', $userId)
+                ->exists();
+            
+            if (!$isTeamMember) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not a member of this team'
+                ], 403);
+            }
+            
+            // Claim the ticket
+            $ticket->pic_technical_id = $userId;
+            $ticket->assign_status = 'member';
+            $ticket->save();
+            
+            // Get user for notification
+            $user = User::find($userId);
+            
+            // Send notification to the user who claimed
+            if ($user && $user->email) {
+                SendTicketNotification::dispatch($ticket, 'assigned', $user->email);
+            }
+            
+            // Reload relationships
+            $ticket->load(['pic_technical', 'team', 'requester', 'pic_helpdesk']);
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'Ticket claimed successfully',
+                'data' => $ticket
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error claiming ticket: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to claim ticket: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function reopenTicket(Request $request, $id)
+    {
+        try {
+            $ticket = Ticket::find($id);
+            
+            if (!$ticket) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Ticket not found'
+                ], 404);
+            }
+            
+            // Only allow reopening cancelled tickets
+            if ($ticket->status != 4) { // 4 = CANCELLED
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Only cancelled tickets can be reopened'
+                ], 400);
+            }
+            
+            // Reopen ticket - set status back to pending
+            $ticket->status = 0; // 0 = PENDING
+            $ticket->save();
+            
+            // Get current user
+            $userId = $request->user_id ?? $request->input('user_id');
+            $user = User::find($userId);
+            
+            // Create ticket track
+            TicketTrack::create([
+                'ticket_id' => $ticket->id,
+                'user_id' => $userId,
+                'action' => 'reopened',
+                'description' => 'Ticket reopened by ' . ($user ? $user->name : 'Unknown'),
+            ]);
+            
+            // Reload relationships
+            $ticket->load(['pic_technical', 'team', 'requester', 'pic_helpdesk']);
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'Ticket reopened successfully',
+                'data' => $ticket
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error reopening ticket: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to reopen ticket: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

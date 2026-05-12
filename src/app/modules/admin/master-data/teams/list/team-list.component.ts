@@ -87,7 +87,7 @@ export class TeamListComponent implements OnInit {
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
         (globalThis as any)?.API_URL ||
-        'https://ticket-api.siglab.site/api';
+        'http://127.0.0.1:9010/api';
     private readonly _hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
@@ -131,7 +131,8 @@ export class TeamListComponent implements OnInit {
         }
 
         const dialogRef = this._matDialog.open(TeamDialogComponent, {
-            panelClass: 'team-dialog',
+            width: '550px',
+            disableClose: true,
             data: { team, users: this.users }
         });
 

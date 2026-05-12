@@ -18,6 +18,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { FuseConfirmationService } from '@fuse/services/confirmation';
 import { SnackbarService } from 'app/core/services/snackbar.service';
+import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { finalize } from 'rxjs';
 import { UserDialogComponent } from '../dialog/user-dialog.component';
 import { User } from '../user.types';
@@ -35,6 +36,7 @@ import { User } from '../user.types';
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
+        TranslocoModule,
     ],
     templateUrl: './user-list.component.html',
     animations: [
@@ -74,13 +76,14 @@ export class UserListComponent implements OnInit {
     fromItem = 0;
     toItem = 0;
     isExporting = false;
+    isSyncing = false;
     isLoadingUsers = false;
     skeletonCards = Array.from({ length: 4 });
     private readonly _backendApiUrl: string =
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
         (globalThis as any)?.API_URL ||
-        'https://ticket-api.siglab.site/api';
+        'http://127.0.0.1:9010/api';
     private readonly _hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
@@ -91,7 +94,8 @@ export class UserListComponent implements OnInit {
         private _httpClient: HttpClient,
         private _matDialog: MatDialog,
         private _fuseConfirmationService: FuseConfirmationService,
-        private _snackbarService: SnackbarService
+        private _snackbarService: SnackbarService,
+        private _translocoService: TranslocoService
     ) {}
 
     ngOnInit(): void {
@@ -100,7 +104,8 @@ export class UserListComponent implements OnInit {
 
     openUserDialog(user?: User): void {
         const dialogRef = this._matDialog.open(UserDialogComponent, {
-            panelClass: 'user-dialog',
+            width: '550px',
+            disableClose: true,
             autoFocus: false,
             data: { user, users: this.users },
         });
@@ -117,7 +122,7 @@ export class UserListComponent implements OnInit {
                             this.currentPage = 1;
                             this._loadUsers();
                             this._snackbarService.success(
-                                'User berhasil diperbarui'
+                                this._translocoService.translate('USER_MANAGEMENT.MESSAGES.USER_UPDATED')
                             );
                         });
                 } else {
@@ -130,7 +135,7 @@ export class UserListComponent implements OnInit {
                             this.currentPage = 1;
                             this._loadUsers();
                             this._snackbarService.success(
-                                'User berhasil ditambahkan'
+                                this._translocoService.translate('USER_MANAGEMENT.MESSAGES.USER_CREATED')
                             );
                         });
                 }
@@ -140,11 +145,11 @@ export class UserListComponent implements OnInit {
 
     deleteUser(user: User): void {
         const confirmation = this._fuseConfirmationService.open({
-            title: 'Delete User',
-            message: `Are you sure you want to delete <strong>${user.fullName}</strong>? This action cannot be undone.`,
+            title: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.DELETE_CONFIRM_TITLE'),
+            message: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.DELETE_CONFIRM_MESSAGE', { name: user.fullName }),
             actions: {
                 confirm: {
-                    label: 'Delete',
+                    label: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.DELETE_CONFIRM_BUTTON'),
                 },
             },
         });
@@ -156,7 +161,9 @@ export class UserListComponent implements OnInit {
                     .subscribe(() => {
                         this.currentPage = 1;
                         this._loadUsers();
-                        this._snackbarService.success('User berhasil dihapus');
+                        this._snackbarService.success(
+                            this._translocoService.translate('USER_MANAGEMENT.MESSAGES.USER_DELETED')
+                        );
                     });
             }
         });
@@ -217,6 +224,63 @@ export class UserListComponent implements OnInit {
                     this.isExporting = false;
                 },
             });
+    }
+
+    syncFromHris(): void {
+        if (this.isSyncing) {
+            return;
+        }
+
+        const confirmation = this._fuseConfirmationService.open({
+            title: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.SYNC_CONFIRM_TITLE'),
+            message: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.SYNC_CONFIRM_MESSAGE'),
+            actions: {
+                confirm: {
+                    label: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.SYNC_CONFIRM_BUTTON'),
+                },
+                cancel: {
+                    label: this._translocoService.translate('USER_MANAGEMENT.MESSAGES.CANCEL_BUTTON'),
+                },
+            },
+        });
+
+        confirmation.afterClosed().subscribe((result) => {
+            if (result === 'confirmed') {
+                this.isSyncing = true;
+                
+                // Get HRIS token from localStorage - same key as auth service
+                const hrisToken = localStorage.getItem('accessToken') || '';
+                
+                if (!hrisToken) {
+                    this._snackbarService.error(
+                        this._translocoService.translate('USER_MANAGEMENT.MESSAGES.TOKEN_NOT_FOUND')
+                    );
+                    this.isSyncing = false;
+                    return;
+                }
+                
+                this._httpClient
+                    .post<any>(this._buildSyncUrl(), { hris_token: hrisToken })
+                    .pipe(
+                        finalize(() => {
+                            this.isSyncing = false;
+                        })
+                    )
+                    .subscribe({
+                        next: (response) => {
+                            const updatedCount = response?.data?.updated_count ?? 0;
+                            this._snackbarService.success(
+                                response?.message || this._translocoService.translate('USER_MANAGEMENT.MESSAGES.SYNC_SUCCESS', { count: updatedCount })
+                            );
+                            this._loadUsers();
+                        },
+                        error: (error) => {
+                            const errorMessage = error?.error?.message || this._translocoService.translate('USER_MANAGEMENT.MESSAGES.SYNC_FAILED');
+                            this._snackbarService.error(errorMessage);
+                        },
+                    });
+            }
+        });
     }
 
     toggleViewMode(): void {
@@ -288,6 +352,11 @@ export class UserListComponent implements OnInit {
         return `${base}/users/export`;
     }
 
+    private _buildSyncUrl(): string {
+        const base = this._backendApiUrl.replace(/\/$/, '');
+        return `${base}/users/sync-from-hris`;
+    }
+
     private _buildQueryParams(): HttpParams {
         let params = new HttpParams()
             .set('page', this.currentPage)
@@ -318,6 +387,9 @@ export class UserListComponent implements OnInit {
             role: this._mapRoleToNumber(result?.role),
             department_id: result?.departmentId || null,
             status: result?.status === 'Inactive' ? 0 : 1,
+            phone_number: result?.phone_number || null,
+            division: result?.division || null,
+            position: result?.position || null,
         };
     }
 

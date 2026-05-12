@@ -1,0 +1,186 @@
+<div class="flex min-h-full w-full flex-col bg-[#F1F5F9] dark:bg-transparent">
+    
+    <!-- Top Header -->
+    <div class="flex items-center justify-between border-b bg-white px-8 py-4 text-sm dark:bg-card">
+        <span class="font-semibold text-gray-800 dark:text-white">Ticket Source Management</span>
+        <div class="flex items-center gap-1 text-gray-500">
+            <span>Dashboard</span>
+            <span>•</span>
+            <span>Master Data</span>
+            <span>•</span>
+            <span class="font-semibold text-primary">Ticket Source</span>
+        </div>
+    </div>
+
+    <!-- Filter/Action Bar Card -->
+    <div class="mx-8 mb-6 mt-8 rounded-2xl border border-gray-100 bg-white px-6 py-5 shadow-sm dark:bg-card">
+        <div class="flex items-start justify-between">
+            <div>
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Ticket Source Management</h2>
+                <p class="mt-0.5 text-sm text-gray-500">Manage and filter your ticket sources</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Filter -->
+                <button (click)="filterOpen = !filterOpen" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:funnel'" class="icon-size-4"></mat-icon>
+                    Filter
+                </button>
+                <!-- Reset -->
+                <button (click)="resetFilters()" class="flex items-center gap-1.5 rounded-full border border-gray-300 px-4 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-50">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-path'" class="icon-size-4"></mat-icon>
+                    Reset
+                </button>
+                <!-- Export -->
+                <button (click)="exportTicketSources()" [disabled]="isExporting" class="flex items-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-green-700 disabled:opacity-60">
+                    <mat-icon [svgIcon]="'heroicons_outline:arrow-down-tray'" class="icon-size-4 text-white"></mat-icon>
+                    {{ isExporting ? 'Exporting...' : 'Export' }}
+                </button>
+                <!-- Add Ticket Source -->
+                <button (click)="openTicketSourceDialog()" class="flex items-center gap-1.5 rounded-full bg-blue-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">
+                    <mat-icon [svgIcon]="'heroicons_outline:plus'" class="icon-size-4 text-white"></mat-icon>
+                    Add Source
+                </button>
+                 <!-- Chevron for Filter -->
+                <button (click)="filterOpen = !filterOpen" class="ml-1 rounded-full border border-gray-200 p-2 text-gray-400 transition hover:bg-gray-50">
+                     <mat-icon [svgIcon]="'heroicons_outline:chevron-down'" class="icon-size-4 transition-transform duration-300" [class.rotate-180]="filterOpen"></mat-icon>
+                </button>
+            </div>
+        </div>
+
+        <!-- Collapsible Filter Content -->
+        <div [@collapseFilter]="filterOpen ? 'open' : 'closed'">
+             <div class="flex flex-wrap items-end gap-4">
+                <!-- Search -->
+                <div class="flex min-w-56 flex-1 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Search</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <span matPrefix class="flex items-center ml-2">
+                            <mat-icon [svgIcon]="'heroicons_outline:magnifying-glass'" class="icon-size-4 text-gray-400"></mat-icon>
+                        </span>
+                        <input matInput type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()" placeholder="Search by name..." />
+                    </mat-form-field>
+                </div>
+                <!-- Status -->
+                <div class="flex min-w-40 flex-col">
+                    <label class="mb-1 ml-1 text-xs text-gray-500">Status</label>
+                    <mat-form-field appearance="outline" class="fuse-mat-small w-full" subscriptSizing="dynamic">
+                        <mat-select [(ngModel)]="selectedStatus" (selectionChange)="applyFilters()">
+                            <mat-option value="">All Status</mat-option>
+                            <mat-option value="Active">Active</mat-option>
+                            <mat-option value="Inactive">Inactive</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Table) -->
+    <div class="mx-8 mb-8 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-gray-700 dark:bg-card">
+        <div class="overflow-x-auto">
+            <table class="w-full border-collapse text-left text-sm text-gray-500 dark:text-gray-400">
+                <thead class="bg-white text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400 border-b border-gray-100">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 font-semibold">No</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Source Name</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Description</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Status</th>
+                        <th scope="col" class="px-6 py-4 font-semibold">Created At</th>
+                        <th scope="col" class="px-6 py-4 font-semibold text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tr *ngIf="isLoading" class="bg-white dark:bg-gray-800" >
+                        <td class="px-6 py-4" colspan="6">
+                            <div class="space-y-3">
+                                <div *ngFor="let _ of skeletonCards" class="grid grid-cols-6 gap-4">
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700 col-span-2"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                    <div class="h-5 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let source of ticketSources; let i = index" class="bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700">
+                        <td class="px-6 py-4 font-medium text-blue-600">{{ getRowNumber(i) }}</td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-gray-900 dark:text-white text-base">{{ source.name }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="text-sm text-gray-500">{{ source.description || '-' }}</span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="rounded-full px-3 py-1 text-xs font-medium" [ngClass]="source.status === 'Active' ? 'bg-green-100 text-green-700 dark:bg-green-800/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-800/30 dark:text-red-400'">
+                                {{ source.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-gray-500">{{ source.createdAt }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <button mat-button color="primary" (click)="openTicketSourceDialog(source)" class="text-blue-700 hover:bg-blue-50 dark:text-blue-300 dark:hover:bg-blue-500/10">
+                                    <mat-icon [svgIcon]="'heroicons_outline:pencil-square'" class="mr-2 icon-size-4"></mat-icon>
+                                    Edit
+                                </button>
+                                <button mat-button color="warn" (click)="deleteTicketSource(source)" class="text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-500/10">
+                                    <mat-icon [svgIcon]="'heroicons_outline:trash'" class="mr-2 icon-size-4"></mat-icon>
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr *ngIf="!isLoading && ticketSources.length === 0" class="bg-white dark:bg-gray-800">
+                        <td class="px-6 py-8 text-center text-gray-500" colspan="6">No data</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex flex-wrap items-center justify-between gap-4 border-t bg-gray-50/50 px-6 py-4">
+            <div class="text-secondary flex items-center gap-2 text-sm">
+                <span>Items per page:</span>
+                <mat-form-field appearance="outline" class="fuse-mat-small w-24" subscriptSizing="dynamic">
+                    <mat-select [(ngModel)]="perPage" (selectionChange)="onItemsPerPageChange()">
+                        <mat-option [value]="5">5</mat-option>
+                        <mat-option [value]="10">10</mat-option>
+                        <mat-option [value]="20">20</mat-option>
+                    </mat-select>
+                </mat-form-field>
+            </div>
+            <div class="flex items-center gap-1 text-sm">
+                <span class="text-secondary mr-2">{{ rangeLabel }}</span>
+                <button
+                    (click)="goToPage(1)"
+                    [disabled]="currentPage === 1"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-double-left'" class="icon-size-5"></mat-icon>
+                </button>
+                <button
+                    (click)="goToPreviousPage()"
+                    [disabled]="currentPage === 1"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-left'" class="icon-size-5"></mat-icon>
+                </button>
+                <button
+                    (click)="goToNextPage()"
+                    [disabled]="currentPage === lastPage"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-right'" class="icon-size-5"></mat-icon>
+                </button>
+                <button
+                    (click)="goToPage(lastPage)"
+                    [disabled]="currentPage === lastPage"
+                    class="rounded-lg border border-gray-200 p-1.5 text-gray-500 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-30"
+                >
+                    <mat-icon [svgIcon]="'heroicons_outline:chevron-double-right'" class="icon-size-5"></mat-icon>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

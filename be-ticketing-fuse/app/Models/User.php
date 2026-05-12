@@ -25,6 +25,9 @@ class User extends Model
         'status',
         'photo',
         'last_login_at',
+        'phone_number',
+        'division',
+        'position'
     ];
 
     protected $appends = [

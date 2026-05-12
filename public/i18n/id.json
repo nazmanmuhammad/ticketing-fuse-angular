@@ -36,6 +36,11 @@
         "USER": "Pengguna",
         "DEPARTMENT": "Departemen",
         "TEAM": "Tim",
+        "TICKET": "Tiket",
+        "TICKET_SOURCE": "Sumber Tiket",
+        "HELP_TOPIC": "Topik Bantuan",
+        "REQUEST_TYPE": "Tipe Permintaan",
+        "ACCESS_LEVEL": "Level Akses",
         "SETTINGS": "Pengaturan",
         "APPLICATION_SETTING": "Pengaturan Aplikasi",
         "SMTP_SETTING": "Pengaturan SMTP",
@@ -103,7 +108,10 @@
             "UPDATE_TICKET": "Perbarui Tiket",
             "SAVE_FORM": "Simpan Form",
             "CANCEL": "Batal",
+            "EDIT": "Edit",
             "CANCEL_TICKET": "Batalkan Tiket",
+            "REOPEN": "Buka Kembali",
+            "REOPEN_TICKET": "Buka Kembali Tiket",
             "SUBMITTING": "Mengirim...",
             "UPDATING": "Memperbarui..."
         },
@@ -140,10 +148,11 @@
                 "TITLE": "Judul Tiket",
                 "DESCRIPTION": "Deskripsi",
                 "REQUESTER": "Pemohon",
+                "PIC_HELPDESK": "PIC Helpdesk",
                 "ASSIGNED_TO": "Ditugaskan Ke",
                 "PRIORITY": "Prioritas",
                 "STATUS": "Status",
-                "DATE": "Tanggal",
+                "DATE": "Tanggal Dibuat",
                 "ACTION": "Aksi"
             },
             "EMPTY": "Tidak ada tiket ditemukan",
@@ -289,11 +298,124 @@
             "NO_TICKETS_FOUND": "Tidak Ada Tiket",
             "NO_TICKETS_DESC": "Tidak ada tiket yang dapat ditampilkan saat ini",
             "CANCEL_CONFIRM_TITLE": "Batalkan Tiket",
-            "CANCEL_CONFIRM_MESSAGE": "Apakah Anda yakin ingin membatalkan tiket ini? Tindakan ini tidak dapat dibatalkan."
+            "CANCEL_CONFIRM_MESSAGE": "Apakah Anda yakin ingin membatalkan tiket ini? Tindakan ini tidak dapat dibatalkan.",
+            "REOPEN_CONFIRM_TITLE": "Buka Kembali Tiket",
+            "REOPEN_CONFIRM_MESSAGE": "Apakah Anda yakin ingin membuka kembali tiket \"{{subject}}\"?",
+            "REOPENED_SUCCESS": "Tiket berhasil dibuka kembali",
+            "REOPEN_FAILED": "Gagal membuka kembali tiket"
         },
         "CONFIRM": {
             "DELETE_TITLE": "Hapus Tiket",
             "DELETE_MESSAGE": "Apakah Anda yakin ingin menghapus tiket ini?"
+        },
+        "DIALOGS": {
+            "START_PROCESS": {
+                "TITLE": "Mulai Proses",
+                "DESCRIPTION": "Silakan tentukan tanggal mulai dan opsional tanggal perkiraan selesai untuk tiket ini.",
+                "START_DATE": "Tanggal Mulai",
+                "START_DATE_REQUIRED": "Tanggal mulai wajib diisi",
+                "END_DATE": "Tanggal Perkiraan Selesai",
+                "END_DATE_HINT": "Kosongkan jika tanggal selesai belum ditentukan",
+                "OPTIONAL": "Opsional",
+                "CANCEL": "Batal",
+                "START": "Mulai Proses"
+            }
+        }
+    },
+    
+    "USER_MANAGEMENT": {
+        "TITLE": "Manajemen Pengguna",
+        "SUBTITLE": "Kelola dan filter pengguna Anda",
+        "BREADCRUMB": {
+            "DASHBOARD": "Dasbor",
+            "MASTER_DATA": "Data Master",
+            "USER": "Pengguna"
+        },
+        "BUTTONS": {
+            "FILTER": "Filter",
+            "RESET": "Reset",
+            "SYNC_HRIS": "Sync HRIS",
+            "SYNCING": "Syncing...",
+            "EXPORT": "Ekspor",
+            "EXPORTING": "Mengekspor...",
+            "ADD_USER": "Tambah Pengguna",
+            "EDIT": "Edit",
+            "DELETE": "Hapus",
+            "SAVE": "Simpan",
+            "CANCEL": "Batal"
+        },
+        "FILTERS": {
+            "SEARCH": "Cari",
+            "SEARCH_PLACEHOLDER": "Cari pengguna...",
+            "STATUS": "Status",
+            "ALL_STATUS": "Semua Status",
+            "ACTIVE": "Aktif",
+            "INACTIVE": "Tidak Aktif"
+        },
+        "TABLE": {
+            "COLUMNS": {
+                "NO": "No",
+                "USER": "Pengguna",
+                "ROLE": "Peran",
+                "DEPARTMENT": "Departemen",
+                "STATUS": "Status",
+                "LAST_LOGIN": "Login Terakhir",
+                "ACTION": "Aksi"
+            },
+            "EMPTY": "Tidak Ada Data",
+            "EMPTY_DESC": "Data pengguna belum tersedia atau tidak ditemukan dari filter yang dipilih.",
+            "SHOWING": "Menampilkan",
+            "TO": "sampai",
+            "OF": "dari",
+            "ENTRIES": "entri"
+        },
+        "CARD": {
+            "DEPARTMENT": "Departemen",
+            "LAST_LOGIN": "Login Terakhir",
+            "NEVER": "Belum Pernah"
+        },
+        "DIALOG": {
+            "ADD_TITLE": "Tambah Pengguna",
+            "EDIT_TITLE": "Edit Pengguna",
+            "EMPLOYEE": "Karyawan",
+            "EMPLOYEE_PLACEHOLDER": "Pilih karyawan...",
+            "SEARCH_EMPLOYEE": "Cari nama atau email karyawan...",
+            "NO_EMPLOYEE": "Tidak ada karyawan ditemukan",
+            "LOADING": "Memuat...",
+            "ROLE": "Peran",
+            "ROLE_PLACEHOLDER": "Pilih peran",
+            "DEPARTMENT": "Departemen",
+            "DEPARTMENT_PLACEHOLDER": "Pilih departemen",
+            "STATUS": "Status",
+            "STATUS_PLACEHOLDER": "Pilih status",
+            "SAVE": "Simpan",
+            "CANCEL": "Batal"
+        },
+        "ROLES": {
+            "USER": "Pengguna",
+            "AGENT": "Agen",
+            "TECHNICAL": "Teknis",
+            "ADMIN": "Admin",
+            "MANAGER": "Manajer"
+        },
+        "STATUS": {
+            "ACTIVE": "Aktif",
+            "INACTIVE": "Tidak Aktif"
+        },
+        "MESSAGES": {
+            "USER_CREATED": "Pengguna berhasil dibuat",
+            "USER_UPDATED": "Pengguna berhasil diperbarui",
+            "USER_DELETED": "Pengguna berhasil dihapus",
+            "SYNC_SUCCESS": "Berhasil sync {count} pengguna dari HRIS",
+            "SYNC_FAILED": "Gagal sync data dari HRIS",
+            "TOKEN_NOT_FOUND": "Token HRIS tidak ditemukan. Silakan login ulang.",
+            "DELETE_CONFIRM_TITLE": "Hapus Pengguna",
+            "DELETE_CONFIRM_MESSAGE": "Apakah Anda yakin ingin menghapus <strong>{name}</strong>? Tindakan ini tidak dapat dibatalkan.",
+            "DELETE_CONFIRM_BUTTON": "Hapus",
+            "SYNC_CONFIRM_TITLE": "Sync Data dari HRIS",
+            "SYNC_CONFIRM_MESSAGE": "Apakah Anda yakin ingin melakukan sync data pengguna dari HRIS? Proses ini akan mengupdate nama, email, phone number, division, dan position untuk semua pengguna yang sudah terdaftar.",
+            "SYNC_CONFIRM_BUTTON": "Sync",
+            "CANCEL_BUTTON": "Batal"
         }
     },
     

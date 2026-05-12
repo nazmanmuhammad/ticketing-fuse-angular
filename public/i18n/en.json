@@ -36,6 +36,11 @@
         "USER": "User",
         "DEPARTMENT": "Department",
         "TEAM": "Team",
+        "TICKET": "Ticket",
+        "TICKET_SOURCE": "Ticket Source",
+        "HELP_TOPIC": "Help Topic",
+        "REQUEST_TYPE": "Request Type",
+        "ACCESS_LEVEL": "Access Level",
         "SETTINGS": "Settings",
         "APPLICATION_SETTING": "Application Setting",
         "SMTP_SETTING": "SMTP Setting",
@@ -103,7 +108,10 @@
             "UPDATE_TICKET": "Update Ticket",
             "SAVE_FORM": "Save Form",
             "CANCEL": "Cancel",
+            "EDIT": "Edit",
             "CANCEL_TICKET": "Cancel Ticket",
+            "REOPEN": "Reopen",
+            "REOPEN_TICKET": "Reopen Ticket",
             "SUBMITTING": "Submitting...",
             "UPDATING": "Updating..."
         },
@@ -140,10 +148,11 @@
                 "TITLE": "Ticket Title",
                 "DESCRIPTION": "Description",
                 "REQUESTER": "Requester",
+                "PIC_HELPDESK": "PIC Helpdesk",
                 "ASSIGNED_TO": "Assigned To",
                 "PRIORITY": "Priority",
                 "STATUS": "Status",
-                "DATE": "Date",
+                "DATE": "Created Date",
                 "ACTION": "Action"
             },
             "EMPTY": "No tickets found",
@@ -289,11 +298,124 @@
             "NO_TICKETS_FOUND": "No Tickets Found",
             "NO_TICKETS_DESC": "There are no tickets to display at the moment",
             "CANCEL_CONFIRM_TITLE": "Cancel Ticket",
-            "CANCEL_CONFIRM_MESSAGE": "Are you sure you want to cancel this ticket? This action cannot be undone."
+            "CANCEL_CONFIRM_MESSAGE": "Are you sure you want to cancel this ticket? This action cannot be undone.",
+            "REOPEN_CONFIRM_TITLE": "Reopen Ticket",
+            "REOPEN_CONFIRM_MESSAGE": "Are you sure you want to reopen ticket \"{{subject}}\"?",
+            "REOPENED_SUCCESS": "Ticket reopened successfully",
+            "REOPEN_FAILED": "Failed to reopen ticket"
         },
         "CONFIRM": {
             "DELETE_TITLE": "Delete Ticket",
             "DELETE_MESSAGE": "Are you sure you want to delete this ticket?"
+        },
+        "DIALOGS": {
+            "START_PROCESS": {
+                "TITLE": "Start Process",
+                "DESCRIPTION": "Please specify the start date and optionally the expected completion date for this ticket.",
+                "START_DATE": "Start Date",
+                "START_DATE_REQUIRED": "Start date is required",
+                "END_DATE": "Expected Completion Date",
+                "END_DATE_HINT": "Leave empty if completion date is not yet determined",
+                "OPTIONAL": "Optional",
+                "CANCEL": "Cancel",
+                "START": "Start Process"
+            }
+        }
+    },
+    
+    "USER_MANAGEMENT": {
+        "TITLE": "User Management",
+        "SUBTITLE": "Manage and filter your users",
+        "BREADCRUMB": {
+            "DASHBOARD": "Dashboard",
+            "MASTER_DATA": "Master Data",
+            "USER": "User"
+        },
+        "BUTTONS": {
+            "FILTER": "Filter",
+            "RESET": "Reset",
+            "SYNC_HRIS": "Sync HRIS",
+            "SYNCING": "Syncing...",
+            "EXPORT": "Export",
+            "EXPORTING": "Exporting...",
+            "ADD_USER": "Add User",
+            "EDIT": "Edit",
+            "DELETE": "Delete",
+            "SAVE": "Save",
+            "CANCEL": "Cancel"
+        },
+        "FILTERS": {
+            "SEARCH": "Search",
+            "SEARCH_PLACEHOLDER": "Search users...",
+            "STATUS": "Status",
+            "ALL_STATUS": "All Status",
+            "ACTIVE": "Active",
+            "INACTIVE": "Inactive"
+        },
+        "TABLE": {
+            "COLUMNS": {
+                "NO": "No",
+                "USER": "User",
+                "ROLE": "Role",
+                "DEPARTMENT": "Department",
+                "STATUS": "Status",
+                "LAST_LOGIN": "Last Login",
+                "ACTION": "Action"
+            },
+            "EMPTY": "No Data Found",
+            "EMPTY_DESC": "User data is not yet available or not found from the selected filter.",
+            "SHOWING": "Showing",
+            "TO": "to",
+            "OF": "of",
+            "ENTRIES": "entries"
+        },
+        "CARD": {
+            "DEPARTMENT": "Department",
+            "LAST_LOGIN": "Last Login",
+            "NEVER": "Never"
+        },
+        "DIALOG": {
+            "ADD_TITLE": "Add User",
+            "EDIT_TITLE": "Edit User",
+            "EMPLOYEE": "Employee",
+            "EMPLOYEE_PLACEHOLDER": "Select employee...",
+            "SEARCH_EMPLOYEE": "Search employee name or email...",
+            "NO_EMPLOYEE": "No employee found",
+            "LOADING": "Loading...",
+            "ROLE": "Role",
+            "ROLE_PLACEHOLDER": "Select role",
+            "DEPARTMENT": "Department",
+            "DEPARTMENT_PLACEHOLDER": "Select department",
+            "STATUS": "Status",
+            "STATUS_PLACEHOLDER": "Select status",
+            "SAVE": "Save",
+            "CANCEL": "Cancel"
+        },
+        "ROLES": {
+            "USER": "User",
+            "AGENT": "Agent",
+            "TECHNICAL": "Technical",
+            "ADMIN": "Admin",
+            "MANAGER": "Manager"
+        },
+        "STATUS": {
+            "ACTIVE": "Active",
+            "INACTIVE": "Inactive"
+        },
+        "MESSAGES": {
+            "USER_CREATED": "User successfully created",
+            "USER_UPDATED": "User successfully updated",
+            "USER_DELETED": "User successfully deleted",
+            "SYNC_SUCCESS": "Successfully synced {count} users from HRIS",
+            "SYNC_FAILED": "Failed to sync data from HRIS",
+            "TOKEN_NOT_FOUND": "HRIS token not found. Please login again.",
+            "DELETE_CONFIRM_TITLE": "Delete User",
+            "DELETE_CONFIRM_MESSAGE": "Are you sure you want to delete <strong>{name}</strong>? This action cannot be undone.",
+            "DELETE_CONFIRM_BUTTON": "Delete",
+            "SYNC_CONFIRM_TITLE": "Sync Data from HRIS",
+            "SYNC_CONFIRM_MESSAGE": "Are you sure you want to sync user data from HRIS? This process will update name, email, phone number, division, and position for all registered users.",
+            "SYNC_CONFIRM_BUTTON": "Sync",
+            "CANCEL_BUTTON": "Cancel"
         }
     },
     

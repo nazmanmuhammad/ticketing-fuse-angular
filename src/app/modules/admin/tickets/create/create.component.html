@@ -298,28 +298,74 @@
                             <label class="text-secondary mb-1.5 block text-xs font-medium">
                                 {{ 'TICKETS.FORM.FIELDS.TICKET_SOURCE' | transloco }} <span class="text-red-500">*</span>
                             </label>
-                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                                <mat-select formControlName="ticketSource" [placeholder]="'TICKETS.FORM.FIELDS.TICKET_SOURCE' | transloco">
-                                    <mat-option value="">{{ 'TICKETS.FORM.FIELDS.TICKET_SOURCE' | transloco }}</mat-option>
-                                    <mat-option value="Email">{{ 'TICKETS.SOURCES.EMAIL' | transloco }}</mat-option>
-                                    <mat-option value="Phone">{{ 'TICKETS.SOURCES.PHONE' | transloco }}</mat-option>
-                                    <mat-option value="Web Portal">{{ 'TICKETS.SOURCES.WEB_PORTAL' | transloco }}</mat-option>
-                                    <mat-option value="Walk-in">{{ 'TICKETS.SOURCES.WALK_IN' | transloco }}</mat-option>
-                                </mat-select>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic" floatLabel="never">
+                                <input 
+                                    matInput 
+                                    [formControl]="ticketSourceInput" 
+                                    [matAutocomplete]="ticketSourceAuto"
+                                    [placeholder]="'TICKETS.FORM.FIELDS.TICKET_SOURCE' | transloco" />
+                                
+                                <span matSuffix *ngIf="isLoadingTicketSources" class="mr-2 flex items-center">
+                                    <svg class="h-4 w-4 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </span>
+
+                                <mat-autocomplete #ticketSourceAuto="matAutocomplete" (optionSelected)="onTicketSourceSelected($event.option.value)">
+                                    <mat-option *ngIf="!isLoadingTicketSources && getFilteredTicketSources().length === 0" disabled>
+                                        <span class="text-sm text-gray-400">No ticket sources found</span>
+                                    </mat-option>
+                                    <mat-option *ngFor="let source of getFilteredTicketSources()" [value]="source.isAddNew ? source.id : source.name">
+                                        <div class="flex items-center gap-2 py-1">
+                                            <svg *ngIf="source.isAddNew" class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            <svg *ngIf="!source.isAddNew" class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            <span [ngClass]="source.isAddNew ? 'text-green-600 font-medium' : 'text-gray-800'">{{ source.name }}</span>
+                                        </div>
+                                    </mat-option>
+                                </mat-autocomplete>
                             </mat-form-field>
+                            <p *ngIf="form.get('ticketSource')?.invalid && form.get('ticketSource')?.touched" class="mt-1 text-xs text-red-500">
+                                Ticket source is required
+                            </p>
                         </div>
                         <!-- Help Topic -->
                         <div class="relative">
                             <label class="text-secondary mb-1.5 block text-xs font-medium">{{ 'TICKETS.FORM.FIELDS.HELP_TOPIC' | transloco }}</label>
-                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic">
-                                <mat-select formControlName="helpTopic" [placeholder]="'TICKETS.FORM.FIELDS.HELP_TOPIC' | transloco">
-                                    <mat-option value="">{{ 'TICKETS.FORM.FIELDS.HELP_TOPIC' | transloco }}</mat-option>
-                                    <mat-option value="General Inquiry">{{ 'TICKETS.HELP_TOPICS.GENERAL' | transloco }}</mat-option>
-                                    <mat-option value="Technical Support">{{ 'TICKETS.HELP_TOPICS.TECHNICAL' | transloco }}</mat-option>
-                                    <mat-option value="Billing">{{ 'TICKETS.HELP_TOPICS.BILLING' | transloco }}</mat-option>
-                                    <mat-option value="Sales">{{ 'TICKETS.HELP_TOPICS.SALES' | transloco }}</mat-option>
-                                    <mat-option value="Other">{{ 'TICKETS.HELP_TOPICS.OTHER' | transloco }}</mat-option>
-                                </mat-select>
+                            <mat-form-field appearance="outline" class="w-full" subscriptSizing="dynamic" floatLabel="never">
+                                <input 
+                                    matInput 
+                                    [formControl]="helpTopicInput" 
+                                    [matAutocomplete]="helpTopicAuto"
+                                    [placeholder]="'TICKETS.FORM.FIELDS.HELP_TOPIC' | transloco" />
+                                
+                                <span matSuffix *ngIf="isLoadingHelpTopics" class="mr-2 flex items-center">
+                                    <svg class="h-4 w-4 animate-spin text-indigo-500" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
+                                </span>
+
+                                <mat-autocomplete #helpTopicAuto="matAutocomplete" (optionSelected)="onHelpTopicSelected($event.option.value)">
+                                    <mat-option *ngIf="!isLoadingHelpTopics && getFilteredHelpTopics().length === 0" disabled>
+                                        <span class="text-sm text-gray-400">No help topics found</span>
+                                    </mat-option>
+                                    <mat-option *ngFor="let topic of getFilteredHelpTopics()" [value]="topic.isAddNew ? topic.id : topic.name">
+                                        <div class="flex items-center gap-2 py-1">
+                                            <svg *ngIf="topic.isAddNew" class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                            </svg>
+                                            <svg *ngIf="!topic.isAddNew" class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span [ngClass]="topic.isAddNew ? 'text-green-600 font-medium' : 'text-gray-800'">{{ topic.name }}</span>
+                                        </div>
+                                    </mat-option>
+                                </mat-autocomplete>
                             </mat-form-field>
                         </div>
                     </div>

@@ -18,7 +18,7 @@ export class AuthService {
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
         (globalThis as any)?.API_URL ||
-        'https://ticket-api.siglab.site/api';
+        'http://127.0.0.1:9010/api';
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors
