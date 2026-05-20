@@ -12,6 +12,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatOptionModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { TranslocoModule, TranslocoService } from '@jsverse/transloco';
 import { UserService } from 'app/core/user/user.service';
@@ -31,6 +32,7 @@ import { ConfirmationDialogService } from 'app/core/services/confirmation-dialog
         MatInputModule, 
         MatSelectModule, 
         MatOptionModule,
+        MatTooltipModule,
         TranslocoModule
     ],
     templateUrl: './request.component.html',
@@ -489,13 +491,13 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
     }
 
     getAssignedAvatar(request: AccessRequest): string | null {
-        if (request.assign_type === 'member' && request.assignedUser?.photo) {
+        if (request.assign_status === 'member' && request.pic_technical?.photo) {
             const photoBase = this.getPhotoBaseUrl();
-            const photoUrl = `${photoBase}/assets/img/user/${request.assignedUser.photo}`;
+            const photoUrl = `${photoBase}/assets/img/user/${request.pic_technical.photo}`;
             console.log('Assigned user photo URL:', photoUrl);
             return photoUrl;
         }
-        console.log('No assigned user photo for request:', request.request_number, 'assignedUser:', request.assignedUser);
+        console.log('No assigned user photo for request:', request.request_number, 'pic_technical:', request.pic_technical);
         return null;
     }
 

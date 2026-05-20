@@ -12,7 +12,7 @@ class AccessLevel extends Model
     use HasFactory, Uuid;
 
     public $incrementing = false;
-    protected $keyType = 'string';
+    protected $keyType = "uuid";
 
     protected $fillable = [
         'request_type_id',

@@ -15,13 +15,16 @@ class TicketCreatedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public string $recipientName;
+
     /**
      * Create a new message instance.
      */
     public function __construct(
-        public Ticket $ticket
+        public Ticket $ticket,
+        ?string $recipientName = null
     ) {
-        //
+        $this->recipientName = $recipientName ?? $ticket->name ?? 'User';
     }
 
     /**
@@ -39,8 +42,15 @@ class TicketCreatedMail extends Mailable
      */
     public function content(): Content
     {
+        $appSettings = \App\Models\AppSetting::first();
+        
         return new Content(
             view: 'emails.ticket-created',
+            with: [
+                'ticket' => $this->ticket,
+                'recipientName' => $this->recipientName,
+                'appSettings' => $appSettings,
+            ],
         );
     }
 

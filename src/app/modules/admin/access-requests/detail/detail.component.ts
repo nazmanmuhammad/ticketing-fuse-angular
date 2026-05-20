@@ -187,11 +187,11 @@ export class AccessRequestDetailComponent implements OnInit, AfterViewInit {
                             this.createdByUser = createdTrack.user?.name || 'Unknown';
                             this.createdAt = createdTrack.created_at;
                         } else {
-                            this.createdByUser = this.accessRequest.full_name || 'Unknown';
+                            this.createdByUser = this.accessRequest.name || 'Unknown';
                             this.createdAt = this.accessRequest.created_at;
                         }
                     } else {
-                        this.createdByUser = this.accessRequest.full_name || 'Unknown';
+                        this.createdByUser = this.accessRequest.name || 'Unknown';
                         this.createdAt = this.accessRequest.created_at;
                     }
 

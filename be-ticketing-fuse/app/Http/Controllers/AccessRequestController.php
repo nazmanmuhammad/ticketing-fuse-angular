@@ -19,8 +19,9 @@ class AccessRequestController extends Controller
     {
         $query = AccessRequest::with([
             'requester',
-            'assignedUser',
-            'assignedTeam',
+            'picTechnical',
+            'picHelpdesk',
+            'team',
             'approval.items.user',
             'department'
         ]);
@@ -30,7 +31,7 @@ class AccessRequestController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('request_number', 'like', "%{$search}%")
-                  ->orWhere('full_name', 'like', "%{$search}%")
+                  ->orWhere('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('resource_name', 'like', "%{$search}%");
             });
@@ -49,8 +50,8 @@ class AccessRequestController extends Controller
         // Filter by assigned user
         if ($request->has('assigned_to') && $request->assigned_to) {
             $query->where(function ($q) use ($request) {
-                $q->where('assign_to_user_id', $request->assigned_to)
-                  ->orWhere('assign_to_team_id', $request->assigned_to);
+                $q->where('pic_technical_id', $request->assigned_to)
+                  ->orWhere('team_id', $request->assigned_to);
             });
         }
 
@@ -83,8 +84,9 @@ class AccessRequestController extends Controller
     {
         $accessRequest = AccessRequest::with([
             'requester',
-            'assignedUser',
-            'assignedTeam',
+            'picTechnical',
+            'picHelpdesk',
+            'team',
             'tracks.user',
             'approval.items.user',
             'attachments',
@@ -118,24 +120,22 @@ class AccessRequestController extends Controller
             'requester_type' => 'nullable|in:select_employee,by_input',
             'requester_id' => 'nullable|integer',
             'requester_photo' => 'nullable|string',
-            'full_name' => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:50',
+            'phone_number' => 'nullable|string|max:50',
             'extension_number' => 'nullable|string|max:20',
             'department_id' => 'required|exists:departments,id',
             'resource_name' => 'required|string|max:255',
-            'request_type' => 'required',
-            'access_level' => 'required',
+            'request_type' => 'required|string|max:255',
+            'access_level' => 'required|string|max:255',
             'reason' => 'required|string',
             'duration_type' => 'required|in:Temporary Access,Permanent Access',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'assign_type' => 'nullable|in:member,team',
-            'assign_to_user_id' => 'nullable|exists:users,id',
-            'assign_to_team_id' => 'nullable|exists:teams,id',
+            'assign_status' => 'nullable|in:member,team',
+            'pic_technical_id' => 'nullable|exists:users,id',
+            'team_id' => 'nullable|exists:teams,id',
             'priority' => 'nullable|integer|min:0|max:3',
-            'notify_requester' => 'nullable|boolean',
-            'require_manager_approval' => 'nullable|boolean',
             'approval_required' => 'nullable|in:0,1,true,false',
             'approver_ids' => 'nullable|json',
             'created_by' => 'required|exists:users,id', 
@@ -178,9 +178,9 @@ class AccessRequestController extends Controller
             // Create access request
             $accessRequest = AccessRequest::create([
                 'requester_id' => $requesterUser->id,
-                'full_name' => $request->full_name,
+                'name' => $request->name,
                 'email' => $request->email,
-                'phone' => $request->phone,
+                'phone_number' => $request->phone_number,
                 'department_id' => $request->department_id,
                 'resource_name' => $request->resource_name,
                 'request_type' => $request->request_type,
@@ -189,15 +189,12 @@ class AccessRequestController extends Controller
                 'duration_type' => $request->duration_type,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
-                'assign_type' => $request->assign_type ?? 'member',
-                'assign_to_user_id' => $request->assign_to_user_id,
-                'assign_to_team_id' => $request->assign_to_team_id,
+                'assign_status' => $request->assign_status ?? 'member',
+                'pic_technical_id' => $request->pic_technical_id,
+                'team_id' => $request->team_id,
                 'status' => 0, // Pending
                 'priority' => $request->priority,
-                'notify_requester' => $request->notify_requester ?? false,
-                'require_manager_approval' => $request->require_manager_approval ?? false,
                 'approval_required' => filter_var($request->approval_required, FILTER_VALIDATE_BOOLEAN),
-                'approver_ids' => $request->approver_ids ? json_decode($request->approver_ids, true) : null,
             ]);
 
             // Get user who is creating this access request (logged in user from request)
@@ -241,13 +238,16 @@ class AccessRequestController extends Controller
             // Load relationships
             $accessRequest->load([
                 'requester',
-                'assignedUser',
-                'assignedTeam',
+                'picTechnical',
+                'team',
                 'tracks.user',
                 'approval.items.user',
                 'attachments',
                 'department'
             ]);
+
+            // Dispatch email notification job
+            \App\Jobs\SendAccessRequestNotification::dispatch($accessRequest->id);
 
             return response()->json([
                 'status' => true,
@@ -282,9 +282,9 @@ class AccessRequestController extends Controller
             'requester_type' => 'nullable|in:select_employee,by_input',
             'requester_id' => 'nullable|integer',
             'requester_photo' => 'nullable|string',
-            'full_name' => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|max:255',
-            'phone' => 'nullable|string|max:50',
+            'phone_number' => 'nullable|string|max:50',
             'extension_number' => 'nullable|string|max:20',
             'department_id' => 'sometimes|exists:departments,id',
             'resource_name' => 'sometimes|string|max:255',
@@ -294,8 +294,8 @@ class AccessRequestController extends Controller
             'duration_type' => 'sometimes|in:Temporary Access,Permanent Access',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
-            'assign_to_user_id' => 'nullable|exists:users,id',
-            'assign_to_team_id' => 'nullable|exists:teams,id',
+            'pic_technical_id' => 'nullable|exists:users,id',
+            'team_id' => 'nullable|exists:teams,id',
             'priority' => 'nullable|integer|min:0|max:3',
             'status' => 'sometimes|integer|min:0|max:2',
             'updated_by' => 'required|exists:users,id', // User performing the update
@@ -365,8 +365,8 @@ class AccessRequestController extends Controller
             // Load relationships
             $accessRequest->load([
                 'requester',
-                'assignedUser',
-                'assignedTeam',
+                'picTechnical',
+                'team',
                 'tracks.user',
                 'approval.items.user',
                 'attachments',
@@ -484,8 +484,8 @@ class AccessRequestController extends Controller
         // Apply role-based filtering
         if ($request->role === 'agent' || $request->role === 'technical') {
             $query->where(function($q) use ($request) {
-                $q->where('assign_to_user_id', $request->user_id)
-                  ->orWhere('assign_to_team_id', $request->team_id);
+                $q->where('pic_technical_id', $request->user_id)
+                  ->orWhere('team_id', $request->team_id);
             });
         } elseif ($request->role === 'user') {
             $query->where('requester_id', $request->requester_id);
@@ -600,11 +600,26 @@ class AccessRequestController extends Controller
 
         // Get recent requests (last 10)
         $recentRequests = (clone $query)
-            ->with(['requester', 'assignedUser', 'assignedTeam'])
+            ->with(['requester', 'picTechnical', 'picHelpdesk', 'team'])
             ->orderBy('created_at', 'desc')
             ->limit(10)
             ->get()
             ->map(function($request) {
+                $assignedInfo = null;
+                if ($request->pic_technical_id && $request->picTechnical) {
+                    $assignedInfo = [
+                        'type' => 'member',
+                        'name' => $request->picTechnical->name,
+                        'email' => $request->picTechnical->email,
+                    ];
+                } elseif ($request->team_id && $request->team) {
+                    $assignedInfo = [
+                        'type' => 'team',
+                        'name' => $request->team->name,
+                        'description' => $request->team->description ?? '',
+                    ];
+                }
+                
                 return [
                     'id' => $request->id,
                     'request_number' => $request->request_number,
@@ -613,9 +628,24 @@ class AccessRequestController extends Controller
                         'name' => $request->requester->name,
                         'email' => $request->requester->email,
                     ] : [
-                        'name' => $request->full_name,
+                        'name' => $request->name,
                         'email' => $request->email,
                     ],
+                    'assigned' => $assignedInfo,
+                    'pic_technical' => $request->picTechnical ? [
+                        'id' => $request->picTechnical->id,
+                        'name' => $request->picTechnical->name,
+                        'email' => $request->picTechnical->email,
+                    ] : null,
+                    'pic_helpdesk' => $request->picHelpdesk ? [
+                        'id' => $request->picHelpdesk->id,
+                        'name' => $request->picHelpdesk->name,
+                        'email' => $request->picHelpdesk->email,
+                    ] : null,
+                    'team' => $request->team ? [
+                        'id' => $request->team->id,
+                        'name' => $request->team->name,
+                    ] : null,
                     'status' => $request->status,
                     'status_name' => $request->status_name,
                     'priority' => $request->priority,
@@ -709,8 +739,8 @@ class AccessRequestController extends Controller
         // Apply role-based filtering
         if ($request->role === 'agent' || $request->role === 'technical') {
             $query->where(function($q) use ($request) {
-                $q->where('assign_to_user_id', $request->user_id)
-                  ->orWhere('assign_to_team_id', $request->team_id);
+                $q->where('pic_technical_id', $request->user_id)
+                  ->orWhere('team_id', $request->team_id);
             });
         } elseif ($request->role === 'user') {
             $query->where('requester_id', $request->requester_id);

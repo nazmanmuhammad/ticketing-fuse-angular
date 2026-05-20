@@ -962,10 +962,13 @@ export class CreateComponent implements OnInit, OnDestroy {
         if (value && value.startsWith('__ADD_NEW__:')) {
             const newName = value.replace('__ADD_NEW__:', '').trim();
             if (newName) {
-                this.form.patchValue({ ticketSource: newName });
+                // Update both the input control and the form control
                 this.ticketSourceInput.setValue(newName, { emitEvent: false });
+                this.form.patchValue({ ticketSource: newName });
             }
         } else {
+            // Regular selection - update both controls
+            this.ticketSourceInput.setValue(value, { emitEvent: false });
             this.form.patchValue({ ticketSource: value });
         }
     }
@@ -1004,10 +1007,13 @@ export class CreateComponent implements OnInit, OnDestroy {
         if (value && value.startsWith('__ADD_NEW__:')) {
             const newName = value.replace('__ADD_NEW__:', '').trim();
             if (newName) {
-                this.form.patchValue({ helpTopic: newName });
+                // Update both the input control and the form control
                 this.helpTopicInput.setValue(newName, { emitEvent: false });
+                this.form.patchValue({ helpTopic: newName });
             }
         } else {
+            // Regular selection - update both controls
+            this.helpTopicInput.setValue(value, { emitEvent: false });
             this.form.patchValue({ helpTopic: value });
         }
     }

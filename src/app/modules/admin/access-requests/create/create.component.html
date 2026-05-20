@@ -440,11 +440,15 @@
                                     <mat-select
                                         formControlName="requestType"
                                         [placeholder]="'ACCESS_REQUESTS.FORM.REQUEST_TYPE_PLACEHOLDER' | transloco"
+                                        [disabled]="isLoadingRequestTypes"
                                     >
-                                        <mat-option [value]="" disabled>
-                                            {{ 'ACCESS_REQUESTS.FORM.REQUEST_TYPE_PLACEHOLDER' | transloco }}
+                                        <mat-option *ngIf="isLoadingRequestTypes" disabled>
+                                            <span class="text-sm text-gray-400">Loading request types...</span>
                                         </mat-option>
-                                        <mat-option *ngFor="let t of requestTypes" [value]="t.value">
+                                        <mat-option *ngIf="!isLoadingRequestTypes && requestTypes.length === 0" disabled>
+                                            <span class="text-sm text-gray-400">No request types available</span>
+                                        </mat-option>
+                                        <mat-option *ngFor="let t of requestTypes" [value]="t.id">
                                             {{ t.label }}
                                         </mat-option>
                                     </mat-select>
@@ -464,11 +468,18 @@
                                     <mat-select
                                         formControlName="accessLevel"
                                         [placeholder]="'ACCESS_REQUESTS.FORM.ACCESS_LEVEL_PLACEHOLDER' | transloco"
+                                        [disabled]="!form.get('requestType')?.value || isLoadingAccessLevels"
                                     >
-                                        <mat-option [value]="" disabled>
-                                            {{ 'ACCESS_REQUESTS.FORM.ACCESS_LEVEL_PLACEHOLDER' | transloco }}
+                                        <mat-option *ngIf="!form.get('requestType')?.value" disabled>
+                                            <span class="text-sm text-gray-400">Please select request type first</span>
                                         </mat-option>
-                                        <mat-option *ngFor="let l of accessLevels" [value]="l.value">
+                                        <mat-option *ngIf="form.get('requestType')?.value && isLoadingAccessLevels" disabled>
+                                            <span class="text-sm text-gray-400">Loading access levels...</span>
+                                        </mat-option>
+                                        <mat-option *ngIf="form.get('requestType')?.value && !isLoadingAccessLevels && accessLevels.length === 0" disabled>
+                                            <span class="text-sm text-gray-400">No access levels available for this request type</span>
+                                        </mat-option>
+                                        <mat-option *ngFor="let l of accessLevels" [value]="l.id">
                                             {{ l.label }}
                                         </mat-option>
                                     </mat-select>

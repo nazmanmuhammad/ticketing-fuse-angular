@@ -269,8 +269,8 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
         // Populate form
         this.form.patchValue({
             email: this.accessRequestData.email || '',
-            fullName: this.accessRequestData.full_name || '',
-            phone: this.accessRequestData.phone || '',
+            fullName: this.accessRequestData.name || '',
+            phone: this.accessRequestData.phone_number || '',
             department: this.accessRequestData.department_id || '',
             resourceName: this.accessRequestData.resource_name || '',
             requestType: this.accessRequestData.request_type || '',
@@ -946,9 +946,9 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
                 updated_by: this.currentUser.id, // User who is updating
                 requester_type: requesterType,
                 requester_id: requesterId,
-                full_name: formValue.fullName,
+                name: formValue.fullName,
                 email: formValue.email,
-                phone: formValue.phone,
+                phone_number: formValue.phone,
                 extension_number: formValue.extensionNumber,
                 department_id: formValue.department,
                 resource_name: formValue.resourceName,
@@ -958,9 +958,9 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
                 duration_type: formValue.durationType.value || formValue.durationType,
                 start_date: formValue.startDate,
                 end_date: formValue.endDate,
-                assign_type: formValue.assignType,
-                assign_to_user_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
-                assign_to_team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
+                assign_status: formValue.assignType,
+                pic_technical_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
+                team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
                 priority: priorityValue,
             };
 

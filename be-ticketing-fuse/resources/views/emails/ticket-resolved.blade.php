@@ -1,129 +1,162 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tiket Terselesaikan</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5; padding: 20px; line-height: 1.6; }
-        .container { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); padding: 40px 30px; color: #fff; }
-        .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .logo-icon { width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .logo-text { font-size: 18px; font-weight: 600; letter-spacing: 0.5px; }
-        .title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
-        .subtitle { font-size: 14px; opacity: 0.9; }
-        .content { padding: 30px; }
-        .greeting { font-size: 15px; color: #4b5563; margin-bottom: 25px; line-height: 1.6; }
-        .greeting strong { color: #1f2937; font-weight: 600; }
-        .success-badge { background: #d1fae5; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin-bottom: 25px; text-align: center; }
-        .success-icon { font-size: 48px; margin-bottom: 12px; }
-        .success-text { font-size: 18px; font-weight: 700; color: #059669; margin-bottom: 4px; }
-        .success-desc { font-size: 13px; color: #6b7280; }
-        .info-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden; margin-bottom: 25px; }
-        .info-header { background: #059669; color: #fff; padding: 12px 20px; font-weight: 600; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; justify-content: space-between; align-items: center; }
-        .info-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-        .info-content { padding: 20px; }
-        .info-row { display: flex; padding: 12px 0; border-bottom: 1px solid #e5e7eb; }
-        .info-row:last-child { border-bottom: none; }
-        .info-label { flex: 0 0 140px; font-size: 13px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 500; }
-        .info-value { flex: 1; font-size: 14px; color: #1f2937; font-weight: 500; }
-        .highlight { color: #059669; font-weight: 600; }
-        .user-badge { display: inline-flex; align-items: center; gap: 8px; }
-        .avatar { width: 28px; height: 28px; background: #10b981; color: #fff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
-        .user-name { font-weight: 600; color: #1f2937; }
-        .user-dept { font-size: 12px; color: #6b7280; display: block; }
-        .desc-box { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 25px; }
-        .desc-title { font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 10px; font-weight: 600; }
-        .desc-text { font-size: 14px; color: #4b5563; line-height: 1.7; }
-        .btn { display: inline-block; background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: #fff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 10px 0 25px 0; box-shadow: 0 4px 6px rgba(5,150,105,0.2); }
-        .footer { background: #f9fafb; padding: 25px 30px; text-align: center; border-top: 1px solid #e5e7eb; }
-        .footer-text { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
-        .footer-link { color: #10b981; text-decoration: none; font-weight: 500; }
-        .footer-brand { margin-top: 15px; font-size: 12px; color: #9ca3af; }
-    </style>
+    <title>Ticket Resolved</title>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">
-                <div class="logo-icon">✚</div>
-                <div class="logo-text">Ticketing System</div>
-            </div>
-            <div class="title">Tiket telah diselesaikan</div>
-            <div class="subtitle">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMMM YYYY') }} - dikirim otomatis oleh sistem</div>
-        </div>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <!-- Header with Bubbles -->
+                    <tr>
+                        <td style="background-color: #0E0F6B; padding: 40px 30px; color: #ffffff; position: relative; overflow: hidden;">
+                            <!-- Decorative Bubbles -->
+                            <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background-color: rgba(255,255,255,0.05); border-radius: 50%;"></div>
+                            <div style="position: absolute; top: 50px; right: 100px; width: 150px; height: 150px; background-color: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+                            <div style="position: absolute; bottom: -30px; right: 50px; width: 100px; height: 100px; background-color: rgba(255,255,255,0.06); border-radius: 50%;"></div>
+                            
+                            <table width="100%" cellpadding="0" cellspacing="0" style="position: relative; z-index: 1;">
+                                <tr>
+                                    <td>
+                                        <img src="{{ asset('logo/helpdesk-logo-white.png') }}" alt="{{ $appSettings->app_name ?? 'Helpdesk' }}" style="height: 40px; display: block; margin-bottom: 20px;" />
+                                        <h1 style="margin: 20px 0 8px 0; font-size: 24px; font-weight: 700;">Ticket has been resolved</h1>
+                                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">{{ \Carbon\Carbon::now()->format('l, d F Y') }} - sent automatically by system</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
 
-        <div class="content">
-            <p class="greeting">
-                Halo <strong>{{ $recipientName }}</strong>, tiket Anda telah diselesaikan oleh tim kami. Terima kasih atas kesabaran Anda.
-            </p>
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 30px;">
+                            <p style="margin: 0 0 25px 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
+                                Hello <strong style="color: #1f2937;">{{ $recipientName }}</strong>, your ticket has been resolved by our team. Thank you for your patience.
+                            </p>
 
-            <div class="success-badge">
-                <div class="success-icon">✓</div>
-                <div class="success-text">Tiket Terselesaikan</div>
-                <div class="success-desc">Masalah Anda telah ditangani dengan baik</div>
-            </div>
+                            <!-- Success Badge -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #d1fae5; border: 2px solid #10b981; border-radius: 8px; margin-bottom: 25px;">
+                                <tr>
+                                    <td align="center" style="padding: 20px;">
+                                        <div style="font-size: 48px; margin-bottom: 12px;">✓</div>
+                                        <div style="font-size: 18px; font-weight: 700; color: #059669; margin-bottom: 4px;">Ticket Resolved</div>
+                                        <div style="font-size: 13px; color: #6b7280;">Your issue has been handled successfully</div>
+                                    </td>
+                                </tr>
+                            </table>
 
-            <div class="info-box">
-                <div class="info-header">
-                    <span>INFORMASI TIKET</span>
-                    <span class="info-badge">RESOLVED</span>
-                </div>
-                <div class="info-content">
-                    <div class="info-row">
-                        <div class="info-label">NO. TIKET</div>
-                        <div class="info-value highlight">#{{ $ticket->ticket_number }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">NAMA TUGAS</div>
-                        <div class="info-value">{{ $ticket->subject_issue }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">DITANGANI OLEH</div>
-                        <div class="info-value">
-                            <div class="user-badge">
-                                <div class="avatar">{{ $ticket->pic_technical ? strtoupper(substr($ticket->pic_technical->name, 0, 2)) : 'TM' }}</div>
-                                <div>
-                                    <span class="user-name">{{ $ticket->pic_technical->name ?? 'Tim Support' }}</span>
-                                    <span class="user-dept">{{ $ticket->pic_technical->division ?? 'Technical Support' }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">KATEGORI</div>
-                        <div class="info-value">{{ $ticket->help_topic ?? 'General' }}</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">DIBUAT</div>
-                        <div class="info-value">{{ \Carbon\Carbon::parse($ticket->created_at)->locale('id')->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-label">DISELESAIKAN</div>
-                        <div class="info-value highlight">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('D MMMM YYYY, HH:mm') }} WIB</div>
-                    </div>
-                </div>
-            </div>
+                            <!-- Info Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 25px; overflow: hidden;">
+                                <tr>
+                                    <td style="background-color: #0E0F6B; color: #ffffff; padding: 12px 20px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="font-weight: 600; font-size: 13px; text-transform: uppercase;">TICKET INFORMATION</td>
+                                                <td align="right">
+                                                    <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block;">RESOLVED</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table width="100%" cellpadding="12" cellspacing="0">
+                                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">TICKET NO.</td>
+                                                <td style="font-size: 14px; color: #0E0F6B; font-weight: 600;">#{{ $ticket->ticket_number }}</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">TASK NAME</td>
+                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket->subject_issue }}</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">HANDLED BY</td>
+                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="padding-right: 8px; vertical-align: middle;">
+                                                                <div style="width: 28px; height: 28px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">
+                                                                    {{ strtoupper(substr($ticket->pic_technical->name ?? 'Support', 0, 2)) }}
+                                                                </div>
+                                                            </td>
+                                                            <td style="vertical-align: middle;">
+                                                                <div style="font-weight: 600; color: #1f2937;">{{ $ticket->pic_technical->name ?? 'Support Team' }}</div>
+                                                                <div style="font-size: 12px; color: #6b7280;">{{ $ticket->pic_technical->division ?? 'Technical Support' }}</div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">CATEGORY</td>
+                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket->help_topic ?? 'General' }}</td>
+                                            </tr>
+                                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">CREATED</td>
+                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ \Carbon\Carbon::parse($ticket->created_at)->format('d F Y, H:i') }} WIB</td>
+                                            </tr>
+                                            <tr>
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">RESOLVED</td>
+                                                <td style="font-size: 14px; color: #059669; font-weight: 600;">{{ \Carbon\Carbon::now()->format('d F Y, H:i') }} WIB</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
 
-            @if($ticket->response)
-            <div class="desc-box">
-                <div class="desc-title">SOLUSI / RESPON</div>
-                <div class="desc-text">{{ $ticket->response }}</div>
-            </div>
-            @endif
+                            @if($ticket->response)
+                            <!-- Description Box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border-radius: 6px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 16px;">
+                                        <p style="margin: 0 0 10px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; font-weight: 600;">SOLUTION / RESPONSE</p>
+                                        <p style="margin: 0; font-size: 14px; color: #4b5563; line-height: 1.7;">{{ $ticket->response }}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            @endif
 
-            <center>
-                <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" class="btn">Lihat Detail Tiket →</a>
-            </center>
-        </div>
+                            <!-- Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 10px 0 25px 0;">
+                                        <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" style="display: inline-block; background-color: #0E0F6B; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px;">View Ticket Details →</a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
 
-        <div class="footer">
-            <p class="footer-text">Email ini dikirim otomatis oleh sistem. Tidak membalas langsung.</p>
-            <p class="footer-text">Butuh bantuan? Hubungi <a href="mailto:support@ticketing.id" class="footer-link">support@ticketing.id</a></p>
-            <p class="footer-brand">© {{ date('Y') }} Ticketing System</p>
-        </div>
-    </div>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #0E0F6B; padding: 40px 30px; color: #ffffff;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding-bottom: 25px;">
+                                        <img src="{{ asset('logo/logo-sig.png') }}" alt="SIG Logo" style="height: 60px; display: block; margin: 0 auto;" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 25px; text-align: center;">
+                                        <p style="margin: 0 0 8px 0; font-size: 14px; color: rgba(255,255,255,0.9); font-weight: 500;">{{ $appSettings->app_title ?? 'SIG Helpdesk' }}</p>
+                                        <p style="margin: 0 0 15px 0; font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6;">Streamline your support workflow with our comprehensive ticketing solution.<br/>Manage, track, and resolve issues efficiently.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-top: 15px; text-align: center;">
+                                        <p style="margin: 0; font-size: 11px; color: rgba(255,255,255,0.5);">© {{ date('Y') }} {{ $appSettings->app_title ?? 'SIG Helpdesk' }}. All Rights Reserved.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>

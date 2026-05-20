@@ -15,37 +15,39 @@ class AccessRequest extends Model
 
     protected $fillable = [
         'request_number',
+        'requester_type',
         'requester_id',
-        'full_name',
+        'name', // Changed from full_name
         'email',
-        'phone',
+        'phone_number', // Changed from phone
         'department_id',
         'extension_number',
         'resource_name',
-        'request_type',
-        'access_level',
+        'request_type', // Changed to string (free text)
+        'access_level', // Changed to string (free text)
         'reason',
         'duration_type',
         'start_date',
         'end_date',
-        'assign_type',
-        'assign_to_user_id',
-        'assign_to_team_id',
+        'assign_status', // Changed from assign_type
+        'team_id', // Changed from assign_to_team_id
+        'pic_technical_id', // Changed from assign_to_user_id
+        'pic_helpdesk_id', // Added
         'status',
         'priority',
-        'notify_requester',
-        'require_manager_approval',
+        'response', // Added
+        'internal_note', // Added
+        'mark_internal', // Added
         'approval_required',
-        'approver_ids',
+        'close_on_response', // Added
     ];
 
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'notify_requester' => 'boolean',
-        'require_manager_approval' => 'boolean',
         'approval_required' => 'boolean',
-        'approver_ids' => 'array',
+        'close_on_response' => 'boolean',
+        'mark_internal' => 'boolean',
         'status' => 'integer',
         'priority' => 'integer',
     ];
@@ -130,19 +132,51 @@ class AccessRequest extends Model
     }
 
     /**
-     * Get assigned user (if assigned to member)
+     * Get PIC Technical (assigned user)
      */
-    public function assignedUser()
+    public function picTechnical()
     {
-        return $this->belongsTo(User::class, 'assign_to_user_id');
+        return $this->belongsTo(User::class, 'pic_technical_id');
     }
 
     /**
-     * Get assigned team (if assigned to team)
+     * Get PIC Helpdesk
+     */
+    public function picHelpdesk()
+    {
+        return $this->belongsTo(User::class, 'pic_helpdesk_id');
+    }
+
+    /**
+     * Get assigned team
+     */
+    public function team()
+    {
+        return $this->belongsTo(Team::class, 'team_id');
+    }
+
+    /**
+     * Get department
+     */
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Get assigned user (alias for picTechnical - for backward compatibility)
+     */
+    public function assignedUser()
+    {
+        return $this->picTechnical();
+    }
+
+    /**
+     * Get assigned team (alias for team - for backward compatibility)
      */
     public function assignedTeam()
     {
-        return $this->belongsTo(Team::class, 'assign_to_team_id');
+        return $this->team();
     }
 
     /**
@@ -178,10 +212,5 @@ class AccessRequest extends Model
             ->whereNull('parent_id')
             ->with(['user', 'attachments', 'replies.user', 'replies.attachments'])
             ->orderBy('created_at', 'desc');
-    }
-
-    public function department()
-    {
-        return $this->belongsTo(Department::class);
     }
 }

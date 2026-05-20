@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Department extends Model
 {
-use SoftDeletes, Uuid;
-    //
+    use SoftDeletes, Uuid;
+    
     public $incrementing = false;
     protected $keyType = "uuid";
 
@@ -19,6 +19,20 @@ use SoftDeletes, Uuid;
         'status',
         'head_id'
     ];
+
+    /**
+     * Boot the model
+     */
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            if (empty($model->id)) {
+                $model->id = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
 
     public function users()
     {

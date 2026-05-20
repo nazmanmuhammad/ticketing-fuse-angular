@@ -76,6 +76,9 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
     isLoadingDepartments = false;
     requestTypes: any[] = [];
     accessLevels: any[] = [];
+    allAccessLevels: any[] = []; // Store all access levels
+    isLoadingRequestTypes = false;
+    isLoadingAccessLevels = false;
     durationTypes: any[] = [];
 
     // Assignment data from API
@@ -158,8 +161,6 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
 
             closeOnResponse: [false],
             approvalRequired: [false],
-            notifyRequester: [false],
-            requireManagerApproval: [false],
         });
         this.updateAssignOptions();
 
@@ -214,6 +215,22 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
 
         // Load departments from API
         this._loadDepartments();
+        
+        // Load request types from API
+        this._loadRequestTypes();
+        
+        // Watch for request type changes to load dependent access levels
+        this.form.get('requestType')?.valueChanges
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((requestTypeId) => {
+                if (requestTypeId) {
+                    this._loadAccessLevelsByRequestType(requestTypeId);
+                } else {
+                    this.accessLevels = [];
+                }
+                // Reset access level when request type changes
+                this.form.patchValue({ accessLevel: '' });
+            });
     }
 
     ngOnDestroy(): void {
@@ -651,18 +668,8 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
             { value: 'Critical', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.PRIORITY_CRITICAL') }
         ];
 
-        this.requestTypes = [
-            { value: 'New Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_NEW') },
-            { value: 'Change Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_CHANGE') },
-            { value: 'Revoke Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.TYPE_REVOKE') }
-        ];
-
-        this.accessLevels = [
-            { value: 'Viewer', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_VIEWER') },
-            { value: 'Standard User', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_STANDARD') },
-            { value: 'Editor', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_EDITOR') },
-            { value: 'Admin Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.LEVEL_ADMIN') }
-        ];
+        // Request types and access levels now loaded from API
+        // this.requestTypes and this.accessLevels are populated by API calls
 
         this.durationTypes = [
             { value: 'Temporary Access', label: this.translocoService.translate('ACCESS_REQUESTS.FORM.DURATION_TEMPORARY') },
@@ -692,6 +699,73 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                         id: dept.id,
                         name: dept.name
                     }));
+                }
+            });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load request types from API
+    // ─────────────────────────────────────────────────────────────
+    private _loadRequestTypes(): void {
+        this.isLoadingRequestTypes = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/request-types?per_page=100&status=1`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading request types:', error);
+                    this._snackbar.error('Failed to load request types');
+                    return of({ data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingRequestTypes = false;
+                })
+            )
+            .subscribe((response) => {
+                console.log('Request Types Response:', response);
+                if (response && response.data) {
+                    this.requestTypes = response.data.map((type: any) => ({
+                        id: type.id,
+                        value: type.id, // Use ID as value for dependent dropdown
+                        label: type.name,
+                        name: type.name
+                    }));
+                    console.log('Mapped Request Types:', this.requestTypes);
+                }
+            });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Load access levels by request type from API
+    // ─────────────────────────────────────────────────────────────
+    private _loadAccessLevelsByRequestType(requestTypeId: string): void {
+        if (!requestTypeId) {
+            this.accessLevels = [];
+            return;
+        }
+
+        this.isLoadingAccessLevels = true;
+        this._httpClient.get<any>(`${this.backendApiUrl}/access-levels/by-request-type/${requestTypeId}`)
+            .pipe(
+                catchError((error) => {
+                    console.error('Error loading access levels:', error);
+                    this._snackbar.error('Failed to load access levels');
+                    return of({ data: [] });
+                }),
+                finalize(() => {
+                    this.isLoadingAccessLevels = false;
+                })
+            )
+            .subscribe((response) => {
+                console.log('Access Levels Response:', response);
+                if (response && response.data) {
+                    this.accessLevels = response.data.map((level: any) => ({
+                        id: level.id,
+                        value: level.id, // Use ID as value
+                        label: level.name,
+                        name: level.name
+                    }));
+                    console.log('Mapped Access Levels:', this.accessLevels);
+                } else {
+                    this.accessLevels = [];
                 }
             });
     }
@@ -839,9 +913,9 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 if (requesterPhoto) {
                     formData.append('requester_photo', requesterPhoto);
                 }
-                formData.append('full_name', formValue.fullName);
+                formData.append('name', formValue.fullName);
                 formData.append('email', formValue.email);
-                if (formValue.phone) formData.append('phone', formValue.phone);
+                if (formValue.phone) formData.append('phone_number', formValue.phone);
                 if (formValue.extensionNumber) formData.append('extension_number', formValue.extensionNumber);
                 formData.append('department_id', formValue.department);
                 formData.append('resource_name', formValue.resourceName);
@@ -851,12 +925,12 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 formData.append('duration_type', formValue.durationType.value || formValue.durationType);
                 if (formValue.startDate) formData.append('start_date', formValue.startDate);
                 if (formValue.endDate) formData.append('end_date', formValue.endDate);
-                formData.append('assign_type', formValue.assignType);
+                formData.append('assign_status', formValue.assignType);
                 if (this.selectedAssignee) {
                     if (formValue.assignType === 'member') {
-                        formData.append('assign_to_user_id', this.selectedAssignee.id);
+                        formData.append('pic_technical_id', this.selectedAssignee.id);
                     } else {
-                        formData.append('assign_to_team_id', this.selectedAssignee.id);
+                        formData.append('team_id', this.selectedAssignee.id);
                     }
                 }
                 
@@ -864,9 +938,6 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 const priorityMap: any = { 'Low': 0, 'Medium': 1, 'High': 2, 'Critical': 3 };
                 const priorityValue = priorityMap[formValue.priority] ?? 1;
                 formData.append('priority', priorityValue.toString());
-                
-                formData.append('notify_requester', formValue.notifyRequester ? '1' : '0');
-                formData.append('require_manager_approval', formValue.requireManagerApproval ? '1' : '0');
                 
                 // Add files
                 this.uploadedFiles.forEach((file) => {
@@ -904,9 +975,9 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     created_by: this.currentUser.id, // Logged in user ID
                     requester_type: requesterType,
                     requester_id: requesterId,
-                    full_name: formValue.fullName,
+                    name: formValue.fullName,
                     email: formValue.email,
-                    phone: formValue.phone,
+                    phone_number: formValue.phone,
                     extension_number: formValue.extensionNumber,
                     department_id: formValue.department,
                     resource_name: formValue.resourceName,
@@ -916,12 +987,10 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     duration_type: formValue.durationType.value || formValue.durationType,
                     start_date: formValue.startDate,
                     end_date: formValue.endDate,
-                    assign_type: formValue.assignType,
-                    assign_to_user_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
-                    assign_to_team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
+                    assign_status: formValue.assignType,
+                    pic_technical_id: this.selectedAssignee && formValue.assignType === 'member' ? this.selectedAssignee.id : null,
+                    team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
                     priority: priorityValue,
-                    notify_requester: formValue.notifyRequester,
-                    require_manager_approval: formValue.requireManagerApproval,
                 };
 
                 // Add requester_photo if available

@@ -446,12 +446,12 @@
                                     <ng-template #requesterInitial>
                                         <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
                                             [ngClass]="getAvatarColor(i)">
-                                            {{ getInitialOf(r.requester?.name || r.full_name || '') }}
+                                            {{ getInitialOf(r.requester?.name || r.name || '') }}
                                         </div>
                                     </ng-template>
                                     <div class="flex flex-col">
                                         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {{ r.requester?.name || r.full_name }}
+                                            {{ r.requester?.name || r.name }}
                                         </span>
                                         <span class="text-xs text-gray-500">{{ r.requester?.email || r.email }}</span>
                                     </div>
@@ -459,41 +459,66 @@
                             </td>
 
                             <!-- Assigned To -->
-                            <td class="px-6 py-4">
-                                <div *ngIf="r.assignedUser || r.assignedTeam; else notAssigned" class="flex items-center gap-2.5">
-                                    <ng-container *ngIf="r.assign_type === 'member' && r.assignedUser">
-                                        <ng-container *ngIf="getAssignedAvatar(r); else assignedInitial">
-                                            <img [src]="getAssignedAvatar(r)"
-                                                class="h-8 w-8 flex-shrink-0 rounded-full object-cover"
-                                                (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
-                                        </ng-container>
-                                        <ng-template #assignedInitial>
-                                            <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white bg-blue-400">
-                                                {{ getInitialOf(r.assignedUser?.name || '') }}
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <!-- Team Assignment (Unassigned) -->
+                                <div *ngIf="r.assign_status === 'team' && r.team && !r.pic_technical_id" class="flex items-center justify-between gap-3 min-w-[260px]">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-purple-100 text-purple-600">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <div class="font-medium text-purple-700 dark:text-purple-400 whitespace-nowrap">
+                                                {{ r.team.name }}
                                             </div>
-                                        </ng-template>
-                                        <div class="flex flex-col">
-                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                {{ r.assignedUser?.name }}
-                                            </span>
-                                            <span class="text-xs text-gray-500">{{ r.assignedUser?.email }}</span>
+                                            <div class="text-xs text-purple-600 dark:text-purple-500 whitespace-nowrap">
+                                                Available to claim
+                                            </div>
                                         </div>
-                                    </ng-container>
-                                    <ng-container *ngIf="r.assign_type === 'team' && r.assignedTeam">
-                                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white bg-purple-400">
-                                            {{ getInitialOf(r.assignedTeam?.name || '') }}
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                {{ r.assignedTeam?.name }}
-                                            </span>
-                                            <span class="text-xs text-gray-500">Team</span>
-                                        </div>
-                                    </ng-container>
+                                    </div>
                                 </div>
-                                <ng-template #notAssigned>
-                                    <span class="text-xs text-gray-400 italic">{{ 'ACCESS_REQUESTS.TABLE.NOT_ASSIGNED' | transloco }}</span>
-                                </ng-template>
+                                
+                                <!-- Individual Assignment (with team info if exists) -->
+                                <div *ngIf="r.pic_technical_id || r.assign_status === 'member'" class="flex items-center gap-2.5">
+                                    <!-- Show image if photo exists, otherwise show initial -->
+                                    <ng-container *ngIf="getAssignedAvatar(r); else assignedInitial">
+                                        <img [src]="getAssignedAvatar(r)"
+                                            class="h-8 w-8 flex-shrink-0 rounded-full border-2 border-white object-cover shadow-sm"
+                                            (error)="$any($event.target).src='assets/images/avatars/male-01.jpg'" />
+                                    </ng-container>
+                                    <ng-template #assignedInitial>
+                                        <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white bg-indigo-400">
+                                            {{ getInitialOf(r.pic_technical?.name || '') }}
+                                        </div>
+                                    </ng-template>
+                                    <div class="min-w-0 flex flex-col gap-1">
+                                        <div class="truncate font-medium text-gray-700 dark:text-gray-300 cursor-help"
+                                            [matTooltip]="r.pic_technical?.name || ''"
+                                            matTooltipPosition="above">
+                                            {{ r.pic_technical?.name || '-' }}
+                                        </div>
+                                        <span *ngIf="r.team"
+                                            class="inline-flex items-center gap-1 rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700 border border-purple-200 cursor-help w-fit"
+                                            [matTooltip]="'Team: ' + r.team.name"
+                                            matTooltipPosition="above">
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                            {{ r.team.name }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- No assignment at all -->
+                                <div *ngIf="!r.pic_technical_id && !r.team && r.assign_status !== 'team'" class="flex items-center gap-2.5">
+                                    <div class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gray-200 text-gray-400">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                    <span class="text-sm text-gray-400">{{ 'ACCESS_REQUESTS.TABLE.NOT_ASSIGNED' | transloco }}</span>
+                                </div>
                             </td>
 
                             <!-- Priority -->

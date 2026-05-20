@@ -11,7 +11,7 @@ class AppSetting extends Model
     use HasFactory, Uuid;
 
     public $incrementing = false;
-    protected $keyType = 'uuid';
+    protected $keyType = "uuid";
 
     protected $fillable = [
         'app_name',

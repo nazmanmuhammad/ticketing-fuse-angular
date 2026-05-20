@@ -15,14 +15,17 @@ class TicketAssignedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public string $recipientName;
+
     /**
      * Create a new message instance.
      */
     public function __construct(
         public Ticket $ticket,
-        public bool $isReassignment = false
+        public bool $isReassignment = false,
+        ?string $recipientName = null
     ) {
-        //
+        $this->recipientName = $recipientName ?? $ticket->pic_technical->name ?? 'User';
     }
 
     /**
@@ -44,8 +47,15 @@ class TicketAssignedMail extends Mailable
      */
     public function content(): Content
     {
+        $appSettings = \App\Models\AppSetting::first();
+        
         return new Content(
             view: 'emails.ticket-assigned',
+            with: [
+                'ticket' => $this->ticket,
+                'recipientName' => $this->recipientName,
+                'appSettings' => $appSettings,
+            ],
         );
     }
 

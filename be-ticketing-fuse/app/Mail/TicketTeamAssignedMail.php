@@ -16,6 +16,7 @@ class TicketTeamAssignedMail extends Mailable
 
     public $ticket;
     public $teamMember;
+    public string $recipientName;
 
     /**
      * Create a new message instance.
@@ -24,6 +25,7 @@ class TicketTeamAssignedMail extends Mailable
     {
         $this->ticket = $ticket;
         $this->teamMember = $teamMember;
+        $this->recipientName = $teamMember->name ?? 'User';
     }
 
     /**
@@ -41,11 +43,15 @@ class TicketTeamAssignedMail extends Mailable
      */
     public function content(): Content
     {
+        $appSettings = \App\Models\AppSetting::first();
+        
         return new Content(
             view: 'emails.ticket-team-assigned',
             with: [
                 'ticket' => $this->ticket,
                 'teamMember' => $this->teamMember,
+                'recipientName' => $this->recipientName,
+                'appSettings' => $appSettings,
             ],
         );
     }

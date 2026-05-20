@@ -2,29 +2,30 @@
 
 namespace App\Mail;
 
-use App\Models\Ticket;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Ticket;
+use App\Models\AppSetting;
 
-class TicketResolvedMail extends Mailable
+class TicketRequesterMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public string $recipientName;
+    public $ticket;
+    public $recipientName;
+    public $appSettings;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(
-        public Ticket $ticket,
-        ?string $recipientName = null
-    ) {
-        $this->recipientName = $recipientName ?? $ticket->name ?? 'User';
+    public function __construct(Ticket $ticket, string $recipientName)
+    {
+        $this->ticket = $ticket;
+        $this->recipientName = $recipientName;
+        $this->appSettings = AppSetting::first();
     }
 
     /**
@@ -32,8 +33,10 @@ class TicketResolvedMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $appName = $this->appSettings->app_name ?? 'Helpdesk';
+        
         return new Envelope(
-            subject: 'Ticket #' . $this->ticket->ticket_number . ' Has Been Resolved',
+            subject: "[{$appName}] Ticket #{$this->ticket->ticket_number} - Created Successfully",
         );
     }
 
@@ -42,22 +45,20 @@ class TicketResolvedMail extends Mailable
      */
     public function content(): Content
     {
-        $appSettings = \App\Models\AppSetting::first();
-        
         return new Content(
-            view: 'emails.ticket-resolved',
+            view: 'emails.ticket-requester',
             with: [
                 'ticket' => $this->ticket,
                 'recipientName' => $this->recipientName,
-                'appSettings' => $appSettings,
-            ],
+                'appSettings' => $this->appSettings,
+            ]
         );
     }
 
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, Attachment>
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
      */
     public function attachments(): array
     {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Ticket Assignment</title>
+    <title>Your ticket submission was successful</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 20px 0;">
@@ -22,7 +22,7 @@
                                 <tr>
                                     <td>
                                         <img src="{{ asset('logo/helpdesk-logo-white.png') }}" alt="{{ $appSettings->app_name ?? 'Helpdesk' }}" style="height: 40px; display: block; margin-bottom: 20px;" />
-                                        <h1 style="margin: 20px 0 8px 0; font-size: 24px; font-weight: 700;">New ticket for your team</h1>
+                                        <h1 style="margin: 20px 0 8px 0; font-size: 24px; font-weight: 700;">Your ticket submission was successful</h1>
                                         <p style="margin: 0; font-size: 14px; opacity: 0.9;">{{ \Carbon\Carbon::parse($ticket->created_at)->format('l, d F Y') }} - sent automatically by system</p>
                                     </td>
                                 </tr>
@@ -34,19 +34,8 @@
                     <tr>
                         <td style="padding: 30px;">
                             <p style="margin: 0 0 25px 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
-                                Hello <strong style="color: #1f2937;">{{ $recipientName }}</strong>, a ticket has been assigned to your team. Team members can claim this ticket to work on it.
+                                Hello <strong style="color: #1f2937;">{{ $recipientName }}</strong>, your ticket has been successfully created and is currently being reviewed by our team. We will follow up on your request shortly.
                             </p>
-
-                            <!-- Team Badge -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f3f4f6; border: 2px solid #0E0F6B; border-radius: 8px; margin-bottom: 25px;">
-                                <tr>
-                                    <td align="center" style="padding: 20px;">
-                                        <div style="font-size: 32px; margin-bottom: 8px;">👥</div>
-                                        <div style="font-size: 18px; font-weight: 700; color: #0E0F6B;">{{ $ticket->team->name ?? 'Team' }}</div>
-                                        <div style="font-size: 13px; color: #6b7280; margin-top: 4px;">Ticket available to be claimed by team members</div>
-                                    </td>
-                                </tr>
-                            </table>
 
                             <!-- Info Box -->
                             <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 25px; overflow: hidden;">
@@ -56,7 +45,7 @@
                                             <tr>
                                                 <td style="font-weight: 600; font-size: 13px; text-transform: uppercase;">TICKET INFORMATION</td>
                                                 <td align="right">
-                                                    <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block;">TEAM</span>
+                                                    <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; display: inline-block;">PENDING</span>
                                                 </td>
                                             </tr>
                                         </table>
@@ -70,26 +59,8 @@
                                                 <td style="font-size: 14px; color: #0E0F6B; font-weight: 600;">#{{ $ticket->ticket_number }}</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
-                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">TASK NAME</td>
+                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">SUBJECT</td>
                                                 <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket->subject_issue }}</td>
-                                            </tr>
-                                            <tr style="border-bottom: 1px solid #e5e7eb;">
-                                                <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">REQUESTER</td>
-                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">
-                                                    <table cellpadding="0" cellspacing="0">
-                                                        <tr>
-                                                            <td style="padding-right: 8px; vertical-align: middle;">
-                                                                <div style="width: 28px; height: 28px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">
-                                                                    {{ strtoupper(substr($ticket->name, 0, 2)) }}
-                                                                </div>
-                                                            </td>
-                                                            <td style="vertical-align: middle;">
-                                                                <div style="font-weight: 600; color: #1f2937;">{{ $ticket->name }}</div>
-                                                                <div style="font-size: 12px; color: #6b7280;">{{ $ticket->requester->division ?? 'N/A' }}</div>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">PRIORITY</td>
@@ -97,10 +68,22 @@
                                                     @php
                                                         $priorityStyle = 'background: #f3f4f6; color: #4b5563;';
                                                         $priorityText = 'LOW';
-                                                        if($ticket->priority == 5) { $priorityStyle = 'background: #fee2e2; color: #991b1b;'; $priorityText = 'EMERGENCY'; }
-                                                        elseif($ticket->priority == 4) { $priorityStyle = 'background: #fee2e2; color: #991b1b;'; $priorityText = 'CRITICAL'; }
-                                                        elseif($ticket->priority == 3) { $priorityStyle = 'background: #fef3c7; color: #92400e;'; $priorityText = 'HIGH'; }
-                                                        elseif($ticket->priority == 2) { $priorityStyle = 'background: #dbeafe; color: #1e40af;'; $priorityText = 'MEDIUM'; }
+                                                        if($ticket->priority == 5) { 
+                                                            $priorityStyle = 'background: #fee2e2; color: #991b1b;'; 
+                                                            $priorityText = 'EMERGENCY'; 
+                                                        }
+                                                        elseif($ticket->priority == 4) { 
+                                                            $priorityStyle = 'background: #fee2e2; color: #991b1b;'; 
+                                                            $priorityText = 'CRITICAL'; 
+                                                        }
+                                                        elseif($ticket->priority == 3) { 
+                                                            $priorityStyle = 'background: #fef3c7; color: #92400e;'; 
+                                                            $priorityText = 'HIGH'; 
+                                                        }
+                                                        elseif($ticket->priority == 2) { 
+                                                            $priorityStyle = 'background: #dbeafe; color: #1e40af;'; 
+                                                            $priorityText = 'MEDIUM'; 
+                                                        }
                                                     @endphp
                                                     <span style="display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; {{ $priorityStyle }}">{{ $priorityText }}</span>
                                                 </td>
@@ -136,11 +119,22 @@
                             </table>
                             @endif
 
+                            <!-- Info Message -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 4px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding: 16px;">
+                                        <p style="margin: 0; font-size: 13px; color: #1e40af; line-height: 1.6;">
+                                            <strong>📌 Note:</strong> Our team will review your ticket shortly and provide updates via email. You can also monitor the ticket progress through the helpdesk portal.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
                             <!-- Button -->
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="center" style="padding: 10px 0 25px 0;">
-                                        <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" style="display: inline-block; background-color: #0E0F6B; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px;">View & Claim Ticket →</a>
+                                        <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" style="display: inline-block; background-color: #0E0F6B; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px;">View Ticket Details →</a>
                                     </td>
                                 </tr>
                             </table>
@@ -159,7 +153,10 @@
                                 <tr>
                                     <td style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 25px; text-align: center;">
                                         <p style="margin: 0 0 8px 0; font-size: 14px; color: rgba(255,255,255,0.9); font-weight: 500;">{{ $appSettings->app_title ?? 'SIG Helpdesk' }}</p>
-                                        <p style="margin: 0 0 15px 0; font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6;">Streamline your support workflow with our comprehensive ticketing solution.<br/>Manage, track, and resolve issues efficiently.</p>
+                                        <p style="margin: 0 0 15px 0; font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.6;">
+                                            Streamline your support workflow with our comprehensive ticketing solution.<br/>
+                                            Manage, track, and resolve issues efficiently.
+                                        </p>
                                     </td>
                                 </tr>
                                 <tr>

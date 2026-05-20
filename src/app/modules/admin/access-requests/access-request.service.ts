@@ -6,32 +6,67 @@ export interface AccessRequest {
     id: string;
     request_number: string;
     requester_id: string;
-    full_name: string;
+    name: string;
     email: string;
-    phone?: string;
-    department: string;
+    phone_number?: string;
+    extension_number?: string;
+    department_id?: string;
     resource_name: string;
-    request_type: 'New Access' | 'Change Access' | 'Revoke Access';
-    access_level: 'Viewer' | 'Standard User' | 'Editor' | 'Admin Access';
+    request_type: string;
+    access_level: string;
     reason: string;
     duration_type: 'Temporary Access' | 'Permanent Access';
     start_date?: string;
     end_date?: string;
-    assign_type: 'member' | 'team';
-    assign_to_user_id?: string;
-    assign_to_team_id?: string;
-    status: number; // 0=Pending, 1=Approved, 2=Rejected, 3=Provisioned
+    assign_status: 'member' | 'team';
+    team_id?: string;
+    pic_technical_id?: string;
+    pic_helpdesk_id?: string;
+    status: number; // 0=Pending, 1=Approved, 2=Rejected
     status_name: string;
     priority?: number; // 0=Low, 1=Medium, 2=High, 3=Critical
-    notify_requester: boolean;
-    require_manager_approval: boolean;
     approval_required: boolean;
-    approver_ids?: any[];
     created_at: string;
     updated_at: string;
-    requester?: any;
-    assignedUser?: any;
-    assignedTeam?: any;
+    requester?: {
+        id: string;
+        hris_user_id: number;
+        name: string;
+        email: string;
+        department_id: string;
+        role: number;
+        status: number;
+        photo: string;
+        role_name: string;
+    };
+    pic_technical?: {
+        id: string;
+        hris_user_id: number;
+        name: string;
+        email: string;
+        department_id: string;
+        role: number;
+        status: number;
+        photo: string;
+        role_name: string;
+    };
+    pic_helpdesk?: {
+        id: string;
+        hris_user_id: number;
+        name: string;
+        email: string;
+        department_id: string;
+        role: number;
+        status: number;
+        photo: string;
+        role_name: string;
+    };
+    team?: {
+        id: string;
+        name: string;
+        description: string;
+    };
+    department?: any;
     tracks?: any[];
     approval?: any;
     attachments?: any[];

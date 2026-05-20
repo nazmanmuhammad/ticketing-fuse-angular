@@ -32,6 +32,7 @@ class RequestTypeController extends Controller
         $requestTypes = $query->paginate($perPage);
 
         return response()->json([
+            'status' => true,
             'data' => $requestTypes->items(),
             'meta' => [
                 'current_page' => $requestTypes->currentPage(),

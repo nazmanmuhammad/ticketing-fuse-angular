@@ -23,10 +23,16 @@ class DepartmentSeeder extends Seeder
         ];
 
         foreach ($departments as $dept) {
-            Department::firstOrCreate(
-                ['name' => $dept['name']],
-                ['description' => $dept['description']]
-            );
+            // Check if department already exists
+            $exists = Department::where('name', $dept['name'])->first();
+            
+            if (!$exists) {
+                // Create new department (this will trigger UUID generation)
+                Department::create([
+                    'name' => $dept['name'],
+                    'description' => $dept['description']
+                ]);
+            }
         }
     }
 }

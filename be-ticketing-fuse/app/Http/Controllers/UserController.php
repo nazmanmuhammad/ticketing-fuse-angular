@@ -209,6 +209,8 @@ class UserController extends Controller
                     
                     // Find user by hris_user_id (which matches user_id from HRIS)
                     $user = User::where('hris_user_id', $hrisUserId)->first();
+
+                    \Log::info($employee);
                     
                     if ($user) {
                         // Extract data from HRIS
@@ -217,6 +219,7 @@ class UserController extends Controller
                         $phone = $employee['phone'] ?? null;
                         $division = $employee['bagian']['division_name'] ?? null;
                         $position = $employee['position']['position_name'] ?? null;
+                        $photo = $employee['photo'] ?? null;
                         
                         \Log::info('Updating user', [
                             'hris_user_id' => $hrisUserId,
@@ -226,6 +229,7 @@ class UserController extends Controller
                             'phone' => $phone,
                             'division' => $division,
                             'position' => $position,
+                            'photo' => $photo,
                         ]);
                         
                         // Update user
@@ -235,6 +239,7 @@ class UserController extends Controller
                             'phone_number' => $phone,
                             'division' => $division,
                             'position' => $position,
+                            'photo' => $photo,
                         ]);
                         
                         $updatedCount++;

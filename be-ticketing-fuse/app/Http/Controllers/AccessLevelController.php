@@ -38,6 +38,7 @@ class AccessLevelController extends Controller
         $accessLevels = $query->paginate($perPage);
 
         return response()->json([
+            'status' => true,
             'data' => $accessLevels->items(),
             'meta' => [
                 'current_page' => $accessLevels->currentPage(),
@@ -172,6 +173,7 @@ class AccessLevelController extends Controller
             ->get();
 
         return response()->json([
+            'status' => true,
             'data' => $accessLevels,
         ]);
     }

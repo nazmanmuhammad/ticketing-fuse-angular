@@ -17,16 +17,18 @@ class CommentFeedbackMail extends Mailable
     public $comment;
     public $commenter;
     public $allComments;
+    public string $recipientName;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($ticket, $comment, $commenter, $allComments = [])
+    public function __construct($ticket, $comment, $commenter, $allComments = [], $recipientName = 'User')
     {
         $this->ticket = $ticket;
         $this->comment = $comment;
         $this->commenter = $commenter;
         $this->allComments = $allComments;
+        $this->recipientName = $recipientName;
     }
 
     /**
@@ -44,8 +46,18 @@ class CommentFeedbackMail extends Mailable
      */
     public function content(): Content
     {
+        $appSettings = \App\Models\AppSetting::first();
+        
         return new Content(
             view: 'emails.comment-feedback',
+            with: [
+                'ticket' => $this->ticket,
+                'comment' => $this->comment,
+                'commenter' => $this->commenter,
+                'allComments' => $this->allComments,
+                'recipientName' => $this->recipientName,
+                'appSettings' => $appSettings,
+            ],
         );
     }
 
