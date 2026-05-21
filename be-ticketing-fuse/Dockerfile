@@ -54,6 +54,14 @@ RUN chmod 0644 /etc/cron.d/laravel-cron
 
 # 6. Prepare startup script to run Cron and Apache
 RUN printf "#!/bin/bash\nservice cron start\napache2-foreground" > /usr/local/bin/start-app.sh
+RUN printf "#!/bin/bash\n\
+# Create link if it doesn't exist\n\
+php artisan storage:link --force\n\
+# Ensure standard subfolders exist just in case\n\
+mkdir -p storage/framework/{sessions,views,cache} storage/logs storage/app/public\n\
+chown -R www-data:www-data storage\n\
+service cron start\n\
+apache2-foreground" > /usr/local/bin/start-app.sh
 RUN chmod +x /usr/local/bin/start-app.sh
 
 # 7. Final Permissions setup
