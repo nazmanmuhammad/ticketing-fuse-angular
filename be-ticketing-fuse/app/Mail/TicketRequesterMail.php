@@ -45,14 +45,16 @@ class TicketRequesterMail extends Mailable
      */
     public function content(): Content
     {
+        $appUrl = config('app.url', 'http://localhost');
+        
         return new Content(
             view: 'emails.ticket-requester',
             with: [
                 'ticket' => $this->ticket,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $this->appSettings,
-                'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
-                'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
+                'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
+                'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
             ]
         );
     }

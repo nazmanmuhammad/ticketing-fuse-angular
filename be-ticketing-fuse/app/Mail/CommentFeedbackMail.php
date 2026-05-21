@@ -47,6 +47,7 @@ class CommentFeedbackMail extends Mailable
     public function content(): Content
     {
         $appSettings = \App\Models\AppSetting::first();
+        $appUrl = config('app.url', 'http://localhost');
         
         return new Content(
             view: 'emails.comment-feedback',
@@ -57,8 +58,8 @@ class CommentFeedbackMail extends Mailable
                 'allComments' => $this->allComments,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
-                'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
-                'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
+                'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
+                'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
             ],
         );
     }

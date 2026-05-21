@@ -43,6 +43,7 @@ class TicketCreatedMail extends Mailable
     public function content(): Content
     {
         $appSettings = \App\Models\AppSetting::first();
+        $appUrl = config('app.url', 'http://localhost');
         
         return new Content(
             view: 'emails.ticket-created',
@@ -50,8 +51,8 @@ class TicketCreatedMail extends Mailable
                 'ticket' => $this->ticket,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
-                'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
-                'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
+                'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
+                'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
             ],
         );
     }
