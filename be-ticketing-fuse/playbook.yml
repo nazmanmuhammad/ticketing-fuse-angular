@@ -11,22 +11,13 @@
         state: directory
         mode: '0755'
 
-    - name: Ensure host storage directory exists
+    - name: Ensure base host storage path exists
       file:
-        path: "{{ item }}"
+        path: "{{ host_storage_path }}"
         state: directory
         mode: '0775'
-        owner: 33 # UID for www-data
-        group: 33 # GID for www-data
-      with_items:
-        - "{{ host_storage_path }}"
-        - "{{ host_storage_path }}/app"
-        - "{{ host_storage_path }}/app/public"
-        - "{{ host_storage_path }}/framework"
-        - "{{ host_storage_path }}/framework/cache"
-        - "{{ host_storage_path }}/framework/sessions"
-        - "{{ host_storage_path }}/framework/views"
-        - "{{ host_storage_path }}/logs"
+        owner: 33 
+        group: 33
 
     - name: Deploy .env file with correct permissions
       copy:
