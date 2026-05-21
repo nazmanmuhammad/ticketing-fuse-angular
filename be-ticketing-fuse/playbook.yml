@@ -41,3 +41,9 @@
         - "chown www-data:www-data /var/www/html/.env"
         - "chown -R www-data:www-data /var/www/html/storage"
         - "php artisan optimize:clear"
+
+    - name: Remove dangling docker images
+      docker_prune:
+        images: yes
+        images_filters:
+          dangling: true
