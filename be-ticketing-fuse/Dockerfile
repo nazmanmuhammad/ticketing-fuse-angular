@@ -55,11 +55,16 @@ RUN chmod 0644 /etc/cron.d/laravel-cron
 # 6. Prepare startup script to run Cron and Apache
 RUN printf "#!/bin/bash\nservice cron start\napache2-foreground" > /usr/local/bin/start-app.sh
 RUN printf "#!/bin/bash\n\
-# Create link if it doesn't exist\n\
+# 1. Create the storage link\n\
 php artisan storage:link --force\n\
-# Ensure standard subfolders exist just in case\n\
-mkdir -p storage/framework/{sessions,views,cache} storage/logs storage/app/public\n\
-chown -R www-data:www-data storage\n\
+\n\
+# 2. Automatically create standard Laravel folders if they are missing from the mount\n\
+mkdir -p storage/app/public storage/framework/{cache,sessions,views} storage/logs\n\
+\n\
+# 3. Ensure the web user owns EVERYTHING in storage\n\
+# This fixes any new folders added by devs or the system\n\
+chown -R www-data:www-data /var/www/html/storage\n\
+\n\
 service cron start\n\
 apache2-foreground" > /usr/local/bin/start-app.sh
 RUN chmod +x /usr/local/bin/start-app.sh
