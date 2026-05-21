@@ -138,6 +138,8 @@ class AccessRequestController extends Controller
             'priority' => 'nullable|integer|min:0|max:3',
             'approval_required' => 'nullable|in:0,1,true,false',
             'approver_ids' => 'nullable|json',
+            'approval_superior' => 'nullable|array', // Array of superior IDs
+            'approval_superior.*' => 'nullable|integer', // Each superior ID must be integer
             'created_by' => 'required|exists:users,id', 
         ]);
 
@@ -210,8 +212,12 @@ class AccessRequestController extends Controller
                 'description' => 'Access request created by ' . $creatorName,
             ]);
 
-            // Handle approvals if required
-            if ($accessRequest->approval_required && $accessRequest->approver_ids) {
+            // Auto-create approval based on approval_superior (from /me endpoint)
+            if ($request->has('approval_superior') && is_array($request->approval_superior) && count($request->approval_superior) > 0) {
+                $this->createApprovalFromSuperior($accessRequest, $request->approval_superior);
+            }
+            // Handle manual approvals if required (legacy support)
+            elseif ($accessRequest->approval_required && $accessRequest->approver_ids) {
                 $this->createApprovals($accessRequest, $accessRequest->approver_ids);
             }
 
@@ -471,6 +477,86 @@ class AccessRequestController extends Controller
         if (count($approvalItems) > 0) {
             $approval->items()->createMany($approvalItems);
             \Log::info('Approval items created successfully');
+        }
+    }
+
+    /**
+     * Create approval from superior data (auto-approval based on /me endpoint)
+     */
+    private function createApprovalFromSuperior(AccessRequest $accessRequest, array $superiorIds)
+    {
+        // Get the requested_by user ID
+        $requestedByUserId = $accessRequest->requester_id;
+        
+        if (!$requestedByUserId) {
+            \Log::warning('Cannot create approval from superior: requestedByUserId is null', [
+                'access_request_id' => $accessRequest->id
+            ]);
+            return;
+        }
+
+        // Filter out null/empty superior IDs
+        $validSuperiorIds = array_filter($superiorIds, function($id) {
+            return !empty($id) && is_numeric($id);
+        });
+
+        if (empty($validSuperiorIds)) {
+            \Log::info('No valid superior IDs to create approval', [
+                'access_request_id' => $accessRequest->id
+            ]);
+            return;
+        }
+
+        \Log::info('Creating approval from superior for access request', [
+            'access_request_id' => $accessRequest->id,
+            'requested_by' => $requestedByUserId,
+            'superior_ids' => $validSuperiorIds
+        ]);
+
+        // Create approval (parent) using shared approvals table
+        $approval = \App\Models\Approval::create([
+            'approvable_id' => $accessRequest->id,
+            'approvable_type' => \App\Models\AccessRequest::class,
+            'status' => 'pending',
+            'requested_by' => $requestedByUserId,
+        ]);
+
+        \Log::info('Approval created from superior', ['approval_id' => $approval->id]);
+
+        // Create approval items for each superior
+        // superior_one = level 1, superior_two = level 2
+        $approvalItems = [];
+        foreach ($validSuperiorIds as $index => $superiorHrisId) {
+            // Find user by hris_user_id
+            $superiorUser = \App\Models\User::where('hris_user_id', $superiorHrisId)->first();
+            
+            if ($superiorUser) {
+                $approvalItems[] = [
+                    'approval_id' => $approval->id,
+                    'user_id' => $superiorUser->id, // Use internal user ID
+                    'level' => $index + 1, // Level 1 for superior_one, Level 2 for superior_two
+                    'status' => 'pending',
+                ];
+                
+                \Log::info('Added superior to approval items', [
+                    'hris_user_id' => $superiorHrisId,
+                    'user_id' => $superiorUser->id,
+                    'level' => $index + 1
+                ]);
+            } else {
+                \Log::warning('Superior user not found in users table', [
+                    'hris_user_id' => $superiorHrisId
+                ]);
+            }
+        }
+
+        if (count($approvalItems) > 0) {
+            $approval->items()->createMany($approvalItems);
+            \Log::info('Approval items from superior created successfully', [
+                'count' => count($approvalItems)
+            ]);
+        } else {
+            \Log::warning('No approval items created - no superior users found in database');
         }
     }
 

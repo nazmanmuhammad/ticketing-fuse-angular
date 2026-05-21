@@ -225,6 +225,23 @@ export class AuthService {
             meValidationResponse?.data ??
             null;
 
+        console.log('=== AUTH SERVICE DEBUG ===');
+        console.log('1. Full /me response:', meResponse);
+        console.log('2. Extracted meData:', meData);
+        console.log('3. meData.superior:', meData?.superior);
+        console.log('4. Has superior property:', meData?.hasOwnProperty('superior'));
+
+        // Extract superior data from /me response
+        const superior = meData?.superior ? {
+            id: Number(meData.superior.id ?? 0),
+            employee_id: Number(meData.superior.employee_id ?? 0),
+            superior_one: Number(meData.superior.superior_one ?? 0),
+            superior_two: Number(meData.superior.superior_two ?? 0),
+        } : undefined;
+
+        console.log('5. Mapped superior object:', superior);
+        console.log('=========================');
+
         return {
             id: String(
                 appUser?.id ??
@@ -248,6 +265,7 @@ export class AuthService {
                 appUser?.hrisUserId ??
                 Number(this._extractHrisUserId(meResponse)),
             department_id: appUser?.department_id ?? appUser?.departmentId ?? '',
+            superior: superior,
         };
     }
 

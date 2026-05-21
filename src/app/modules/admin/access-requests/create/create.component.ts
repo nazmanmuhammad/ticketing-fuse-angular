@@ -202,6 +202,9 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     email: this.currentUser.email || '',
                     fullName: this.currentUser.name || '',
                 });
+                
+                // Fetch superior data from /me endpoint
+                this._fetchSuperiorData();
             }
         });
 
@@ -230,6 +233,49 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 }
                 // Reset access level when request type changes
                 this.form.patchValue({ accessLevel: '' });
+            });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Fetch superior data from /me endpoint
+    // ─────────────────────────────────────────────────────────────
+    private _fetchSuperiorData(): void {
+        const url = `${this.hrisApiUrl}/me`;
+        console.log('🔍 Fetching superior data from:', url);
+        
+        this._httpClient.get<any>(url)
+            .pipe(
+                catchError((error) => {
+                    console.error('❌ Error fetching superior data:', error);
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                console.log('=== FETCH SUPERIOR DATA ===');
+                console.log('1. /me response:', response);
+                
+                // Extract data (response might be array or object)
+                const meData = Array.isArray(response) ? response[0] : response;
+                console.log('2. Extracted meData:', meData);
+                console.log('3. Superior data:', meData?.superior);
+                
+                // Update currentUser with superior data
+                if (meData?.superior && this.currentUser) {
+                    this.currentUser.superior = {
+                        id: Number(meData.superior.id ?? 0),
+                        employee_id: Number(meData.superior.employee_id ?? 0),
+                        superior_one: Number(meData.superior.superior_one ?? 0),
+                        superior_two: Number(meData.superior.superior_two ?? 0),
+                    };
+                    console.log('4. ✅ Updated currentUser.superior:', this.currentUser.superior);
+                    console.log('5. ✅ superior_one:', this.currentUser.superior.superior_one);
+                    console.log('6. ✅ superior_two:', this.currentUser.superior.superior_two);
+                } else {
+                    console.log('4. ❌ No superior data found or currentUser is null');
+                    console.log('   - meData?.superior:', meData?.superior);
+                    console.log('   - this.currentUser:', this.currentUser);
+                }
+                console.log('===========================');
             });
     }
 
@@ -971,8 +1017,58 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                 const requesterId = this.selectedEmployee?.id || this.currentUser.id;
                 const requesterPhoto = this.selectedEmployee?.photo || null;
 
+                // Get the name/label from selected request type and access level
+                const selectedRequestType = this.requestTypes.find(rt => rt.id === formValue.requestType);
+                const selectedAccessLevel = this.accessLevels.find(al => al.id === formValue.accessLevel);
+
+                // Get role from currentUser (comes from /me-validation)
+                const userRole = this.currentUser?.role_name || 'User';
+                const isUserRole = userRole.toLowerCase() === 'user';
+                
+                console.log('=== APPROVAL SUPERIOR DEBUG ===');
+                console.log('1. Current User Object:', JSON.stringify(this.currentUser, null, 2));
+                console.log('2. User Role from me-validation:', userRole);
+                console.log('3. Is User Role:', isUserRole);
+                console.log('4. Has superior property:', this.currentUser?.hasOwnProperty('superior'));
+                console.log('5. Superior value:', this.currentUser?.superior);
+                console.log('6. Superior type:', typeof this.currentUser?.superior);
+                
+                // Build approval_superior array from /me superior data
+                // Only add if role from /me-validation is "User"
+                const approvalSuperior: number[] = [];
+                if (isUserRole) {
+                    console.log('7. Role is User, checking superior data...');
+                    if (this.currentUser?.superior) {
+                        console.log('8. Superior exists:', this.currentUser.superior);
+                        console.log('9. superior_one:', this.currentUser.superior.superior_one);
+                        console.log('10. superior_two:', this.currentUser.superior.superior_two);
+                        
+                        if (this.currentUser.superior.superior_one) {
+                            approvalSuperior.push(this.currentUser.superior.superior_one);
+                            console.log('11. ✓ Added superior_one:', this.currentUser.superior.superior_one);
+                        } else {
+                            console.log('11. ✗ superior_one is empty/falsy');
+                        }
+                        
+                        if (this.currentUser.superior.superior_two) {
+                            approvalSuperior.push(this.currentUser.superior.superior_two);
+                            console.log('12. ✓ Added superior_two:', this.currentUser.superior.superior_two);
+                        } else {
+                            console.log('12. ✗ superior_two is empty/falsy');
+                        }
+                    } else {
+                        console.log('8. ✗ Superior does NOT exist or is null/undefined');
+                    }
+                } else {
+                    console.log('7. ✗ Role is NOT User, skipping superior check');
+                }
+                
+                console.log('13. Final approval_superior array:', approvalSuperior);
+                console.log('14. Array length:', approvalSuperior.length);
+
                 const payload: any = {
                     created_by: this.currentUser.id, // Logged in user ID
+                    role: userRole, // Role from /me-validation
                     requester_type: requesterType,
                     requester_id: requesterId,
                     name: formValue.fullName,
@@ -981,8 +1077,8 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     extension_number: formValue.extensionNumber,
                     department_id: formValue.department,
                     resource_name: formValue.resourceName,
-                    request_type: formValue.requestType,
-                    access_level: formValue.accessLevel,
+                    request_type: selectedRequestType?.name || formValue.requestType,
+                    access_level: selectedAccessLevel?.name || formValue.accessLevel,
                     reason: formValue.reason,
                     duration_type: formValue.durationType.value || formValue.durationType,
                     start_date: formValue.startDate,
@@ -992,6 +1088,18 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
                     team_id: this.selectedAssignee && formValue.assignType === 'team' ? this.selectedAssignee.id : null,
                     priority: priorityValue,
                 };
+
+                // Only add approval_superior if role is "User" and has superior data
+                if (isUserRole && approvalSuperior.length > 0) {
+                    payload.approval_superior = approvalSuperior;
+                    console.log('✓ Added approval_superior to payload:', approvalSuperior);
+                } else {
+                    console.log('✗ Not adding approval_superior. isUserRole:', isUserRole, 'approvalSuperior.length:', approvalSuperior.length);
+                }
+
+                console.log('=== FINAL PAYLOAD ===');
+                console.log(payload);
+                console.log('======================');
 
                 // Add requester_photo if available
                 if (requesterPhoto) {

@@ -8,4 +8,10 @@ export interface User {
     role_name?: string;
     hris_user_id?: number | string;
     department_id?: string;
+    superior?: {
+        id: number;
+        employee_id: number;
+        superior_one: number;
+        superior_two: number;
+    };
 }

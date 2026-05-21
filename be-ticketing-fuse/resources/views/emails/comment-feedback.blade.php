@@ -23,7 +23,7 @@
                                     <td>
                                         <img src="{{ asset('logo/helpdesk-logo-white.png') }}" alt="{{ $appSettings->app_name ?? 'Helpdesk' }}" style="height: 40px; display: block; margin-bottom: 20px;" />
                                         <h1 style="margin: 20px 0 8px 0; font-size: 24px; font-weight: 700;">New comment on ticket</h1>
-                                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">{{ \Carbon\Carbon::parse($comment->created_at)->format('l, d F Y') }} - sent automatically by system</p>
+                                        <p style="margin: 0; font-size: 14px; opacity: 0.9;">{{ \Carbon\Carbon::parse($comment['created_at'])->format('l, d F Y') }} - sent automatically by system</p>
                                     </td>
                                 </tr>
                             </table>
@@ -48,12 +48,12 @@
                                                         <tr>
                                                             <td style="padding-right: 8px; vertical-align: middle;">
                                                                 <div style="width: 32px; height: 32px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
-                                                                    {{ strtoupper(substr($comment->user->name ?? 'User', 0, 2)) }}
+                                                                    {{ strtoupper(substr($comment['user']['name'] ?? 'User', 0, 2)) }}
                                                                 </div>
                                                             </td>
                                                             <td style="vertical-align: middle;">
-                                                                <div style="font-weight: 700; color: #1f2937; font-size: 15px; margin-bottom: 2px;">{{ $comment->user->name ?? 'User' }}</div>
-                                                                <div style="font-size: 12px; color: #6b7280;">{{ \Carbon\Carbon::parse($comment->created_at)->format('d F Y, H:i') }} WIB</div>
+                                                                <div style="font-weight: 700; color: #1f2937; font-size: 15px; margin-bottom: 2px;">{{ $comment['user']['name'] ?? 'User' }}</div>
+                                                                <div style="font-size: 12px; color: #6b7280;">{{ \Carbon\Carbon::parse($comment['created_at'])->format('d F Y, H:i') }} WIB</div>
                                                             </td>
                                                         </tr>
                                                     </table>
@@ -61,7 +61,7 @@
                                             </tr>
                                         </table>
                                         <div style="font-size: 14px; color: #4b5563; line-height: 1.7; padding: 12px; background: #fff; border-radius: 4px; margin-top: 12px;">
-                                            {{ $comment->comment }}
+                                            {{ $comment['comment'] }}
                                         </div>
                                     </td>
                                 </tr>
@@ -86,28 +86,28 @@
                                         <table width="100%" cellpadding="12" cellspacing="0">
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">TICKET NO.</td>
-                                                <td style="font-size: 14px; color: #0E0F6B; font-weight: 600;">#{{ $ticket->ticket_number }}</td>
+                                                <td style="font-size: 14px; color: #0E0F6B; font-weight: 600;">#{{ $ticket['ticket_number'] }}</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">TASK NAME</td>
-                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket->subject_issue }}</td>
+                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket['subject_issue'] }}</td>
                                             </tr>
                                             <tr style="border-bottom: 1px solid #e5e7eb;">
                                                 <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">STATUS</td>
                                                 <td style="font-size: 14px; color: #1f2937; font-weight: 500;">
                                                     @php
                                                         $statusText = 'Pending';
-                                                        if($ticket->status == 1) $statusText = 'Processing';
-                                                        elseif($ticket->status == 2) $statusText = 'Resolved';
-                                                        elseif($ticket->status == 3) $statusText = 'Closed';
-                                                        elseif($ticket->status == 4) $statusText = 'Cancelled';
+                                                        if($ticket['status'] == 1) $statusText = 'Processing';
+                                                        elseif($ticket['status'] == 2) $statusText = 'Resolved';
+                                                        elseif($ticket['status'] == 3) $statusText = 'Closed';
+                                                        elseif($ticket['status'] == 4) $statusText = 'Cancelled';
                                                     @endphp
                                                     {{ $statusText }}
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td width="140" style="font-size: 13px; color: #9ca3af; text-transform: uppercase; vertical-align: top;">CATEGORY</td>
-                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket->help_topic ?? 'General' }}</td>
+                                                <td style="font-size: 14px; color: #1f2937; font-weight: 500;">{{ $ticket['help_topic'] ?? 'General' }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -118,7 +118,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="center" style="padding: 10px 0 25px 0;">
-                                        <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket->id }}" style="display: inline-block; background-color: #0E0F6B; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px;">View & Reply Comment →</a>
+                                        <a href="{{ config('app.frontend_url') }}/tickets/detail/{{ $ticket['id'] }}" style="display: inline-block; background-color: #0E0F6B; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 14px;">View & Reply Comment →</a>
                                     </td>
                                 </tr>
                             </table>

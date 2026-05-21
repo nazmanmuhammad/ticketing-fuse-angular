@@ -202,6 +202,10 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
         // Get current user
         this._userService.user$.pipe(takeUntil(this.destroy$)).subscribe((user) => {
             this.currentUser = user;
+            if (this.currentUser) {
+                // Fetch superior data from /me endpoint
+                this._fetchSuperiorData();
+            }
         });
 
         this.translocoService.events$
@@ -222,6 +226,49 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             this._snackbar.error('Invalid access request ID');
             this.router.navigate(['/access-requests/data']);
         }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Fetch superior data from /me endpoint
+    // ─────────────────────────────────────────────────────────────
+    private _fetchSuperiorData(): void {
+        const url = `${this.hrisApiUrl}/me`;
+        console.log('🔍 [EDIT] Fetching superior data from:', url);
+        
+        this._httpClient.get<any>(url)
+            .pipe(
+                catchError((error) => {
+                    console.error('❌ [EDIT] Error fetching superior data:', error);
+                    return of(null);
+                })
+            )
+            .subscribe((response) => {
+                console.log('=== [EDIT] FETCH SUPERIOR DATA ===');
+                console.log('1. /me response:', response);
+                
+                // Extract data (response might be array or object)
+                const meData = Array.isArray(response) ? response[0] : response;
+                console.log('2. Extracted meData:', meData);
+                console.log('3. Superior data:', meData?.superior);
+                
+                // Update currentUser with superior data
+                if (meData?.superior && this.currentUser) {
+                    this.currentUser.superior = {
+                        id: Number(meData.superior.id ?? 0),
+                        employee_id: Number(meData.superior.employee_id ?? 0),
+                        superior_one: Number(meData.superior.superior_one ?? 0),
+                        superior_two: Number(meData.superior.superior_two ?? 0),
+                    };
+                    console.log('4. ✅ Updated currentUser.superior:', this.currentUser.superior);
+                    console.log('5. ✅ superior_one:', this.currentUser.superior.superior_one);
+                    console.log('6. ✅ superior_two:', this.currentUser.superior.superior_two);
+                } else {
+                    console.log('4. ❌ No superior data found or currentUser is null');
+                    console.log('   - meData?.superior:', meData?.superior);
+                    console.log('   - this.currentUser:', this.currentUser);
+                }
+                console.log('===========================');
+            });
     }
 
     ngOnDestroy(): void {
@@ -280,28 +327,28 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             startDate: this.accessRequestData.start_date || '',
             endDate: this.accessRequestData.end_date || '',
             priority: priorityString,
-            assignType: this.accessRequestData.assign_type || 'member',
+            assignType: this.accessRequestData.assign_status || 'member',
         });
 
         // Set assign type
-        this.assignType = this.accessRequestData.assign_type || 'member';
+        this.assignType = this.accessRequestData.assign_status || 'member';
 
         // Set selected assignee if exists
-        if (this.assignType === 'member' && this.accessRequestData.assigned_user) {
+        if (this.assignType === 'member' && this.accessRequestData.pic_technical) {
             this.selectedAssignee = {
-                id: this.accessRequestData.assigned_user.id,
-                name: this.accessRequestData.assigned_user.name,
-                initial: this.getInitialOf(this.accessRequestData.assigned_user.name),
+                id: this.accessRequestData.pic_technical.id,
+                name: this.accessRequestData.pic_technical.name,
+                initial: this.getInitialOf(this.accessRequestData.pic_technical.name),
                 color: this.avatarColors[0],
-                avatar: this.accessRequestData.assigned_user.photo ? 
-                    `${this.employeePhotoBaseUrl}/assets/img/user/${this.accessRequestData.assigned_user.photo}` : null,
+                avatar: this.accessRequestData.pic_technical.photo ? 
+                    `${this.employeePhotoBaseUrl}/assets/img/user/${this.accessRequestData.pic_technical.photo}` : null,
             };
             this.form.patchValue({ assignTo: this.selectedAssignee.name });
-        } else if (this.assignType === 'team' && this.accessRequestData.assigned_team) {
+        } else if (this.assignType === 'team' && this.accessRequestData.team) {
             this.selectedAssignee = {
-                id: this.accessRequestData.assigned_team.id,
-                name: this.accessRequestData.assigned_team.name,
-                initial: this.getInitialOf(this.accessRequestData.assigned_team.name),
+                id: this.accessRequestData.team.id,
+                name: this.accessRequestData.team.name,
+                initial: this.getInitialOf(this.accessRequestData.team.name),
                 color: this.avatarColors[0],
                 avatar: null,
             };
@@ -942,8 +989,52 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
             const priorityMap: any = { 'Low': 0, 'Medium': 1, 'High': 2, 'Critical': 3 };
             const priorityValue = priorityMap[formValue.priority] ?? 1;
 
+            // Get role from currentUser (comes from /me-validation)
+            const userRole = this.currentUser?.role_name || 'User';
+            const isUserRole = userRole.toLowerCase() === 'user';
+            
+            console.log('=== [EDIT] APPROVAL SUPERIOR DEBUG ===');
+            console.log('1. Current User Object:', JSON.stringify(this.currentUser, null, 2));
+            console.log('2. User Role from me-validation:', userRole);
+            console.log('3. Is User Role:', isUserRole);
+            console.log('4. Has superior property:', this.currentUser?.hasOwnProperty('superior'));
+            console.log('5. Superior value:', this.currentUser?.superior);
+            
+            // Build approval_superior array from /me superior data
+            // Only add if role from /me-validation is "User"
+            const approvalSuperior: number[] = [];
+            if (isUserRole) {
+                console.log('6. Role is User, checking superior data...');
+                if (this.currentUser?.superior) {
+                    console.log('7. Superior exists:', this.currentUser.superior);
+                    console.log('8. superior_one:', this.currentUser.superior.superior_one);
+                    console.log('9. superior_two:', this.currentUser.superior.superior_two);
+                    
+                    if (this.currentUser.superior.superior_one) {
+                        approvalSuperior.push(this.currentUser.superior.superior_one);
+                        console.log('10. ✅ Added superior_one:', this.currentUser.superior.superior_one);
+                    } else {
+                        console.log('10. ❌ superior_one is empty/falsy');
+                    }
+                    
+                    if (this.currentUser.superior.superior_two) {
+                        approvalSuperior.push(this.currentUser.superior.superior_two);
+                        console.log('11. ✅ Added superior_two:', this.currentUser.superior.superior_two);
+                    } else {
+                        console.log('11. ❌ superior_two is empty/falsy');
+                    }
+                } else {
+                    console.log('7. ❌ Superior does NOT exist or is null/undefined');
+                }
+            } else {
+                console.log('6. ❌ Role is NOT User, skipping superior check');
+            }
+            
+            console.log('12. Final approval_superior array:', approvalSuperior);
+
             const payload: any = {
                 updated_by: this.currentUser.id, // User who is updating
+                role: userRole, // Role from /me-validation
                 requester_type: requesterType,
                 requester_id: requesterId,
                 name: formValue.fullName,
@@ -964,10 +1055,22 @@ export class EditAccessRequestComponent implements OnInit, OnDestroy {
                 priority: priorityValue,
             };
 
+            // Only add approval_superior if role is "User" and has superior data
+            if (isUserRole && approvalSuperior.length > 0) {
+                payload.approval_superior = approvalSuperior;
+                console.log('13. ✅ Added approval_superior to payload:', approvalSuperior);
+            } else {
+                console.log('13. ❌ Not adding approval_superior. isUserRole:', isUserRole, 'approvalSuperior.length:', approvalSuperior.length);
+            }
+
             // Add requester_photo if available
             if (requesterPhoto) {
                 payload.requester_photo = requesterPhoto;
             }
+
+            console.log('=== [EDIT] FINAL PAYLOAD ===');
+            console.log(payload);
+            console.log('============================');
 
             this._accessRequestService.updateAccessRequest(this.accessRequestId, payload)
                 .pipe(
