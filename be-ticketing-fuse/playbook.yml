@@ -2,6 +2,7 @@
   vars:
     image: ioez1984/helpdeskbe:latest
     remote_app_path: /opt/helpdesk-backend
+    host_storage_path: /mnt/storage # The host path you requested
 
   tasks:
     - name: Ensure application directory exists
@@ -10,11 +11,19 @@
         state: directory
         mode: '0755'
 
+    - name: Ensure base host storage path exists
+      file:
+        path: "{{ host_storage_path }}"
+        state: directory
+        mode: '0775'
+        owner: 33 
+        group: 33
+
     - name: Deploy .env file with correct permissions
       copy:
         src: "{{ playbook_dir }}/.env"
         dest: "{{ remote_app_path }}/.env"
-        mode: '0644' # Critical for PHP to read the file
+        mode: '0644'
 
     - name: pull latest backend image
       docker_image:
@@ -33,6 +42,8 @@
           - "80:80"
         volumes:
           - "{{ remote_app_path }}/.env:/var/www/html/.env"
+          # NEW VOLUME MOUNT: Persistent storage
+          - "{{ host_storage_path }}:/var/www/html/storage"
         recreate: yes
 
     - name: Force internal ownership and clear cache

@@ -42,6 +42,9 @@ COPY --from=assets /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Create the symbolic link for storage
+RUN php artisan storage:link
+
 # 4. Set up the Cron Job using the absolute path /usr/local/bin/php
 # We also define the PATH inside the cron file for maximum compatibility
 RUN printf "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n* * * * * www-data /usr/local/bin/php /var/www/html/artisan queue:work --stop-when-empty >> /var/www/html/storage/logs/cron.log 2>&1\n" > /etc/cron.d/laravel-cron
@@ -51,6 +54,19 @@ RUN chmod 0644 /etc/cron.d/laravel-cron
 
 # 6. Prepare startup script to run Cron and Apache
 RUN printf "#!/bin/bash\nservice cron start\napache2-foreground" > /usr/local/bin/start-app.sh
+RUN printf "#!/bin/bash\n\
+# 1. Create the storage link\n\
+php artisan storage:link --force\n\
+\n\
+# 2. Automatically create standard Laravel folders if they are missing from the mount\n\
+mkdir -p storage/app/public storage/framework/{cache,sessions,views} storage/logs\n\
+\n\
+# 3. Ensure the web user owns EVERYTHING in storage\n\
+# This fixes any new folders added by devs or the system\n\
+chown -R www-data:www-data /var/www/html/storage\n\
+\n\
+service cron start\n\
+apache2-foreground" > /usr/local/bin/start-app.sh
 RUN chmod +x /usr/local/bin/start-app.sh
 
 # 7. Final Permissions setup
