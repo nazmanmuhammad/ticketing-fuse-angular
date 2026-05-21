@@ -1,10 +1,16 @@
 # Stage 1: Build frontend assets
 FROM node:20-alpine AS assets
 WORKDIR /app
+
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
+
+# IMPORTANT: Copy EVERYTHING so Vite can see vite.config.js and resources/
 COPY . .
-RUN npm run build [cite: 2, 3]
+
+# Run the build
+RUN npm run build
 
 # Stage 2: PHP Environment (Apache)
 FROM php:8.3-apache
