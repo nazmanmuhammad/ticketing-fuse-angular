@@ -21,7 +21,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0" style="position: relative; z-index: 1;">
                                 <tr>
                                     <td>
-                                        <img src="{{ asset('logo/helpdesk-logo-white.png') }}" alt="{{ $appSettings->app_name ?? 'Helpdesk' }}" style="height: 40px; display: block; margin-bottom: 20px;" />
+                                        <img src="{{ $message->embed($logoPath) }}" alt="{{ $appSettings->app_name ?? 'Helpdesk' }}" style="height: 40px; display: block; margin-bottom: 20px;" />
                                         <h1 style="margin: 20px 0 8px 0; font-size: 24px; font-weight: 700;">Ticket Created Successfully</h1>
                                         <p style="margin: 0; font-size: 14px; opacity: 0.9;">{{ \Carbon\Carbon::parse($ticket->created_at)->format('l, d F Y') }} - sent automatically by system</p>
                                     </td>
@@ -142,7 +142,7 @@
                             <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="center" style="padding-bottom: 25px;">
-                                        <img src="{{ asset('logo/logo-sig.png') }}" alt="SIG Logo" style="height: 60px; display: block; margin: 0 auto;" />
+                                        <img src="{{ $message->embed($sigLogoPath) }}" alt="SIG Logo" style="height: 60px; display: block; margin: 0 auto;" />
                                     </td>
                                 </tr>
                                 <tr>

@@ -52,6 +52,8 @@ class TicketTeamAssignedMail extends Mailable
                 'teamMember' => $this->teamMember,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
+                'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
+                'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
             ],
         );
     }

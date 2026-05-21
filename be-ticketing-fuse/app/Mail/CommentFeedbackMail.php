@@ -57,6 +57,8 @@ class CommentFeedbackMail extends Mailable
                 'allComments' => $this->allComments,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
+                'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
+                'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
             ],
         );
     }

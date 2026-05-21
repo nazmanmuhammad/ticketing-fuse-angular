@@ -13,7 +13,7 @@
                     <!-- Header -->
                     <tr>
                         <td style="background-color: #0E0F6B; padding: 30px; text-align: center;">
-                            <img src="{{ asset('logo/helpdesk-logo-white.png') }}" alt="{{ $appSettings->app_name ?? 'WorkDesk' }}" style="height: 40px;">
+                            <img src="{{ $message->embed($logoPath) }}" alt="{{ $appSettings->app_name ?? 'WorkDesk' }}" style="height: 40px;">
                         </td>
                     </tr>
 
@@ -119,7 +119,7 @@
                     <!-- Footer -->
                     <tr>
                         <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e0e0e0;">
-                            <img src="{{ asset('logo/logo-sig.png') }}" alt="SIG" style="height: 60px; margin-bottom: 15px;">
+                            <img src="{{ $message->embed($sigLogoPath) }}" alt="SIG" style="height: 60px; margin-bottom: 15px;">
                             <p style="color: #999999; font-size: 12px; margin: 10px 0 0 0;">
                                 © {{ date('Y') }} {{ $appSettings->app_title ?? 'Semen Indonesia Group' }}. All rights reserved.
                             </p>

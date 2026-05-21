@@ -36,6 +36,8 @@ class AccessRequestCreatedMail extends Mailable
                     ->with([
                         'accessRequest' => $this->accessRequest,
                         'appSettings' => $this->appSettings,
+                        'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
+                        'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
                     ]);
     }
 }

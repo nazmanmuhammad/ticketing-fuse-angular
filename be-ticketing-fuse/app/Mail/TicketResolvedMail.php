@@ -50,6 +50,8 @@ class TicketResolvedMail extends Mailable
                 'ticket' => $this->ticket,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
+                'logoPath' => public_path('images/logo/helpdesk-logo-white.png'),
+                'sigLogoPath' => public_path('images/logo/logo-sig.svg'),
             ],
         );
     }
