@@ -22,12 +22,15 @@ RUN npm run build -- --configuration production
 # Stage 2: Serve the app with Nginx
 FROM nginx:stable-alpine
 
-# Copy the build output to Nginx's default public folder
-# Note: Angular 19 usually outputs to dist/[project-name]/browser
+# 1. Remove the default Nginx configuration
+RUN rm /etc/nginx/conf.d/default.conf
+
+# 2. Copy your custom configuration file
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# 3. Copy the build output to Nginx's default public folder
 COPY --from=build-stage /app/dist/fuse/browser /usr/share/nginx/html
 
-# Expose port 80
 EXPOSE 80
 
-# Start Nginx
 CMD ["nginx", "-g", "daemon off;"]
