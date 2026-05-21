@@ -2,7 +2,7 @@
   vars:
     image: ioez1984/helpdeskbe:latest
     remote_app_path: /opt/helpdesk-backend
-    host_storage_path: /etc/storage # The host path you requested
+    host_storage_path: /mnt/storage # The host path you requested
 
   tasks:
     - name: Ensure application directory exists
