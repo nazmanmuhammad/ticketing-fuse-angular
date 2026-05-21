@@ -42,6 +42,9 @@ COPY --from=assets /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
+# Create the symbolic link for storage
+RUN php artisan storage:link
+
 # 4. Set up the Cron Job using the absolute path /usr/local/bin/php
 # We also define the PATH inside the cron file for maximum compatibility
 RUN printf "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n* * * * * www-data /usr/local/bin/php /var/www/html/artisan queue:work --stop-when-empty >> /var/www/html/storage/logs/cron.log 2>&1\n" > /etc/cron.d/laravel-cron
