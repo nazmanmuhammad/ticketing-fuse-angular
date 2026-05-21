@@ -10,11 +10,11 @@
         state: directory
         mode: '0755'
 
-    - name: Deploy .env file from Jenkins to Server
+    - name: Deploy .env file with correct permissions
       copy:
         src: "{{ playbook_dir }}/.env"
         dest: "{{ remote_app_path }}/.env"
-        mode: '0600'
+        mode: '0644' # Set to 644 so www-data can read it
 
     - name: pull latest backend image
       docker_image:
@@ -32,22 +32,12 @@
         published_ports:
           - "80:80"
         volumes:
-          # Only mount the .env file, no storage volumes
           - "{{ remote_app_path }}/.env:/var/www/html/.env"
         recreate: yes
 
-#    - name: Run Laravel optimization and storage link
-#      command: "docker exec helpdesk-byjenkins {{ item }}"
-#      with_items:
-#        - "php artisan storage:link"
-#        - "php artisan optimize:clear"
-#      ignore_errors: yes
-
-    - name: cleanup dangling images
-      shell: |
-        oldimage=$(docker images -f "dangling=true" -q)
-        if [ -n "$oldimage" ]; then
-          docker rmi $oldimage -f
-        fi
-      ignore_errors: yes
-      become: true
+    - name: Fix internal ownership and clear cache
+      command: "docker exec -u root helpdesk-byjenkins {{ item }}"
+      with_items:
+        - "chown www-data:www-data /var/www/html/.env"
+        - "chown -R www-data:www-data /var/www/html/storage"
+        - "php artisan optimize:clear"
