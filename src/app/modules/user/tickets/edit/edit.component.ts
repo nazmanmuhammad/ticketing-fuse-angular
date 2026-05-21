@@ -223,7 +223,7 @@ export class UserTicketEditComponent implements OnInit {
     }
 
     getAttachmentUrl(attachment: any): string {
-        const backendUrl = 'http://127.0.0.1:9010';
+        const backendUrl = 'https://ticket-api.siglab.site';
         return `${backendUrl}/storage/${attachment.path.replace('public/', '')}`;
     }
 
