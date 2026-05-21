@@ -3,32 +3,33 @@ FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-COPY . .
+COPY . . 
 RUN npm run build
 
-# Stage 2: PHP Environment (Now using Apache)
+# Stage 2: PHP Environment (Apache)
 FROM php:8.3-apache
 
-# 1. Install system dependencies using apt-get (Debian) instead of apk
+# 1. Install system dependencies + CRON
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
     libicu-dev \
+    zlib1g-dev \
     zip \
     unzip \
     git \
+    cron \
     && docker-php-ext-configure intl \
     && docker-php-ext-install pdo_mysql gd zip intl
 
-# 2. Enable Apache mod_rewrite (Required for Laravel/PHP Frameworks)
+# 2. Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# 3. Update Apache DocumentRoot to point to /public
+# 3. Update Apache DocumentRoot
 ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 
-# Set working directory to the standard Apache location
 WORKDIR /var/www/html
 
 # Install Composer
@@ -41,13 +42,20 @@ COPY --from=assets /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions for Laravel
+# 4. Set up the Cron Job using the absolute path /usr/local/bin/php
+# We also define the PATH inside the cron file for maximum compatibility
+RUN printf "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n* * * * * www-data /usr/local/bin/php /var/www/html/artisan queue:work --stop-when-empty >> /var/www/html/storage/logs/cron.log 2>&1\n" > /etc/cron.d/laravel-cron
+
+# 5. Set correct permissions for the cron file
+RUN chmod 0644 /etc/cron.d/laravel-cron
+
+# 6. Prepare startup script to run Cron and Apache
+RUN printf "#!/bin/bash\nservice cron start\napache2-foreground" > /usr/local/bin/start-app.sh
+RUN chmod +x /usr/local/bin/start-app.sh
+
+# 7. Final Permissions setup
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# 4. Correct Ports and Startup
-# Apache listens on 80. Your Ansible maps VM:8081 to Container:80.
 EXPOSE 80
 
-# REMOVED CMD ["php-fpm"] 
-# Apache base images automatically start the web server; overriding it 
-# with php-fpm would stop the web server from running.
+CMD ["/usr/local/bin/start-app.sh"]
