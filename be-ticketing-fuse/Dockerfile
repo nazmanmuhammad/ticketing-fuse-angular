@@ -3,14 +3,13 @@ FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-# COPY everything now so Vite can see resources/ and vite.config.js
 COPY . . 
 RUN npm run build
 
 # Stage 2: PHP Environment (Apache)
 FROM php:8.3-apache
 
-# 1. Install system dependencies + CRON + Required Libs for extensions
+# 1. Install system dependencies + CRON
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libzip-dev \
@@ -43,15 +42,18 @@ COPY --from=assets /app/public/build ./public/build
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# 4. Set up the Cron Job for the queue
-RUN echo "* * * * * www-data php /var/www/html/artisan queue:work --stop-when-empty >> /var/www/html/storage/logs/cron.log 2>&1" > /etc/cron.d/laravel-cron
+# 4. Set up the Cron Job using the absolute path /usr/local/bin/php
+# We also define the PATH inside the cron file for maximum compatibility
+RUN printf "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin\n* * * * * www-data /usr/local/bin/php /var/www/html/artisan queue:work --stop-when-empty >> /var/www/html/storage/logs/cron.log 2>&1\n" > /etc/cron.d/laravel-cron
+
+# 5. Set correct permissions for the cron file
 RUN chmod 0644 /etc/cron.d/laravel-cron
 
-# 5. Prepare startup script
+# 6. Prepare startup script to run Cron and Apache
 RUN printf "#!/bin/bash\nservice cron start\napache2-foreground" > /usr/local/bin/start-app.sh
 RUN chmod +x /usr/local/bin/start-app.sh
 
-# 6. Final Permissions setup
+# 7. Final Permissions setup
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
