@@ -11,14 +11,22 @@
         state: directory
         mode: '0755'
 
-    # NEW TASK: Ensure the host storage directory exists
     - name: Ensure host storage directory exists
       file:
-        path: "{{ host_storage_path }}"
+        path: "{{ item }}"
         state: directory
         mode: '0775'
-        owner: 33 # UID for www-data in many debian-based containers
+        owner: 33 # UID for www-data
         group: 33 # GID for www-data
+      with_items:
+        - "{{ host_storage_path }}"
+        - "{{ host_storage_path }}/app"
+        - "{{ host_storage_path }}/app/public"
+        - "{{ host_storage_path }}/framework"
+        - "{{ host_storage_path }}/framework/cache"
+        - "{{ host_storage_path }}/framework/sessions"
+        - "{{ host_storage_path }}/framework/views"
+        - "{{ host_storage_path }}/logs"
 
     - name: Deploy .env file with correct permissions
       copy:
