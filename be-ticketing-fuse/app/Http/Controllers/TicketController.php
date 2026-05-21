@@ -402,9 +402,9 @@ class TicketController extends Controller
     public function store(Request $request)
     {
         // Validate created_by
-        $request->validate([
-            'created_by' => 'required|exists:users,id',
-        ]);
+        // $request->validate([
+        //     'created_by' => 'required|exists:users,id',
+        // ]);
 
         $data = $request->all();
 
