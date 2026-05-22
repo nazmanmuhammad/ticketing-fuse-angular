@@ -47,10 +47,10 @@ class CommentFeedbackMail extends Mailable
     public function content(): Content
     {
         $appSettings = \App\Models\AppSetting::first();
-        $appUrl = config('app.url', 'http://localhost');
+        $logoArchiveUrl = config('app.logo_from_archive_url', 'https://archive.sigconnect.co.id/nazman');
         $hrisPhotoUrl = config('app.hris_photo_url', 'http://localhost');
 
-        \Log::info($appUrl);
+        \Log::info($logoArchiveUrl);
         
         return new Content(
             view: 'emails.comment-feedback',
@@ -61,8 +61,8 @@ class CommentFeedbackMail extends Mailable
                 'allComments' => $this->allComments,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
-                'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
-                'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
+                'logoUrl' => $logoArchiveUrl . '/helpdesk-logo-white.png',
+                'sigLogoUrl' => $logoArchiveUrl . '/logo-sig.png',
                 'hrisPhotoUrl' => $hrisPhotoUrl,
             ],
         );

@@ -30,15 +30,15 @@ class AccessRequestTeamAssignedMail extends Mailable
     public function build()
     {
         $appName = $this->appSettings->app_name ?? 'WorkDesk';
-        $appUrl = config('app.url', 'http://localhost');
+        $logoArchiveUrl = config('app.logo_from_archive_url', 'https://archive.sigconnect.co.id/nazman');
         
         return $this->subject('Access Request Assigned to Team - ' . $this->accessRequest->request_number)
                     ->view('emails.access-request-team-assigned')
                     ->with([
                         'accessRequest' => $this->accessRequest,
                         'appSettings' => $this->appSettings,
-                        'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
-                        'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
+                        'logoUrl' => $logoArchiveUrl . '/helpdesk-logo-white.png',
+                        'sigLogoUrl' => $logoArchiveUrl . '/logo-sig.png',
                     ]);
     }
 }

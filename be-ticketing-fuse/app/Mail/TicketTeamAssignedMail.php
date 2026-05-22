@@ -44,7 +44,7 @@ class TicketTeamAssignedMail extends Mailable
     public function content(): Content
     {
         $appSettings = \App\Models\AppSetting::first();
-        $appUrl = config('app.url', 'http://localhost');
+        $logoArchiveUrl = config('app.logo_from_archive_url', 'https://archive.sigconnect.co.id/nazman');
         $hrisPhotoUrl = config('app.hris_photo_url', 'http://localhost');
         
         return new Content(
@@ -54,8 +54,8 @@ class TicketTeamAssignedMail extends Mailable
                 'teamMember' => $this->teamMember,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
-                'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
-                'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
+                'logoUrl' => $logoArchiveUrl . '/helpdesk-logo-white.png',
+                'sigLogoUrl' => $logoArchiveUrl . '/logo-sig.png',
                 'hrisPhotoUrl' => $hrisPhotoUrl,
             ],
         );

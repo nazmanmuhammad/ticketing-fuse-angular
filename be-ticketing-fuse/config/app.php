@@ -54,6 +54,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // Logo for Email
+    'logo_from_archive_url' => env('LOGO_FROM_ARCHIVE_URL', 'https://archive.sigconnect.co.id/nazman'),
+
     /*
     |--------------------------------------------------------------------------
     | Frontend Application URL

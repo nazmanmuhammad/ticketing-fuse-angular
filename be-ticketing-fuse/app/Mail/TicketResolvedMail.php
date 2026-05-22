@@ -43,7 +43,7 @@ class TicketResolvedMail extends Mailable
     public function content(): Content
     {
         $appSettings = \App\Models\AppSetting::first();
-        $appUrl = config('app.url', 'http://localhost');
+        $logoArchiveUrl = config('app.logo_from_archive_url', 'https://archive.sigconnect.co.id/nazman');
         
         return new Content(
             view: 'emails.ticket-resolved',
@@ -51,8 +51,8 @@ class TicketResolvedMail extends Mailable
                 'ticket' => $this->ticket,
                 'recipientName' => $this->recipientName,
                 'appSettings' => $appSettings,
-                'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
-                'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
+                'logoUrl' => $logoArchiveUrl . '/helpdesk-logo-white.png',
+                'sigLogoUrl' => $logoArchiveUrl . '/logo-sig.png',
             ],
         );
     }
