@@ -505,8 +505,7 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
         const hrisApiUrl =
             (globalThis as any)?.__env?.HRIS_API_URL ||
             (globalThis as any)?.process?.env?.HRIS_API_URL ||
-            (globalThis as any)?.HRIS_API_URL ||
-            'https://back.siglab.co.id';
+            (globalThis as any)?.HRIS_API_URL;
         return hrisApiUrl.replace(/\/$/, '').replace(/\/api$/, '');
     }
 

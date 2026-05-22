@@ -108,14 +108,12 @@ export class CreateAccessRequestComponent implements OnInit, OnDestroy {
     private readonly backendApiUrl: string =
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
-        (globalThis as any)?.API_URL ||
-        'https://ticket-api.siglab.site/api';
+        (globalThis as any)?.API_URL;
 
     private readonly hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
-        (globalThis as any)?.HRIS_API_URL ||
-        'https://back.siglab.co.id';
+        (globalThis as any)?.HRIS_API_URL;
 
     private readonly employeeApiUrl: string;
     private readonly employeePhotoBaseUrl: string;

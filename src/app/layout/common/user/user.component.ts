@@ -42,8 +42,7 @@ export class UserComponent implements OnInit, OnDestroy {
     private readonly _hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
-        (globalThis as any)?.HRIS_API_URL ||
-        'https://back.siglab.co.id';
+        (globalThis as any)?.HRIS_API_URL;
 
     private _unsubscribeAll: Subject<any> = new Subject<any>();
 

@@ -45,6 +45,7 @@ class TicketTeamAssignedMail extends Mailable
     {
         $appSettings = \App\Models\AppSetting::first();
         $appUrl = config('app.url', 'http://localhost');
+        $hrisPhotoUrl = config('app.hris_photo_url', 'http://localhost');
         
         return new Content(
             view: 'emails.ticket-team-assigned',
@@ -55,6 +56,7 @@ class TicketTeamAssignedMail extends Mailable
                 'appSettings' => $appSettings,
                 'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
                 'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
+                'hrisPhotoUrl' => $hrisPhotoUrl,
             ],
         );
     }

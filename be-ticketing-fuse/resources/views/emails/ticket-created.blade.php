@@ -68,9 +68,13 @@
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
                                                             <td style="padding-right: 8px; vertical-align: middle;">
-                                                                <div style="width: 28px; height: 28px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">
-                                                                    {{ strtoupper(substr($ticket->name, 0, 2)) }}
-                                                                </div>
+                                                                @if($ticket->requester && $ticket->requester->photo)
+                                                                    <img src="{{ $hrisPhotoUrl }}/assets/img/user/{{ $ticket->requester->photo }}" alt="{{ $ticket->name }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; display: block;" />
+                                                                @else
+                                                                    <div style="width: 28px; height: 28px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">
+                                                                        {{ strtoupper(substr($ticket->name, 0, 2)) }}
+                                                                    </div>
+                                                                @endif
                                                             </td>
                                                             <td style="vertical-align: middle;">
                                                                 <div style="font-weight: 600; color: #1f2937;">{{ $ticket->name }}</div>

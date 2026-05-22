@@ -223,7 +223,9 @@ export class UserTicketEditComponent implements OnInit {
     }
 
     getAttachmentUrl(attachment: any): string {
-        const backendUrl = 'https://ticket-api.siglab.site';
+        const backendUrl = (globalThis as any)?.__env?.API_URL ||
+            (globalThis as any)?.process?.env?.API_URL ||
+            (globalThis as any)?.API_URL;
         return `${backendUrl}/storage/${attachment.path.replace('public/', '')}`;
     }
 

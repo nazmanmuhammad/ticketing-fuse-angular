@@ -69,6 +69,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | HRIS Photo Base URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used to generate links to user photos from HRIS system.
+    | Photos are typically stored at {HRIS_PHOTO_URL}/assets/img/user/{photo}
+    |
+    */
+
+    'hris_photo_url' => env('HRIS_PHOTO_URL', 'http://localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |
@@ -78,7 +90,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => 'Asia/Jakarta',
 
     /*
     |--------------------------------------------------------------------------

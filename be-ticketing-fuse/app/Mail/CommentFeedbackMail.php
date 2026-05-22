@@ -48,6 +48,9 @@ class CommentFeedbackMail extends Mailable
     {
         $appSettings = \App\Models\AppSetting::first();
         $appUrl = config('app.url', 'http://localhost');
+        $hrisPhotoUrl = config('app.hris_photo_url', 'http://localhost');
+
+        \Log::info($appUrl);
         
         return new Content(
             view: 'emails.comment-feedback',
@@ -60,6 +63,7 @@ class CommentFeedbackMail extends Mailable
                 'appSettings' => $appSettings,
                 'logoUrl' => $appUrl . '/logo/helpdesk-logo-white.png',
                 'sigLogoUrl' => $appUrl . '/logo/logo-sig.png',
+                'hrisPhotoUrl' => $hrisPhotoUrl,
             ],
         );
     }

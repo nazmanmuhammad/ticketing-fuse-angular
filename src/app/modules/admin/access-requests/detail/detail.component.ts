@@ -87,8 +87,7 @@ export class AccessRequestDetailComponent implements OnInit, AfterViewInit {
     private readonly _hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
-        (globalThis as any)?.HRIS_API_URL ||
-        'https://back.siglab.co.id';
+        (globalThis as any)?.HRIS_API_URL;
 
     constructor(
         private route: ActivatedRoute,
@@ -104,14 +103,12 @@ export class AccessRequestDetailComponent implements OnInit, AfterViewInit {
         this.backendApiUrl =
             (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
-            (globalThis as any)?.API_URL ||
-            'https://ticket-api.siglab.site/api';
+            (globalThis as any)?.API_URL;
 
         this.hrisApiUrl =
             (globalThis as any)?.__env?.HRIS_API_URL ||
             (globalThis as any)?.process?.env?.HRIS_API_URL ||
-            (globalThis as any)?.HRIS_API_URL ||
-            'https://back.siglab.co.id';
+            (globalThis as any)?.HRIS_API_URL;
     }
 
     ngOnInit(): void {

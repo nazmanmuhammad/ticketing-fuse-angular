@@ -47,9 +47,13 @@
                                                     <table cellpadding="0" cellspacing="0">
                                                         <tr>
                                                             <td style="padding-right: 8px; vertical-align: middle;">
-                                                                <div style="width: 32px; height: 32px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
-                                                                    {{ strtoupper(substr($comment['user']['name'] ?? 'User', 0, 2)) }}
-                                                                </div>
+                                                                @if(isset($comment['user']['photo']) && $comment['user']['photo'])
+                                                                    <img src="{{ $hrisPhotoUrl }}/assets/img/user/{{ $comment['user']['photo'] }}" alt="{{ $comment['user']['name'] ?? 'User' }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block;" />
+                                                                @else
+                                                                    <div style="width: 32px; height: 32px; background-color: #0E0F6B; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
+                                                                        {{ strtoupper(substr($comment['user']['name'] ?? 'User', 0, 2)) }}
+                                                                    </div>
+                                                                @endif
                                                             </td>
                                                             <td style="vertical-align: middle;">
                                                                 <div style="font-weight: 700; color: #1f2937; font-size: 15px; margin-bottom: 2px;">{{ $comment['user']['name'] ?? 'User' }}</div>
@@ -113,6 +117,104 @@
                                     </td>
                                 </tr>
                             </table>
+
+                            <!-- Comment History Section -->
+                            @if(!empty($allComments) && count($allComments) > 0)
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom: 25px;">
+                                <tr>
+                                    <td>
+                                        <h3 style="margin: 0 0 15px 0; font-size: 16px; font-weight: 700; color: #1f2937;">Comment History ({{ count($allComments) }})</h3>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            @foreach($allComments as $historyComment)
+                            <!-- Parent Comment -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 12px;">
+                                <tr>
+                                    <td style="padding: 15px;">
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td>
+                                                    <table cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="padding-right: 10px; vertical-align: middle;">
+                                                                @if(isset($historyComment['user']['photo']) && $historyComment['user']['photo'])
+                                                                    <img src="{{ $hrisPhotoUrl }}/assets/img/user/{{ $historyComment['user']['photo'] }}" alt="{{ $historyComment['user']['name'] ?? 'User' }}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover; display: block;" />
+                                                                @else
+                                                                    <div style="width: 32px; height: 32px; background-color: #6b7280; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">
+                                                                        {{ strtoupper(substr($historyComment['user']['name'] ?? 'User', 0, 2)) }}
+                                                                    </div>
+                                                                @endif
+                                                            </td>
+                                                            <td style="vertical-align: middle;">
+                                                                <div style="font-weight: 600; color: #1f2937; font-size: 14px; margin-bottom: 2px;">
+                                                                    {{ $historyComment['user']['name'] ?? 'User' }}
+                                                                    @if($historyComment['id'] == $comment['id'])
+                                                                        <span style="background-color: #0E0F6B; color: #ffffff; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 6px;">NEW</span>
+                                                                    @endif
+                                                                </div>
+                                                                <div style="font-size: 11px; color: #9ca3af;">{{ \Carbon\Carbon::parse($historyComment['created_at'])->format('d M Y, H:i') }} WIB</div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                        <div style="font-size: 13px; color: #374151; line-height: 1.6; margin-top: 10px; margin-left: 42px;">
+                                            {{ $historyComment['comment'] }}
+                                        </div>
+
+                                        <!-- Replies (Tree Structure) -->
+                                        @if(!empty($historyComment['replies']) && count($historyComment['replies']) > 0)
+                                            <div style="margin-top: 15px; margin-left: 20px; border-left: 2px solid #d1d5db; padding-left: 0;">
+                                                @foreach($historyComment['replies'] as $index => $reply)
+                                                <div style="position: relative; margin-bottom: {{ $index < count($historyComment['replies']) - 1 ? '12px' : '0' }};">
+                                                    <!-- Tree connector line -->
+                                                    <div style="position: absolute; left: 0; top: 16px; width: 20px; height: 2px; background-color: #d1d5db;"></div>
+                                                    
+                                                    <div style="margin-left: 20px; padding: 12px; background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 6px;">
+                                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                                            <tr>
+                                                                <td>
+                                                                    <table cellpadding="0" cellspacing="0">
+                                                                        <tr>
+                                                                            <td style="padding-right: 8px; vertical-align: middle;">
+                                                                                @if(isset($reply['user']['photo']) && $reply['user']['photo'])
+                                                                                    <img src="{{ $hrisPhotoUrl }}/assets/img/user/{{ $reply['user']['photo'] }}" alt="{{ $reply['user']['name'] ?? 'User' }}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover; display: block;" />
+                                                                                @else
+                                                                                    <div style="width: 28px; height: 28px; background-color: #9ca3af; color: #ffffff; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">
+                                                                                        {{ strtoupper(substr($reply['user']['name'] ?? 'User', 0, 2)) }}
+                                                                                    </div>
+                                                                                @endif
+                                                                            </td>
+                                                                            <td style="vertical-align: middle;">
+                                                                                <div style="font-weight: 600; color: #1f2937; font-size: 13px; margin-bottom: 2px;">
+                                                                                    {{ $reply['user']['name'] ?? 'User' }}
+                                                                                    @if($reply['id'] == $comment['id'])
+                                                                                        <span style="background-color: #0E0F6B; color: #ffffff; padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; margin-left: 6px;">NEW</span>
+                                                                                    @endif
+                                                                                </div>
+                                                                                <div style="font-size: 10px; color: #9ca3af;">{{ \Carbon\Carbon::parse($reply['created_at'])->format('d M Y, H:i') }} WIB</div>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                        <div style="font-size: 13px; color: #374151; line-height: 1.6; margin-top: 8px; margin-left: 36px;">
+                                                            {{ $reply['comment'] }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            </table>
+                            @endforeach
+                            @endif
 
                             <!-- Button -->
                             <table width="100%" cellpadding="0" cellspacing="0">
