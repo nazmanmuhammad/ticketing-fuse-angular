@@ -225,7 +225,8 @@ export class UserTicketEditComponent implements OnInit {
     getAttachmentUrl(attachment: any): string {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
-            (globalThis as any)?.API_URL;
+            (globalThis as any)?.API_URL ||
+            'http://127.0.0.1:9010/api';
         return `${backendUrl}/storage/${attachment.path.replace('public/', '')}`;
     }
 
