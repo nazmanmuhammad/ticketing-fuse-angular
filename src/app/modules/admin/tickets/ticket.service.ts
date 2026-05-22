@@ -61,7 +61,7 @@ export class TicketService {
             (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'http://127.0.0.1:9010/api';
+            'https://ticket-api.siglab.site/api';
     }
 
     /**

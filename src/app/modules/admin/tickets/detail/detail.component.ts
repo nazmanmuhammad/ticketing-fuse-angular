@@ -124,7 +124,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
             (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'http://127.0.0.1:9010/api';
+            'https://ticket-api.siglab.site/api';
 
         this.hrisApiUrl =
             (globalThis as any)?.__env?.HRIS_API_URL ||
@@ -526,7 +526,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'http://127.0.0.1:9010/api';
+            'https://ticket-api.siglab.site/api';
         
         const baseUrl = backendUrl.replace(/\/api$/, '');
         return `${baseUrl}/storage/${cleanPath}`;
@@ -540,7 +540,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'http://127.0.0.1:9010/api';
+            'https://ticket-api.siglab.site/api';
         
         // For preview, use storage URL
         const baseUrl = backendUrl.replace(/\/api$/, '');
@@ -551,7 +551,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'http://127.0.0.1:9010/api';
+            'https://ticket-api.siglab.site/api';
         
         return `${backendUrl}/attachments/${attachmentId}/view`;
     }
@@ -560,7 +560,7 @@ export class DetailComponent implements OnInit, AfterViewInit {
         const backendUrl = (globalThis as any)?.__env?.API_URL ||
             (globalThis as any)?.process?.env?.API_URL ||
             (globalThis as any)?.API_URL ||
-            'http://127.0.0.1:9010/api';
+            'https://ticket-api.siglab.site/api';
         
         return `${backendUrl}/attachments/${attachmentId}/download`;
     }

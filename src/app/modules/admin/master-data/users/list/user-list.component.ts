@@ -83,7 +83,7 @@ export class UserListComponent implements OnInit {
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
         (globalThis as any)?.API_URL ||
-        'http://127.0.0.1:9010/api';
+        'https://ticket-api.siglab.site/api';
     private readonly _hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
