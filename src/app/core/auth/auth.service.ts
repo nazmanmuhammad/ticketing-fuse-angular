@@ -12,11 +12,13 @@ export class AuthService {
     private _apiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
-        (globalThis as any)?.HRIS_API_URL;
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
     private _backendApiUrl: string =
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
-        (globalThis as any)?.API_URL;
+        (globalThis as any)?.API_URL ||
+        'https://ticket-api.siglab.site/api';
 
     // -----------------------------------------------------------------------------------------------------
     // @ Accessors

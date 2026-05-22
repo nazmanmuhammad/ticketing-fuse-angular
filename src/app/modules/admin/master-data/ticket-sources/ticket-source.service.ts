@@ -8,7 +8,8 @@ export class TicketSourceService {
     private readonly _backendApiUrl: string =
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
-        (globalThis as any)?.API_URL;
+        (globalThis as any)?.API_URL ||
+        'http://127.0.0.1:9010/api';
 
     constructor(private _httpClient: HttpClient) {}
 

@@ -97,12 +97,14 @@ export class CreateComponent implements OnInit, OnDestroy {
     private readonly backendApiUrl: string =
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
-        (globalThis as any)?.API_URL;
+        (globalThis as any)?.API_URL ||
+        'http://127.0.0.1:9010/api';
 
     private readonly hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
-        (globalThis as any)?.HRIS_API_URL;
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
 
     private readonly employeeApiUrl: string;
     private readonly employeePhotoBaseUrl: string;

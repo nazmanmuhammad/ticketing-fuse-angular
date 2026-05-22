@@ -86,11 +86,13 @@ export class TeamListComponent implements OnInit {
     private readonly _backendApiUrl: string =
         (globalThis as any)?.__env?.API_URL ||
         (globalThis as any)?.process?.env?.API_URL ||
-        (globalThis as any)?.API_URL;
+        (globalThis as any)?.API_URL ||
+        'http://127.0.0.1:9010/api';
     private readonly _hrisApiUrl: string =
         (globalThis as any)?.__env?.HRIS_API_URL ||
         (globalThis as any)?.process?.env?.HRIS_API_URL ||
-        (globalThis as any)?.HRIS_API_URL;
+        (globalThis as any)?.HRIS_API_URL ||
+        'https://back.siglab.co.id';
 
     constructor(
         private _httpClient: HttpClient,
