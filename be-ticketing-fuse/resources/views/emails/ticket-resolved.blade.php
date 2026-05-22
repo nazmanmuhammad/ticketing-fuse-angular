@@ -10,15 +10,10 @@
         <tr>
             <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <!-- Header with Bubbles -->
+                    <!-- Header -->
                     <tr>
-                        <td style="background-color: #0E0F6B; padding: 40px 30px; color: #ffffff; position: relative; overflow: hidden;">
-                            <!-- Decorative Bubbles -->
-                            <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background-color: rgba(255,255,255,0.05); border-radius: 50%;"></div>
-                            <div style="position: absolute; top: 50px; right: 100px; width: 150px; height: 150px; background-color: rgba(255,255,255,0.08); border-radius: 50%;"></div>
-                            <div style="position: absolute; bottom: -30px; right: 50px; width: 100px; height: 100px; background-color: rgba(255,255,255,0.06); border-radius: 50%;"></div>
-                            
-                            <table width="100%" cellpadding="0" cellspacing="0" style="position: relative; z-index: 1;">
+                        <td style="background-color: #0E0F6B; padding: 40px 30px; color: #ffffff;">
+                            <table width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td>
                                         <img src="{{ $logoUrl }}" alt="{{ $appSettings->app_name ?? 'Helpdesk' }}" style="height: 40px; display: block; margin-bottom: 20px;" />
