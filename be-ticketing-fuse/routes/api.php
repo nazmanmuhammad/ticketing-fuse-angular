@@ -65,4 +65,5 @@ Route::post('approvals/{id}/cancel', [ApprovalController::class, 'cancel']);
 // Access Request routes
 Route::get('access-requests/counts', [AccessRequestController::class, 'counts']);
 Route::get('access-requests/statistics', [AccessRequestController::class, 'statistics']);
+Route::post('access-requests/{id}/claim', [AccessRequestController::class, 'claimAccessRequest']);
 Route::resource('access-requests', AccessRequestController::class);

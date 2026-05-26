@@ -212,4 +212,12 @@ export class AccessRequestService {
 
         return this._httpClient.get<any>(url, { params: httpParams });
     }
+
+    /**
+     * Claim a team access request
+     */
+    claimAccessRequest(accessRequestId: string, userId: string): Observable<any> {
+        const url = `${this.apiUrl}/access-requests/${accessRequestId}/claim`;
+        return this._httpClient.post<any>(url, { user_id: userId });
+    }
 }

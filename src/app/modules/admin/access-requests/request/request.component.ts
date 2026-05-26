@@ -555,4 +555,65 @@ export class AccessRequestListComponent implements OnInit, OnDestroy {
     onAction(request: AccessRequest): void {
         this.router.navigate(['/access-requests/detail', request.id]);
     }
+
+    // Check if user can claim a team access request
+    canClaimAccessRequest(request: AccessRequest): boolean {
+        if (!this.currentUser || !request) {
+            return false;
+        }
+
+        // Can only claim if:
+        // 1. Request is assigned to a team (assign_status === 'team')
+        // 2. No technical is assigned yet (pic_technical_id === null)
+        // 3. Request is not rejected or approved
+        // 4. User is Technical role (backend will validate team membership)
+        const canClaim = (
+            request.assign_status === 'team' &&
+            !request.pic_technical_id &&
+            request.status === 0 && // Only pending requests
+            (this.currentUser.role === 2 || this.currentUser.role === 3) // Technical or Agent
+        );
+
+        return canClaim;
+    }
+
+    // Claim a team access request
+    claimAccessRequest(request: AccessRequest): void {
+        if (!this.currentUser || !this.currentUser.id) {
+            this._snackbar.error('User not authenticated');
+            return;
+        }
+
+        this._confirmDialog
+            .confirm({
+                title: 'Claim Access Request',
+                message: `Are you sure you want to claim access request "${request.resource_name}"? You will become the technical person responsible for this request.`,
+                confirmText: 'Yes, Claim It',
+                cancelText: 'Cancel',
+                type: 'info'
+            })
+            .pipe(
+                switchMap((confirmed) => {
+                    if (confirmed) {
+                        return this._accessRequestService.claimAccessRequest(request.id, this.currentUser.id).pipe(
+                            catchError((error) => {
+                                console.error('Error claiming access request:', error);
+                                const errorMessage = error?.error?.message || 'Failed to claim access request';
+                                this._snackbar.error(errorMessage);
+                                return of(null);
+                            })
+                        );
+                    }
+                    return of(null);
+                }),
+                takeUntil(this.destroy$)
+            )
+            .subscribe((response) => {
+                if (response && response.status) {
+                    this._snackbar.success('Access request claimed successfully! You are now the technical person for this request.');
+                    this.loadAccessRequests();
+                    this.loadStatistics();
+                }
+            });
+    }
 }

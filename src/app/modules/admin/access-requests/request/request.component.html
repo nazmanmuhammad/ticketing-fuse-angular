@@ -477,6 +477,20 @@
                                             </div>
                                         </div>
                                     </div>
+                                    
+                                    <!-- Assign to Me Button (Inline) -->
+                                    <button
+                                        *ngIf="canClaimAccessRequest(r)"
+                                        (click)="claimAccessRequest(r); $event.stopPropagation()"
+                                        class="flex h-8 items-center gap-1.5 rounded-lg border border-purple-300 bg-purple-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-purple-700 hover:shadow-md whitespace-nowrap flex-shrink-0"
+                                        matTooltip="Claim this access request"
+                                        matTooltipPosition="above"
+                                    >
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        <span>Assign to Me</span>
+                                    </button>
                                 </div>
                                 
                                 <!-- Individual Assignment (with team info if exists) -->

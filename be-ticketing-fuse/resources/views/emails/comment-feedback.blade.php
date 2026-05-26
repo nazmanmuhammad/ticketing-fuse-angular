@@ -62,6 +62,32 @@
                                         <div style="font-size: 14px; color: #4b5563; line-height: 1.7; padding: 12px; background: #fff; border-radius: 4px; margin-top: 12px;">
                                             {{ $comment['comment'] }}
                                         </div>
+
+                                        <!-- Attachments for new comment -->
+                                        @if(!empty($comment['attachments']) && count($comment['attachments']) > 0)
+                                        <div style="margin-top: 12px; padding: 12px; background: #f3f4f6; border-radius: 4px;">
+                                            <div style="font-size: 12px; color: #6b7280; font-weight: 600; margin-bottom: 8px; text-transform: uppercase;">📎 Attachments ({{ count($comment['attachments']) }})</div>
+                                            @foreach($comment['attachments'] as $attachment)
+                                            <div style="display: table; width: 100%; padding: 8px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 4px; margin-bottom: 6px;">
+                                                <table width="100%" cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td style="width: 24px; vertical-align: middle;">
+                                                            @if(\Illuminate\Support\Str::startsWith($attachment['mime'], 'image/'))
+                                                            <span style="font-size: 18px;">🖼️</span>
+                                                            @else
+                                                            <span style="font-size: 18px;">📄</span>
+                                                            @endif
+                                                        </td>
+                                                        <td style="padding-left: 8px; vertical-align: middle;">
+                                                            <div style="font-size: 13px; color: #1f2937; font-weight: 500;">{{ $attachment['name'] }}</div>
+                                                            <div style="font-size: 11px; color: #9ca3af;">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        @endif
                                     </td>
                                 </tr>
                             </table>
@@ -160,6 +186,32 @@
                                             {{ $historyComment['comment'] }}
                                         </div>
 
+                                        <!-- Attachments for history comment -->
+                                        @if(!empty($historyComment['attachments']) && count($historyComment['attachments']) > 0)
+                                        <div style="margin-top: 10px; margin-left: 42px; padding: 10px; background: #f9fafb; border-radius: 4px;">
+                                            <div style="font-size: 11px; color: #6b7280; font-weight: 600; margin-bottom: 6px;">📎 {{ count($historyComment['attachments']) }} file(s)</div>
+                                            @foreach($historyComment['attachments'] as $attachment)
+                                            <div style="padding: 6px 8px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 3px; margin-bottom: 4px;">
+                                                <table width="100%" cellpadding="0" cellspacing="0">
+                                                    <tr>
+                                                        <td style="width: 20px; vertical-align: middle;">
+                                                            @if(\Illuminate\Support\Str::startsWith($attachment['mime'], 'image/'))
+                                                            <span style="font-size: 14px;">🖼️</span>
+                                                            @else
+                                                            <span style="font-size: 14px;">📄</span>
+                                                            @endif
+                                                        </td>
+                                                        <td style="padding-left: 6px; vertical-align: middle;">
+                                                            <div style="font-size: 12px; color: #1f2937; font-weight: 500;">{{ $attachment['name'] }}</div>
+                                                            <div style="font-size: 10px; color: #9ca3af;">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        @endif
+
                                         <!-- Replies (Tree Structure) -->
                                         @if(!empty($historyComment['replies']) && count($historyComment['replies']) > 0)
                                             <div style="margin-top: 15px; margin-left: 20px; border-left: 2px solid #d1d5db; padding-left: 0;">
@@ -200,6 +252,32 @@
                                                         <div style="font-size: 13px; color: #374151; line-height: 1.6; margin-top: 8px; margin-left: 36px;">
                                                             {{ $reply['comment'] }}
                                                         </div>
+
+                                                        <!-- Attachments for reply -->
+                                                        @if(!empty($reply['attachments']) && count($reply['attachments']) > 0)
+                                                        <div style="margin-top: 8px; margin-left: 36px; padding: 8px; background: #f9fafb; border-radius: 4px;">
+                                                            <div style="font-size: 10px; color: #6b7280; font-weight: 600; margin-bottom: 4px;">📎 {{ count($reply['attachments']) }} file(s)</div>
+                                                            @foreach($reply['attachments'] as $attachment)
+                                                            <div style="padding: 4px 6px; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 3px; margin-bottom: 3px;">
+                                                                <table width="100%" cellpadding="0" cellspacing="0">
+                                                                    <tr>
+                                                                        <td style="width: 18px; vertical-align: middle;">
+                                                                            @if(\Illuminate\Support\Str::startsWith($attachment['mime'], 'image/'))
+                                                                            <span style="font-size: 12px;">🖼️</span>
+                                                                            @else
+                                                                            <span style="font-size: 12px;">📄</span>
+                                                                            @endif
+                                                                        </td>
+                                                                        <td style="padding-left: 4px; vertical-align: middle;">
+                                                                            <div style="font-size: 11px; color: #1f2937; font-weight: 500;">{{ $attachment['name'] }}</div>
+                                                                            <div style="font-size: 9px; color: #9ca3af;">{{ number_format($attachment['size'] / 1024, 2) }} KB</div>
+                                                                        </td>
+                                                                    </tr>
+                                                                </table>
+                                                            </div>
+                                                            @endforeach
+                                                        </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                                 @endforeach

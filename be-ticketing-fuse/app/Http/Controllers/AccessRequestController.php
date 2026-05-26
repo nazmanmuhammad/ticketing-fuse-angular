@@ -9,6 +9,7 @@ use App\Models\User;
 use App\UserRoleEnum;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class AccessRequestController extends Controller
 {
@@ -840,5 +841,87 @@ class AccessRequestController extends Controller
             'message' => 'Access request count retrieved successfully',
             'data' => $pendingCount,
         ]);
+    }
+
+    /**
+     * Claim a team access request
+     */
+    public function claimAccessRequest(Request $request, $id)
+    {
+        try {
+            $accessRequest = AccessRequest::with(['team', 'team.users'])->find($id);
+            
+            if (!$accessRequest) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Access request not found'
+                ], 404);
+            }
+            
+            // Validate that access request is not already claimed
+            if ($accessRequest->pic_technical_id) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'This access request has already been claimed by another team member'
+                ], 400);
+            }
+            
+            // Validate that access request is assigned to a team
+            if (!$accessRequest->team_id || $accessRequest->assign_status !== 'team') {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'This access request is not assigned to a team'
+                ], 400);
+            }
+            
+            $userId = $request->user_id;
+            
+            // Validate that user is a member of the team
+            $isTeamMember = $accessRequest->team->users()->where('users.id', $userId)->exists();
+            
+            if (!$isTeamMember) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'You are not a member of the assigned team'
+                ], 403);
+            }
+            
+            // Claim the access request
+            $accessRequest->pic_technical_id = $userId;
+            $accessRequest->assign_status = 'member';
+            $accessRequest->save();
+            
+            $user = User::find($userId);
+            
+            // Create activity track
+            AccessRequestTrack::create([
+                'access_request_id' => $accessRequest->id,
+                'user_id' => $userId,
+                'action' => 'claimed',
+                'description' => 'Access request claimed by ' . ($user ? $user->name : 'Unknown'),
+            ]);
+            
+            // Reload relationships for email
+            $accessRequest->load(['requester', 'picTechnical', 'team', 'department']);
+            
+            // Send notification to the user who claimed
+            if ($user && $user->email) {
+                \App\Mail\AccessRequestAssignedMail::dispatch($accessRequest);
+                Mail::to($user->email)->send(new \App\Mail\AccessRequestAssignedMail($accessRequest));
+            }
+            
+            return response()->json([
+                'status' => true,
+                'message' => 'Access request claimed successfully',
+                'data' => $accessRequest
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error claiming access request: ' . $e->getMessage());
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to claim access request: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
