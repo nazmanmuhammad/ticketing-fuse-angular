@@ -38,7 +38,7 @@ class SendAccessRequestNotification implements ShouldQueue
                 'requester',
                 'picTechnical',
                 'picHelpdesk',
-                'team.users',
+                'team',
                 'department'
             ])->find($this->accessRequestId);
 
@@ -69,7 +69,10 @@ class SendAccessRequestNotification implements ShouldQueue
 
             // 3. Send email to all team members if team is assigned
             if ($accessRequest->team_id && $accessRequest->team) {
-                $teamMembers = $accessRequest->team->users;
+                // Get all team members using TeamUser (same as ticket)
+                $teamMembers = \App\Models\TeamUser::where('team_id', $accessRequest->team_id)
+                    ->with('user')
+                    ->get();
                 
                 if ($teamMembers->count() > 0) {
                     Log::info('Sending access request team assigned email', [
@@ -78,9 +81,9 @@ class SendAccessRequestNotification implements ShouldQueue
                         'team_members_count' => $teamMembers->count()
                     ]);
                     
-                    foreach ($teamMembers as $member) {
-                        if ($member->email) {
-                            Mail::to($member->email)->send(new AccessRequestTeamAssignedMail($accessRequest));
+                    foreach ($teamMembers as $teamUser) {
+                        if ($teamUser->user && $teamUser->user->email) {
+                            Mail::to($teamUser->user->email)->send(new AccessRequestTeamAssignedMail($accessRequest, $teamUser->user));
                         }
                     }
                 }

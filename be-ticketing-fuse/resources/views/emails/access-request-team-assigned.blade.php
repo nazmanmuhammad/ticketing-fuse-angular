@@ -29,7 +29,7 @@
                     <tr>
                         <td style="padding: 30px;">
                             <p style="margin: 0 0 25px 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
-                                Hello <strong style="color: #1f2937;">Team Member</strong>, an access request has been assigned to your team. Team members can claim this request to work on it.
+                                Hello <strong style="color: #1f2937;">{{ $recipientName }}</strong>, an access request has been assigned to your team. Team members can claim this request to work on it.
                             </p>
 
                             <!-- Team Badge -->
