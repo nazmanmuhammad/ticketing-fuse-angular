@@ -1,4 +1,4 @@
-- hosts: helpdesk-fe
+- hosts: all-docker-2
   vars:
     image: ioez1984/helpdeskfe
 
@@ -24,14 +24,21 @@
         state: started
         restart_policy: always
         published_ports:
-        - 80:80
+        - 8086:80
         recreate: yes
+        # --- RESOURCE LIMITS ADDED HERE ---
+        memory: "2g"                  # Hard limit: Container will be killed if it exceeds 4GB
+        memory_reservation: "1g"      # Soft limit: Container is guaranteed at least 1GB
+        cpus: 2.0                     # CPU limit: Max 2 physical cores can be used by this container
+        # ---------------------------------
 
     - name: Remove dangling docker images
       docker_prune:
         images: yes
         images_filters:
           dangling: true
+      ignore_errors: yes
+      become: true
 
       ignore_errors: yes
       become: true
