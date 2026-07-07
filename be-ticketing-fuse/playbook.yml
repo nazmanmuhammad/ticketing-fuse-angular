@@ -39,7 +39,7 @@
         state: started
         restart_policy: always
         published_ports:
-          - "80:80"
+          - "8087:80"
         volumes:
           - "{{ remote_app_path }}/.env:/var/www/html/.env"
           # NEW VOLUME MOUNT: Persistent storage
