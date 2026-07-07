@@ -1,8 +1,8 @@
-- hosts: helpdesk-be
+- hosts: all-docker-2
   vars:
     image: ioez1984/helpdeskbe:latest
-    remote_app_path: /opt/helpdesk-backend
-    host_storage_path: /mnt/storage # The host path you requested
+    remote_app_path: /mnt/helpdesk-backend/env
+    host_storage_path: /mnt/helpdesk-backend/storage # The host path you requested
 
   tasks:
     - name: Ensure application directory exists
@@ -45,7 +45,12 @@
           # NEW VOLUME MOUNT: Persistent storage
           - "{{ host_storage_path }}:/var/www/html/storage"
         recreate: yes
-
+        # --- RESOURCE LIMITS ADDED HERE ---
+        memory: "2g"                  # Hard limit: Container will be killed if it exceeds 4GB
+        memory_reservation: "1g"      # Soft limit: Container is guaranteed at least 1GB
+        cpus: 2.0                     # CPU limit: Max 2 physical cores can be used by this container
+        # ---------------------------------
+        
     - name: Force internal ownership and clear cache
       command: "docker exec -u root helpdesk-byjenkins {{ item }}"
       with_items:
